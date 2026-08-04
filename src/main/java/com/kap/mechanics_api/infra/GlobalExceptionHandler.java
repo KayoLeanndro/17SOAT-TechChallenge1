@@ -1,0 +1,43 @@
+package com.kap.mechanics_api.infra;
+
+import com.kap.mechanics_api.exception.NenhumCampoInformadoException;
+import com.kap.mechanics_api.exception.VeiculoNaoEncontradoException;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ProblemDetail;
+import org.springframework.validation.FieldError;
+import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
+
+import java.util.Map;
+import java.util.stream.Collectors;
+
+@RestControllerAdvice
+public class GlobalExceptionHandler {
+
+    @ExceptionHandler(VeiculoNaoEncontradoException.class)
+    public ProblemDetail lancarExcecaoVeiculoNaoEncontrado(VeiculoNaoEncontradoException ex){
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, ex.getMessage());
+        problemDetail.setTitle("Veículo não encontrado");
+        return problemDetail;
+    }
+
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ProblemDetail handleValidationException(MethodArgumentNotValidException ex) {
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(
+                HttpStatus.BAD_REQUEST, "Erro de validação");
+        Map<String, String> erros = ex.getBindingResult().getFieldErrors().stream()
+                .collect(Collectors.toMap(FieldError::getField, FieldError::getDefaultMessage, (a, b) -> a));
+        problemDetail.setProperty("erros", erros);
+        return problemDetail;
+    }
+
+    @ExceptionHandler(NenhumCampoInformadoException.class)
+    public ProblemDetail handleNenhumCampoInformado(NenhumCampoInformadoException ex) {
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(
+                HttpStatus.BAD_REQUEST, ex.getMessage());
+        problemDetail.setTitle("Nenhum campo informado");
+        problemDetail.setProperty("camposDisponiveis", ex.getCamposDisponiveis());
+        return problemDetail;
+    }
+}
