@@ -1,4 +1,4 @@
-package com.kap.mechanics_api.dto;
+package com.kap.mechanics_api.dto.veiculo;
 
 public record AtualizacaoVeiculoResponseDTO() {
 }

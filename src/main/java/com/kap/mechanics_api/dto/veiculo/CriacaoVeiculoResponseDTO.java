@@ -1,6 +1,4 @@
-package com.kap.mechanics_api.dto;
-
-import jakarta.validation.constraints.NotBlank;
+package com.kap.mechanics_api.dto.veiculo;
 
 public record CriacaoVeiculoResponseDTO(
         Integer id,

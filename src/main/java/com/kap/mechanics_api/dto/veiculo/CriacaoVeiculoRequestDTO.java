@@ -1,9 +1,8 @@
-package com.kap.mechanics_api.dto;
+package com.kap.mechanics_api.dto.veiculo;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
-
 public record CriacaoVeiculoRequestDTO(
 
         @Pattern(
