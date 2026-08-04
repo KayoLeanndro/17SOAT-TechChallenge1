@@ -1,7 +1,6 @@
 package com.kap.mechanics_api.controller;
 
-import com.kap.mechanics_api.domain.Veiculo;
-import com.kap.mechanics_api.dto.*;
+import com.kap.mechanics_api.dto.veiculo.*;
 import com.kap.mechanics_api.service.VeiculoService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;

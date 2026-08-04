@@ -1,10 +1,10 @@
 package com.kap.mechanics_api.mapper;
 
 import com.kap.mechanics_api.domain.Veiculo;
-import com.kap.mechanics_api.dto.AtualizacaoVeiculoResponseDTO;
-import com.kap.mechanics_api.dto.CriacaoVeiculoRequestDTO;
-import com.kap.mechanics_api.dto.CriacaoVeiculoResponseDTO;
-import com.kap.mechanics_api.dto.ListagemVeiculoResponseDTO;
+import com.kap.mechanics_api.dto.veiculo.AtualizacaoVeiculoResponseDTO;
+import com.kap.mechanics_api.dto.veiculo.CriacaoVeiculoRequestDTO;
+import com.kap.mechanics_api.dto.veiculo.CriacaoVeiculoResponseDTO;
+import com.kap.mechanics_api.dto.veiculo.ListagemVeiculoResponseDTO;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 

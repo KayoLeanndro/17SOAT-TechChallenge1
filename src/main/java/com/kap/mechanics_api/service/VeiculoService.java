@@ -2,7 +2,7 @@ package com.kap.mechanics_api.service;
 
 
 import com.kap.mechanics_api.domain.Veiculo;
-import com.kap.mechanics_api.dto.*;
+import com.kap.mechanics_api.dto.veiculo.*;
 import com.kap.mechanics_api.exception.NenhumCampoInformadoException;
 import com.kap.mechanics_api.exception.VeiculoNaoEncontradoException;
 import com.kap.mechanics_api.mapper.VeiculoMapper;
@@ -11,10 +11,8 @@ import jakarta.validation.Valid;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 
 @Service
 public class VeiculoService {
