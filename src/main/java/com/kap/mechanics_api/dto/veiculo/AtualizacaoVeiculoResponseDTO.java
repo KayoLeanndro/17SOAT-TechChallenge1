@@ -1,4 +1,10 @@
 package com.kap.mechanics_api.dto.veiculo;
 
-public record AtualizacaoVeiculoResponseDTO() {
+public record AtualizacaoVeiculoResponseDTO(
+        Integer id,
+        String placa,
+        String marca,
+        String modelo,
+        int ano
+) {
 }

@@ -2,11 +2,12 @@ package com.kap.mechanics_api.dto.veiculo;
 
 public record AtualizacaoVeiculoRequestDTO(
         String placa,
-        Integer ano,
-        String marca
+        String marca,
+        String modelo,
+        Integer ano
 ) {
 
     public boolean temAoMenosUmCampoPreenchido() {
-        return placa != null || ano != null || marca != null;
+        return placa != null || ano != null || marca != null || modelo != null;
     }
 }

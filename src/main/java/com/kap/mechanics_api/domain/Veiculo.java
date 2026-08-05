@@ -1,8 +1,6 @@
 package com.kap.mechanics_api.domain;
 
-import com.kap.mechanics_api.dto.CriacaoVeiculoRequestDTO;
 import jakarta.persistence.*;
-import jakarta.validation.Valid;
 
 import java.time.LocalDateTime;
 
@@ -28,6 +26,19 @@ public class Veiculo {
 
     @Column(name = "data_criacao", nullable = false)
     private LocalDateTime dataCriacao;
+
+    public Veiculo(){
+        super();
+    }
+
+    public Veiculo(Integer id, String placa, String marca, String modelo, Integer ano) {
+        this.id = id;
+        this.placa = placa;
+        this.marca = marca;
+        this.modelo = modelo;
+        this.ano = ano;
+        this.dataCriacao = LocalDateTime.now();
+    }
 
     public Integer getId() {
         return id;

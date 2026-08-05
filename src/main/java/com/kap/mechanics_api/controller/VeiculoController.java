@@ -46,8 +46,8 @@ public class VeiculoController {
     }
 
     @PutMapping
-    public ResponseEntity<AtualizacaoVeiculoResponseDTO> atualizar(@RequestBody AtualizacaoVeiculoRequestDTO dto, @PathVariable String id){
-        return null;
+    public ResponseEntity<AtualizacaoVeiculoResponseDTO> atualizar(@RequestBody AtualizacaoVeiculoRequestDTO dto, @PathVariable Integer id){
+        return ResponseEntity.ok(veiculoService.atualizar(dto, id));
     }
 
 }

@@ -68,7 +68,12 @@ public class VeiculoService {
         }
 
         if(StringUtils.hasText(dto.marca())){
-            veiculo.setModelo(dto.marca());
+            veiculo.setMarca(dto.marca());
+        }
+
+
+        if(StringUtils.hasText(dto.modelo())){
+            veiculo.setModelo(dto.modelo());
         }
 
         Veiculo veiculoAlterado = veiculoRepository.save(veiculo);
