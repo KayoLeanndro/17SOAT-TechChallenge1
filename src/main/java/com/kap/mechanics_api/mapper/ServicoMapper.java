@@ -2,13 +2,11 @@ package com.kap.mechanics_api.mapper;
 
 
 import com.kap.mechanics_api.domain.Servico;
-import com.kap.mechanics_api.dto.servico.AtualizacaoServicoResponseDTO;
-import com.kap.mechanics_api.dto.servico.CriacaoServicoRequestDTO;
-import com.kap.mechanics_api.dto.servico.CriacaoServicoResponseDTO;
-import com.kap.mechanics_api.dto.servico.ListagemServicoResponseDTO;
+import com.kap.mechanics_api.dto.servico.*;
 import jakarta.validation.Valid;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
+import org.mapstruct.MappingTarget;
 
 import java.util.List;
 
@@ -21,6 +19,10 @@ public interface ServicoMapper {
     List<ListagemServicoResponseDTO> toListagemDto(List<Servico> servicos);
     ListagemServicoResponseDTO toListagemServicoResponseDto(Servico servico);
     AtualizacaoServicoResponseDTO toAtualizacaoServicoResponseDto(Servico servico);
+    void atualizarServico(
+            AtualizacaoServicoRequestDTO dto,
+            @MappingTarget Servico servico
+    );
 
 
 }

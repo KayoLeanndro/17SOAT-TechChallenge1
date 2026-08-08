@@ -7,7 +7,6 @@ import com.kap.mechanics_api.exception.NenhumCampoInformadoException;
 import com.kap.mechanics_api.exception.ServicoNaoEncontradoException;
 import com.kap.mechanics_api.mapper.ServicoMapper;
 import com.kap.mechanics_api.repository.ServicoRepository;
-import jakarta.validation.Valid;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -26,8 +25,7 @@ public class ServicoService {
         this.servicoMapper = servicoMapper;
     }
 
-    public CriacaoServicoResponseDTO cadastrar(
-            @Valid CriacaoServicoRequestDTO dto) {
+    public CriacaoServicoResponseDTO cadastrar(CriacaoServicoRequestDTO dto) {
 
         Servico servico = servicoMapper.toEntity(dto);
 
@@ -71,6 +69,8 @@ public class ServicoService {
         }
 
         Servico servico = pesquisarPorId(id);
+
+        servicoMapper.atualizarServico(dto, servico);
 
         Servico servicoAlterado = servicoRepository.save(servico);
 

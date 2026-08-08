@@ -1,10 +1,11 @@
 package com.kap.mechanics_api.dto.servico;
 
+import java.math.BigDecimal;
+
 public record ListagemServicoResponseDTO(
-        Integer id,
         String nome,
         String descricao,
-        String valorMaoDeObra,
+        BigDecimal valorMaoDeObra,
         Integer tempoEstimadoMin,
         Boolean ativo
 ) {

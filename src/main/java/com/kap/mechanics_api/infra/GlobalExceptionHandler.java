@@ -4,6 +4,7 @@ import com.kap.mechanics_api.exception.NenhumCampoInformadoException;
 import com.kap.mechanics_api.exception.VeiculoNaoEncontradoException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -38,6 +39,21 @@ public class GlobalExceptionHandler {
                 HttpStatus.BAD_REQUEST, ex.getMessage());
         problemDetail.setTitle("Nenhum campo informado");
         problemDetail.setProperty("camposDisponiveis", ex.getCamposDisponiveis());
+        return problemDetail;
+    }
+
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ProblemDetail handleJsonInvalido(
+            HttpMessageNotReadableException ex) {
+
+        ProblemDetail problemDetail =
+                ProblemDetail.forStatusAndDetail(
+                        HttpStatus.BAD_REQUEST,
+                        "O corpo da requisição contém um campo com valor inválido."
+                );
+
+        problemDetail.setTitle("Requisição inválida");
+
         return problemDetail;
     }
 }
