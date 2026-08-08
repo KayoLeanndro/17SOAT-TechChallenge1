@@ -1,6 +1,8 @@
 package com.kap.mechanics_api.veiculo;
 
 import com.kap.mechanics_api.domain.Veiculo;
+import com.kap.mechanics_api.exception.NenhumCampoInformadoException;
+import com.kap.mechanics_api.exception.VeiculoNaoEncontradoException;
 import com.kap.mechanics_api.mapper.VeiculoMapper;
 import com.kap.mechanics_api.repository.VeiculoRepository;
 import com.kap.mechanics_api.service.VeiculoService;
@@ -16,11 +18,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 public class VeiculoServiceTest {
@@ -168,6 +168,39 @@ public class VeiculoServiceTest {
         verify(veiculoRepository).findById(1);
         verify(veiculoMapper).toAtualizacaoVeiculoResponseDto(veiculoAlterado);
         verify(veiculoRepository).save(veiculo);
+    }
+
+    @Test
+    void deveRetornarExceptionCasoVeiculoNaoExista(){
+
+        //Arrange
+        Veiculo veiculo = new Veiculo(1, "ABC1234", "Honda", "Civic", 2020);
+        when(veiculoRepository.findById(1)).thenReturn(Optional.empty());
+
+        //act
+        VeiculoNaoEncontradoException exception = assertThrows(VeiculoNaoEncontradoException.class, () -> veiculoService.buscarPorId(1));
+
+        //assert
+        assertEquals("Veiculo nao encontrado com o id 1", exception.getMessage());
+        verify(veiculoRepository).findById(1);
+    }
+
+    @Test
+    void deveRetornarExceptionQuandoNaoInformadoNenhumParametroParaAtualizacao(){
+
+        //arrange
+        AtualizacaoVeiculoRequestDTO dto = new AtualizacaoVeiculoRequestDTO("", "", "", null);
+
+        //act
+        NenhumCampoInformadoException exception = assertThrows(
+                NenhumCampoInformadoException.class,
+                () -> veiculoService.atualizar(dto, 1)
+        );
+
+        //assertion
+        assertEquals("Nenhum campo foi informado para atualização", exception.getMessage());
+        verifyNoInteractions(veiculoRepository);
+
     }
 
 
