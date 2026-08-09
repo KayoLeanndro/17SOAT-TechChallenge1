@@ -2,6 +2,8 @@ package com.kap.mechanics_api.domain;
 
 import jakarta.persistence.*;
 
+import java.math.BigDecimal;
+
 @Entity
 @Table(name = "servico")
 public class Servico {
@@ -17,7 +19,7 @@ public class Servico {
     private String descricao;
 
     @Column(name = "valor_mao_obra", nullable = false)
-    private Integer valorMaoDeObra;
+    private BigDecimal valorMaoDeObra;
 
     @Column(name = "tempoEstimadoMin", nullable = false)
     private Integer tempoEstimadoMin;
@@ -29,7 +31,7 @@ public class Servico {
 
     }
 
-    public Servico(String nome, String descricao, Integer valorMaoDeObra, Integer tempoEstimadoMin, boolean ativo) {
+    public Servico(String nome, String descricao, BigDecimal valorMaoDeObra, Integer tempoEstimadoMin, boolean ativo) {
         this.nome = nome;
         this.descricao = descricao;
         this.valorMaoDeObra = valorMaoDeObra;
@@ -57,11 +59,11 @@ public class Servico {
         this.descricao = descricao;
     }
 
-    public Integer getValorMaoDeObra() {
+    public BigDecimal getValorMaoDeObra() {
         return valorMaoDeObra;
     }
 
-    public void setValorMaoDeObra(Integer valorMaoDeObra) {
+    public void setValorMaoDeObra(BigDecimal valorMaoDeObra) {
         this.valorMaoDeObra = valorMaoDeObra;
     }
 

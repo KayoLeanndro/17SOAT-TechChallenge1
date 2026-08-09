@@ -1,9 +1,13 @@
 package com.kap.mechanics_api.infra;
 
 import com.kap.mechanics_api.exception.NenhumCampoInformadoException;
+import com.kap.mechanics_api.exception.InsumoNaoEncontradoException;
+import com.kap.mechanics_api.exception.PecaNaoEncontradaException;
+import com.kap.mechanics_api.exception.ServicoNaoEncontradoException;
 import com.kap.mechanics_api.exception.VeiculoNaoEncontradoException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -19,6 +23,27 @@ public class GlobalExceptionHandler {
     public ProblemDetail lancarExcecaoVeiculoNaoEncontrado(VeiculoNaoEncontradoException ex){
         ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, ex.getMessage());
         problemDetail.setTitle("Veículo não encontrado");
+        return problemDetail;
+    }
+
+    @ExceptionHandler(ServicoNaoEncontradoException.class)
+    public ProblemDetail lancarExcecaoPecaNaoEncontrada(ServicoNaoEncontradoException ex) {
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, ex.getMessage());
+        problemDetail.setTitle("Servico não encontrado");
+        return problemDetail;
+    }
+
+    @ExceptionHandler(PecaNaoEncontradaException.class)
+    public ProblemDetail lancarExcecaoPecaNaoEncontrada(PecaNaoEncontradaException ex) {
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, ex.getMessage());
+        problemDetail.setTitle("Peça não encontrada");
+        return problemDetail;
+    }
+
+    @ExceptionHandler(InsumoNaoEncontradoException.class)
+    public ProblemDetail lancarExcecaoInsumoNaoEncontrado(InsumoNaoEncontradoException ex) {
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, ex.getMessage());
+        problemDetail.setTitle("Insumo não encontrado");
         return problemDetail;
     }
 
@@ -38,6 +63,21 @@ public class GlobalExceptionHandler {
                 HttpStatus.BAD_REQUEST, ex.getMessage());
         problemDetail.setTitle("Nenhum campo informado");
         problemDetail.setProperty("camposDisponiveis", ex.getCamposDisponiveis());
+        return problemDetail;
+    }
+
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ProblemDetail handleJsonInvalido(
+            HttpMessageNotReadableException ex) {
+
+        ProblemDetail problemDetail =
+                ProblemDetail.forStatusAndDetail(
+                        HttpStatus.BAD_REQUEST,
+                        "O corpo da requisição contém um campo com valor inválido."
+                );
+
+        problemDetail.setTitle("Requisição inválida");
+
         return problemDetail;
     }
 }

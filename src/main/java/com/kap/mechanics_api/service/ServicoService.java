@@ -2,13 +2,12 @@ package com.kap.mechanics_api.service;
 
 import com.kap.mechanics_api.domain.Servico;
 import com.kap.mechanics_api.dto.servico.*;
-import com.kap.mechanics_api.dto.veiculo.*;
 import com.kap.mechanics_api.exception.NenhumCampoInformadoException;
 import com.kap.mechanics_api.exception.ServicoNaoEncontradoException;
 import com.kap.mechanics_api.mapper.ServicoMapper;
 import com.kap.mechanics_api.repository.ServicoRepository;
-import jakarta.validation.Valid;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 import java.util.List;
 
@@ -26,8 +25,7 @@ public class ServicoService {
         this.servicoMapper = servicoMapper;
     }
 
-    public CriacaoServicoResponseDTO cadastrar(
-            @Valid CriacaoServicoRequestDTO dto) {
+    public ServicoResponseDTO cadastrar(CriacaoServicoRequestDTO dto) {
 
         Servico servico = servicoMapper.toEntity(dto);
 
@@ -36,7 +34,7 @@ public class ServicoService {
         return servicoMapper.toResponseDto(servico);
     }
 
-    public List<ListagemServicoResponseDTO> listar() {
+    public List<ServicoResponseDTO> listar() {
 
         return servicoMapper.toListagemDto(
                 servicoRepository.findAll());
@@ -48,7 +46,7 @@ public class ServicoService {
                 .orElseThrow(() -> new ServicoNaoEncontradoException(id));
     }
 
-    public ListagemServicoResponseDTO buscarPorId(Integer id) {
+    public ServicoResponseDTO buscarPorId(Integer id) {
 
         return servicoMapper.toListagemServicoResponseDto(
                 pesquisarPorId(id));
@@ -61,7 +59,7 @@ public class ServicoService {
         servicoRepository.delete(servico);
     }
 
-    public AtualizacaoServicoResponseDTO atualizar(
+    public ServicoResponseDTO atualizar(
             AtualizacaoServicoRequestDTO dto,
             Integer id) {
 
@@ -71,6 +69,26 @@ public class ServicoService {
         }
 
         Servico servico = pesquisarPorId(id);
+
+        if (StringUtils.hasText(dto.nome())) {
+            servico.setNome(dto.nome());
+        }
+
+        if (StringUtils.hasText(dto.descricao())) {
+            servico.setDescricao(dto.descricao());
+        }
+
+        if (dto.valorMaoDeObra() != null) {
+            servico.setValorMaoDeObra(dto.valorMaoDeObra());
+        }
+
+        if (dto.tempoEstimadoMin() != null) {
+            servico.setTempoEstimadoMin(dto.tempoEstimadoMin());
+        }
+
+        if (dto.ativo() != null) {
+            servico.setAtivo(dto.ativo());
+        }
 
         Servico servicoAlterado = servicoRepository.save(servico);
 

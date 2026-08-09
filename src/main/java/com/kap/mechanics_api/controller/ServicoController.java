@@ -1,6 +1,7 @@
 package com.kap.mechanics_api.controller;
 
 import com.kap.mechanics_api.documentation.ServicoControllerDoc;
+import com.kap.mechanics_api.dto.peca.PecaResponseDTO;
 import com.kap.mechanics_api.dto.servico.*;
 import com.kap.mechanics_api.service.ServicoService;
 import jakarta.validation.Valid;
@@ -11,7 +12,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/servicos")
+@RequestMapping("/api/servico")
 public class ServicoController implements ServicoControllerDoc {
 
     private final ServicoService servicoService;
@@ -22,10 +23,10 @@ public class ServicoController implements ServicoControllerDoc {
 
     @Override
     @PostMapping
-    public ResponseEntity<CriacaoServicoResponseDTO> cadastrar(
+    public ResponseEntity<ServicoResponseDTO> cadastrar(
             @Valid @RequestBody CriacaoServicoRequestDTO dto) {
 
-        CriacaoServicoResponseDTO response = servicoService.cadastrar(dto);
+        ServicoResponseDTO response = servicoService.cadastrar(dto);
 
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(response);
@@ -33,14 +34,14 @@ public class ServicoController implements ServicoControllerDoc {
 
     @Override
     @GetMapping
-    public ResponseEntity<List<ListagemServicoResponseDTO>> listar() {
+    public ResponseEntity<List<ServicoResponseDTO>> listar() {
 
         return ResponseEntity.ok(servicoService.listar());
     }
 
     @Override
     @GetMapping("/{id}")
-    public ResponseEntity<ListagemServicoResponseDTO> buscarPorId(
+    public ResponseEntity<ServicoResponseDTO> buscarPorId(
             @PathVariable Integer id) {
 
         return ResponseEntity.ok(servicoService.buscarPorId(id));
@@ -48,7 +49,7 @@ public class ServicoController implements ServicoControllerDoc {
 
     @Override
     @PatchMapping("/{id}")
-    public ResponseEntity<AtualizacaoServicoResponseDTO> atualizar(
+    public ResponseEntity<ServicoResponseDTO> atualizar(
             @Valid @RequestBody AtualizacaoServicoRequestDTO dto,
             @PathVariable Integer id) {
 
