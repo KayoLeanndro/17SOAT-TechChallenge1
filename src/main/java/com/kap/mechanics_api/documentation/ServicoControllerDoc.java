@@ -1,10 +1,8 @@
 package com.kap.mechanics_api.documentation;
 
 import com.kap.mechanics_api.dto.servico.AtualizacaoServicoRequestDTO;
-import com.kap.mechanics_api.dto.servico.AtualizacaoServicoResponseDTO;
 import com.kap.mechanics_api.dto.servico.CriacaoServicoRequestDTO;
-import com.kap.mechanics_api.dto.servico.CriacaoServicoResponseDTO;
-import com.kap.mechanics_api.dto.servico.ListagemServicoResponseDTO;
+import com.kap.mechanics_api.dto.servico.ServicoResponseDTO;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -22,7 +20,7 @@ public interface ServicoControllerDoc {
             @ApiResponse(responseCode = "201", description = "Serviço cadastrado com sucesso"),
             @ApiResponse(responseCode = "400", description = "Dados inválidos")
     })
-    ResponseEntity<CriacaoServicoResponseDTO> cadastrar(
+    ResponseEntity<ServicoResponseDTO> cadastrar(
             @Valid @RequestBody CriacaoServicoRequestDTO dto
     );
 
@@ -30,14 +28,14 @@ public interface ServicoControllerDoc {
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Lista de serviços retornada com sucesso")
     })
-    ResponseEntity<List<ListagemServicoResponseDTO>> listar();
+    ResponseEntity<List<ServicoResponseDTO>> listar();
 
     @Operation(summary = "Buscar serviço por ID")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Serviço encontrado"),
             @ApiResponse(responseCode = "404", description = "Serviço não encontrado")
     })
-    ResponseEntity<ListagemServicoResponseDTO> buscarPorId(
+    ResponseEntity<ServicoResponseDTO> buscarPorId(
             @PathVariable Integer id
     );
 
@@ -47,7 +45,7 @@ public interface ServicoControllerDoc {
             @ApiResponse(responseCode = "400", description = "Nenhum campo informado"),
             @ApiResponse(responseCode = "404", description = "Serviço não encontrado")
     })
-    ResponseEntity<AtualizacaoServicoResponseDTO> atualizar(
+    ResponseEntity<ServicoResponseDTO> atualizar(
             @Valid @RequestBody AtualizacaoServicoRequestDTO dto,
             @PathVariable Integer id
     );

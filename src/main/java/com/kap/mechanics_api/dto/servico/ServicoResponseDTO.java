@@ -2,7 +2,7 @@ package com.kap.mechanics_api.dto.servico;
 
 import java.math.BigDecimal;
 
-public record AtualizacaoServicoResponseDTO(
+public record ServicoResponseDTO(
         String nome,
         String descricao,
         BigDecimal valorMaoDeObra,
