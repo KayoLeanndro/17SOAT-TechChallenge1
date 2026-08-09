@@ -1,5 +1,7 @@
 package com.kap.mechanics_api.dto.veiculo;
 
+import org.springframework.util.StringUtils;
+
 public record AtualizacaoVeiculoRequestDTO(
         String placa,
         String marca,
@@ -8,6 +10,6 @@ public record AtualizacaoVeiculoRequestDTO(
 ) {
 
     public boolean temAoMenosUmCampoPreenchido() {
-        return placa != null || ano != null || marca != null || modelo != null;
+        return StringUtils.hasText(placa) || ano != null || StringUtils.hasText(marca)  || StringUtils.hasText(modelo);
     }
 }
