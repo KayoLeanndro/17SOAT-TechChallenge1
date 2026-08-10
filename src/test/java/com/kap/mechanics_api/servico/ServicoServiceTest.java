@@ -1,202 +1,67 @@
 package com.kap.mechanics_api.servico;
 
-import com.kap.mechanics_api.controller.ServicoController;
-import com.kap.mechanics_api.dto.servico.*;
+import com.kap.mechanics_api.domain.Servico;
+import com.kap.mechanics_api.dto.servico.AtualizacaoServicoRequestDTO;
+import com.kap.mechanics_api.dto.servico.ServicoResponseDTO;
+import com.kap.mechanics_api.exception.NenhumCampoInformadoException;
+import com.kap.mechanics_api.exception.ServicoNaoEncontradoException;
+import com.kap.mechanics_api.mapper.ServicoMapper;
+import com.kap.mechanics_api.repository.ServicoRepository;
 import com.kap.mechanics_api.service.ServicoService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.http.ResponseEntity;
 
 import java.math.BigDecimal;
-import java.util.List;
+import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-class ServicoControllerTest {
-
-    @Mock
-    private ServicoService servicoService;
-
-    @InjectMocks
-    private ServicoController servicoController;
-
+class ServicoServiceTest {
+    @Mock private ServicoRepository repository;
+    @Mock private ServicoMapper mapper;
+    @InjectMocks private ServicoService service;
 
     @Test
-    void deveCadastrarServico() {
+    void deveRetornarErroQuandoServicoNaoExiste() {
+        when(repository.findById(99)).thenReturn(Optional.empty());
 
-        // Arrange
-        CriacaoServicoRequestDTO request =
-                new CriacaoServicoRequestDTO(
-                        "Troca de óleo",
-                        "Troca de óleo do motor",
-                        BigDecimal.valueOf(150),
-                        60,
-                        true
-                );
-
-        CriacaoServicoResponseDTO response =
-                new CriacaoServicoResponseDTO(
-                        1,
-                        "Troca de óleo",
-                        "Troca de óleo do motor",
-                        BigDecimal.valueOf(150),
-                        60,
-                        true
-                );
-
-        when(servicoService.cadastrar(any(CriacaoServicoRequestDTO.class)))
-                .thenReturn(response);
-
-        // Act
-        ResponseEntity<CriacaoServicoResponseDTO> result =
-                servicoController.cadastrar(request);
-
-        // Assert
-        assertEquals(201, result.getStatusCode().value());
-        assertEquals(response, result.getBody());
-
-        verify(servicoService, times(1))
-                .cadastrar(request);
+        assertThrows(ServicoNaoEncontradoException.class, () -> service.buscarPorId(99));
     }
 
-
     @Test
-    void deveListarServicos() {
+    void deveAtualizarSomenteValorDaMaoDeObra() {
+        Servico entidade = new Servico("Alinhamento", "Descrição", new BigDecimal("100.00"), 60, true);
+        AtualizacaoServicoRequestDTO request = new AtualizacaoServicoRequestDTO(null, null, new BigDecimal("120.00"), null, null);
+        ServicoResponseDTO response = new ServicoResponseDTO("Alinhamento", "Descrição", new BigDecimal("120.00"), 60, true);
+        when(repository.findById(1)).thenReturn(Optional.of(entidade));
+        when(repository.save(entidade)).thenReturn(entidade);
+        when(mapper.toAtualizacaoServicoResponseDto(entidade)).thenReturn(response);
 
-        // Arrange
-        List<ListagemServicoResponseDTO> response = List.of(
-                new ListagemServicoResponseDTO(
-                        "Troca de óleo",
-                        "Troca de óleo do motor",
-                        BigDecimal.valueOf(150),
-                        60,
-                        true
-                ),
-                new ListagemServicoResponseDTO(
-                        "Alinhamento",
-                        "Alinhamento e balanceamento",
-                        BigDecimal.valueOf(200),
-                        90,
-                        true
-                )
-        );
-
-        when(servicoService.listar())
-                .thenReturn(response);
-
-        // Act
-        ResponseEntity<List<ListagemServicoResponseDTO>> result =
-                servicoController.listar();
-
-        // Assert
-        assertEquals(200, result.getStatusCode().value());
-        assertEquals(response, result.getBody());
-
-        verify(servicoService, times(1))
-                .listar();
+        assertEquals(response, service.atualizar(request, 1));
+        assertEquals(new BigDecimal("120.00"), entidade.getValorMaoDeObra());
     }
 
-
     @Test
-    void deveBuscarServicoPorId() {
+    void deveRejeitarAtualizacaoSemCampos() {
+        AtualizacaoServicoRequestDTO request = new AtualizacaoServicoRequestDTO(null, null, null, null, null);
 
-        // Arrange
-        Integer id = 1;
-
-        ListagemServicoResponseDTO response =
-                new ListagemServicoResponseDTO(
-                        "Troca de óleo",
-                        "Troca de óleo do motor",
-                        BigDecimal.valueOf(150),
-                        60,
-                        true
-                );
-
-        when(servicoService.buscarPorId(id))
-                .thenReturn(response);
-
-        // Act
-        ResponseEntity<ListagemServicoResponseDTO> result =
-                servicoController.buscarPorId(id);
-
-        // Assert
-        assertEquals(200, result.getStatusCode().value());
-        assertEquals(response, result.getBody());
-
-        verify(servicoService, times(1))
-                .buscarPorId(id);
+        assertThrows(NenhumCampoInformadoException.class, () -> service.atualizar(request, 1));
     }
 
-
     @Test
-    void deveAtualizarServico() {
+    void deveExcluirServico() {
+        Servico entidade = new Servico("Alinhamento", "Descrição", BigDecimal.TEN, 60, true);
+        when(repository.findById(1)).thenReturn(Optional.of(entidade));
 
-        // Arrange
-        Integer id = 1;
+        service.deletar(1);
 
-        AtualizacaoServicoRequestDTO request =
-                new AtualizacaoServicoRequestDTO(
-                        "Troca de óleo premium",
-                        "Troca completa do óleo e filtro",
-                        BigDecimal.valueOf(200),
-                        90,
-                        true
-                );
-
-        AtualizacaoServicoResponseDTO response =
-                new AtualizacaoServicoResponseDTO(
-                        "Troca de óleo premium",
-                        "Troca completa do óleo e filtro",
-                        BigDecimal.valueOf(200),
-                        90,
-                        true
-                );
-
-        when(servicoService.atualizar(
-                any(AtualizacaoServicoRequestDTO.class),
-                eq(id)
-        )).thenReturn(response);
-
-        // Act
-        ResponseEntity<AtualizacaoServicoResponseDTO> result =
-                servicoController.atualizar(request, id);
-
-        // Assert
-        assertEquals(200, result.getStatusCode().value());
-        assertEquals(response, result.getBody());
-
-        verify(servicoService, times(1))
-                .atualizar(request, id);
-    }
-
-
-    @Test
-    void deveDeletarServico() {
-
-        // Arrange
-        Integer id = 1;
-
-        doNothing()
-                .when(servicoService)
-                .deletar(id);
-
-        // Act
-        ResponseEntity<Void> result =
-                servicoController.deletar(id);
-
-        // Assert
-        assertEquals(204, result.getStatusCode().value());
-        assertNull(result.getBody());
-
-        verify(servicoService, times(1))
-                .deletar(id);
+        verify(repository).delete(entidade);
     }
 }
-
