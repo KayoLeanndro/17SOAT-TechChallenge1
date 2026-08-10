@@ -2,10 +2,7 @@ package com.kap.mechanics_api.mapper;
 
 
 import com.kap.mechanics_api.domain.Servico;
-import com.kap.mechanics_api.dto.servico.AtualizacaoServicoResponseDTO;
-import com.kap.mechanics_api.dto.servico.CriacaoServicoRequestDTO;
-import com.kap.mechanics_api.dto.servico.CriacaoServicoResponseDTO;
-import com.kap.mechanics_api.dto.servico.ListagemServicoResponseDTO;
+import com.kap.mechanics_api.dto.servico.*;
 import jakarta.validation.Valid;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -17,12 +14,10 @@ public interface ServicoMapper {
 
     @Mapping(target = "id", ignore = true)
     Servico toEntity(@Valid CriacaoServicoRequestDTO dto);
-    CriacaoServicoResponseDTO toResponseDto(Servico servico);
-    List<ListagemServicoResponseDTO> toListagemDto(List<Servico> servicos);
-    ListagemServicoResponseDTO toListagemServicoResponseDto(Servico servico);
-    AtualizacaoServicoResponseDTO toAtualizacaoServicoResponseDto(Servico servico);
-
-
+    ServicoResponseDTO toResponseDto(Servico servico);
+    List<ServicoResponseDTO> toListagemDto(List<Servico> servicos);
+    ServicoResponseDTO toListagemServicoResponseDto(Servico servico);
+    ServicoResponseDTO toAtualizacaoServicoResponseDto(Servico servico);
 }
 
 
