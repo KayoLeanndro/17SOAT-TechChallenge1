@@ -42,7 +42,7 @@ class ServicoServiceTest {
         ServicoResponseDTO response = new ServicoResponseDTO("Alinhamento", "Descrição", new BigDecimal("120.00"), 60, true);
         when(repository.findById(1)).thenReturn(Optional.of(entidade));
         when(repository.save(entidade)).thenReturn(entidade);
-        when(mapper.toAtualizacaoServicoResponseDto(entidade)).thenReturn(response);
+        when(mapper.toResponseDto(entidade)).thenReturn(response);
 
         assertEquals(response, service.atualizar(request, 1));
         assertEquals(new BigDecimal("120.00"), entidade.getValorMaoDeObra());
