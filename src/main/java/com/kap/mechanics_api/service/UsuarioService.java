@@ -43,11 +43,11 @@ public class UsuarioService {
 
     public AtualizacaoUsuarioResponseDTO atualizar(Integer id, AtualizacaoUsuarioRequestDTO dto) {
 
-        Usuario usuario = buscarPorId(id);
-
         if(!dto.temAoMenosUmCampoPreenchido()){
             throw new NenhumCampoInformadoException(dto.getClass());
         }
+
+        Usuario usuario = buscarPorId(id);
 
         if(StringUtils.hasText(dto.nome())){
             usuario.setNome(dto.nome());
