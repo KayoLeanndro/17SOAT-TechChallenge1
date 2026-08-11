@@ -1,10 +1,6 @@
 package com.kap.mechanics_api.infra;
 
-import com.kap.mechanics_api.exception.NenhumCampoInformadoException;
-import com.kap.mechanics_api.exception.InsumoNaoEncontradoException;
-import com.kap.mechanics_api.exception.PecaNaoEncontradaException;
-import com.kap.mechanics_api.exception.ServicoNaoEncontradoException;
-import com.kap.mechanics_api.exception.VeiculoNaoEncontradoException;
+import com.kap.mechanics_api.exception.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -78,6 +74,13 @@ public class GlobalExceptionHandler {
 
         problemDetail.setTitle("Requisição inválida");
 
+        return problemDetail;
+    }
+
+    @ExceptionHandler(UsuarioNaoEncontradoException.class)
+    public ProblemDetail lancarExcecaoUsuarioNaoEncontrado(UsuarioNaoEncontradoException ex){
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, ex.getMessage());
+        problemDetail.setTitle("Usuario não encontrado");
         return problemDetail;
     }
 }

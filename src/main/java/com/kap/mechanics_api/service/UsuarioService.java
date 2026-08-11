@@ -44,7 +44,7 @@ public class UsuarioService {
     public AtualizacaoUsuarioResponseDTO atualizar(Integer id, AtualizacaoUsuarioRequestDTO dto) {
 
         if(!dto.temAoMenosUmCampoPreenchido()){
-            throw new NenhumCampoInformadoException(dto.getClass());
+            throw new NenhumCampoInformadoException(AtualizacaoUsuarioRequestDTO.class);
         }
 
         Usuario usuario = buscarPorId(id);
