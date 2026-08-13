@@ -39,7 +39,7 @@ public class Usuario {
     @Column(nullable = false, name = "tipo")
     private TipoUsuario tipo;
 
-    @Column(name = "dataCriacao", nullable = false)
+    @Column(name = "data_criacao", nullable = false)
     private LocalDateTime dataCriacao;
 
     public Usuario(){}

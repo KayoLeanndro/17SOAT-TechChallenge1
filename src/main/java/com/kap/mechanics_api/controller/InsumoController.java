@@ -6,6 +6,7 @@ import com.kap.mechanics_api.dto.insumo.InsumoResponseDTO;
 import com.kap.mechanics_api.service.InsumoService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -20,6 +21,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/insumos")
+@PreAuthorize("hasAnyRole('ADMIN', 'ESTOQUISTA')")
 public class InsumoController {
     private final InsumoService insumoService;
 

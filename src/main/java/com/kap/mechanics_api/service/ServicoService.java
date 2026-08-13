@@ -48,7 +48,7 @@ public class ServicoService {
 
     public ServicoResponseDTO buscarPorId(Integer id) {
 
-        return servicoMapper.toListagemServicoResponseDto(
+        return servicoMapper.toResponseDto(
                 pesquisarPorId(id));
     }
 
@@ -92,6 +92,6 @@ public class ServicoService {
 
         Servico servicoAlterado = servicoRepository.save(servico);
 
-        return servicoMapper.toAtualizacaoServicoResponseDto(servicoAlterado);
+        return servicoMapper.toResponseDto(servicoAlterado);
     }
 }

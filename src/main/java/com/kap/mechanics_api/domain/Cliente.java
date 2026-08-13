@@ -11,8 +11,8 @@ import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 
 @Entity
-@Table(name = "clientes")
-public class Clientes {
+@Table(name = "cliente")
+public class Cliente {
 	
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -86,7 +86,7 @@ public class Clientes {
 		this.dataCriacao = dataCriacao;
 	}
 
-	public Clientes(String nome, String cpfCnpj, String telefone, String email, LocalDateTime dataCriacao) {
+	public Cliente(String nome, String cpfCnpj, String telefone, String email, LocalDateTime dataCriacao) {
 		super();
 		this.nome = nome;
 		this.cpfCnpj = cpfCnpj;

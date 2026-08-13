@@ -14,10 +14,10 @@ public interface ServicoMapper {
 
     @Mapping(target = "id", ignore = true)
     Servico toEntity(@Valid CriacaoServicoRequestDTO dto);
+
     ServicoResponseDTO toResponseDto(Servico servico);
+
     List<ServicoResponseDTO> toListagemDto(List<Servico> servicos);
-    ServicoResponseDTO toListagemServicoResponseDto(Servico servico);
-    ServicoResponseDTO toAtualizacaoServicoResponseDto(Servico servico);
 }
 
 
