@@ -16,7 +16,11 @@ public record CriacaoClienteRequestDTO(
 			    regexp = "^\\d{10,11}$",
 			    message = "Telefone inválido. Informe DDD + número."
 		)
-		@NotBlank(message = "Informe o CPF ou CNPJ do cliente") 
+		@NotBlank(message = "Informe o telefone do cliente")
+		@Pattern(
+				regexp = "^(\\(?\\d{2}\\)?\\s?)?(9\\d{4}|\\d{4})-?\\d{4}$",
+				message = "Telefone inválido"
+		)
 		String telefone,
 		
 		@Email(message = "E-mail inválido") 

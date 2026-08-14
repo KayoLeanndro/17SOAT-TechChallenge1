@@ -17,7 +17,7 @@ public interface ClienteMapper {
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "dataCriacao", ignore = true)
     Cliente dtoToEntity(CriacaoClienteRequestDTO dto);
-    CriacaoClienteResponseDTO entityToDto(Cliente clientes);
+    CriacaoClienteResponseDTO entityToDto(Cliente cliente);
     
     List<ListagemClienteResponseDTO> listEntityToListDto (List<Cliente> cliente);
     ListagemClienteResponseDTO entityToListagemDto(Cliente cliente);
