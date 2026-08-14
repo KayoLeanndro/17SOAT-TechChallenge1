@@ -8,6 +8,7 @@ import com.kap.mechanics_api.exception.UsuarioNaoEncontradoException;
 import com.kap.mechanics_api.mapper.UsuarioMapper;
 import com.kap.mechanics_api.repository.UsuarioRepository;
 import jakarta.validation.Valid;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
@@ -18,14 +19,19 @@ public class UsuarioService {
 
     private final UsuarioMapper usuarioMapper;
     private final UsuarioRepository usuarioRepository;
+    private final PasswordEncoder passwordEncoder;
 
-    public UsuarioService(UsuarioMapper mapper, UsuarioRepository repository){
+    public UsuarioService(UsuarioMapper mapper,
+                          UsuarioRepository repository,
+                          PasswordEncoder passwordEncoder){
         this.usuarioMapper= mapper;
         this.usuarioRepository = repository;
+        this.passwordEncoder = passwordEncoder;
     }
 
     public CriacaoUsuarioResponseDTO cadastrar(CriacaoUsuarioRequestDTO dto) {
         Usuario usuario = usuarioMapper.toEntity(dto);
+        usuario.setSenhaHash(passwordEncoder.encode(dto.senha()));
         return usuarioMapper.toResponseDto(usuarioRepository.save(usuario));
     }
 
@@ -58,7 +64,7 @@ public class UsuarioService {
         }
 
         if(StringUtils.hasText(dto.senha())){
-            usuario.setSenhaHash(dto.senha());
+            usuario.setSenhaHash(passwordEncoder.encode(dto.senha()));
         }
 
         if(StringUtils.hasText(dto.tipo())){

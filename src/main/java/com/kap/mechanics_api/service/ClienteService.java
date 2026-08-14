@@ -3,11 +3,11 @@ package com.kap.mechanics_api.service;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import com.kap.mechanics_api.domain.Cliente;
+import com.kap.mechanics_api.mapper.ClienteMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
-import com.kap.mechanics_api.domain.Clientes;
-import com.kap.mechanics_api.domain.Veiculo;
 import com.kap.mechanics_api.dto.cliente.AtualizacaoClienteRequestDTO;
 import com.kap.mechanics_api.dto.cliente.AtualizacaoClienteResponseDTO;
 import com.kap.mechanics_api.dto.cliente.CriacaoClienteRequestDTO;
@@ -15,47 +15,46 @@ import com.kap.mechanics_api.dto.cliente.CriacaoClienteResponseDTO;
 import com.kap.mechanics_api.dto.cliente.ListagemClienteResponseDTO;
 import com.kap.mechanics_api.exception.ClienteNaoEncontradoException;
 import com.kap.mechanics_api.exception.NenhumCampoInformadoException;
-import com.kap.mechanics_api.mapper.ClientesMapper;
 import com.kap.mechanics_api.repository.ClienteRepository;
 
 @Service
 public class ClienteService {
 	
     private final ClienteRepository clienteRepository;
-    private final ClientesMapper clientesMapper;
+    private final ClienteMapper clienteMapper;
     
-    public ClienteService(ClienteRepository clienteRepository, ClientesMapper clientesMapper) {
+    public ClienteService(ClienteRepository clienteRepository, ClienteMapper clienteMapper) {
         this.clienteRepository = clienteRepository;
-        this.clientesMapper = clientesMapper;
+        this.clienteMapper = clienteMapper;
     }
 
     public CriacaoClienteResponseDTO salvar(CriacaoClienteRequestDTO clienteDTO) {
-    	
-    	Clientes clientes = clientesMapper.dtoToEntity(clienteDTO);
-    	clientes.setDataCriacao(LocalDateTime.now());
-    	clientes = clienteRepository.save(clientes);
-    	CriacaoClienteResponseDTO response = clientesMapper.entityToDto(clientes);
+
+        Cliente cliente = clienteMapper.dtoToEntity(clienteDTO);
+        cliente.setDataCriacao(LocalDateTime.now());
+        cliente = clienteRepository.save(cliente);
+    	CriacaoClienteResponseDTO response = clienteMapper.entityToDto(cliente);
     	
         return response;
     }
     
     public List<ListagemClienteResponseDTO> listar(){
-        List<Clientes> clientes = clienteRepository.findAll();
-        return clientesMapper.listEntityToListDto(clientes);
+        List<Cliente> cliente = clienteRepository.findAll();
+        return clienteMapper.listEntityToListDto(cliente);
     }
     
-    public Clientes pesquisarPorId(Integer id){
+    public Cliente pesquisarPorId(Integer id){
         return clienteRepository.findById(id).orElseThrow( () -> new ClienteNaoEncontradoException(id));
     }
 
     public ListagemClienteResponseDTO buscarPorId(Integer id){
-        Clientes clientes = pesquisarPorId(id);
-        return clientesMapper.entityToListagemDto(clientes);
+        Cliente cliente = pesquisarPorId(id);
+        return clienteMapper.entityToListagemDto(cliente);
     }
     
     public void deletar(Integer id) {
-    	Clientes clientes = pesquisarPorId(id);
-    	clienteRepository.delete(clientes);
+        Cliente cliente = pesquisarPorId(id);
+    	clienteRepository.delete(cliente);
     }
     
     public AtualizacaoClienteResponseDTO atualizar(AtualizacaoClienteRequestDTO dto, Integer id){
@@ -64,7 +63,7 @@ public class ClienteService {
             throw new NenhumCampoInformadoException(AtualizacaoClienteRequestDTO.class);
         }
 
-        Clientes cliente = pesquisarPorId(id);     
+        Cliente cliente = pesquisarPorId(id);
         
         if(StringUtils.hasText(dto.nome())){
         	cliente.setNome(dto.nome());
@@ -82,8 +81,8 @@ public class ClienteService {
         	cliente.setTelefone(dto.telefone());
         }
 
-        Clientes clienteAlterado = clienteRepository.save(cliente);
-        return clientesMapper.entityToAtualizacaoDto(clienteAlterado);
+        Cliente clienteAlterado = clienteRepository.save(cliente);
+        return clienteMapper.entityToAtualizacaoDto(clienteAlterado);
     }
     
 }

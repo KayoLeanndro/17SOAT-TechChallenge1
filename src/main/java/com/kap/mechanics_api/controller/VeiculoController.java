@@ -4,6 +4,7 @@ import com.kap.mechanics_api.dto.veiculo.*;
 import com.kap.mechanics_api.service.VeiculoService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
@@ -11,6 +12,7 @@ import java.util.List;
 
 @RestController()
 @RequestMapping("/api/veiculo")
+@PreAuthorize("hasAnyRole('ADMIN', 'ATENDENTE')")
 public class VeiculoController {
 
     private final VeiculoService veiculoService;

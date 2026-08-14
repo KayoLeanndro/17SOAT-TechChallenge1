@@ -3,6 +3,7 @@ package com.kap.mechanics_api.controller;
 import java.net.URI;
 import java.util.List;
 
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -19,9 +20,11 @@ import com.kap.mechanics_api.dto.cliente.CriacaoClienteRequestDTO;
 import com.kap.mechanics_api.dto.cliente.CriacaoClienteResponseDTO;
 import com.kap.mechanics_api.dto.cliente.ListagemClienteResponseDTO;
 import com.kap.mechanics_api.service.ClienteService;
+import org.springframework.security.access.prepost.PreAuthorize;
 
 @RestController
-@RequestMapping("/api/clientes")
+@RequestMapping("/api/cliente")
+@PreAuthorize("hasAnyRole('ADMIN', 'ATENDENTE')")
 public class ClienteController {
 	
     private final ClienteService clienteService;
@@ -31,10 +34,10 @@ public class ClienteController {
     }
 
     @PostMapping
-    public ResponseEntity<CriacaoClienteResponseDTO> cadastrar(@RequestBody CriacaoClienteRequestDTO clienteDTO) {
+    public ResponseEntity<CriacaoClienteResponseDTO> cadastrar(@Valid @RequestBody CriacaoClienteRequestDTO clienteDTO) {
     	
     	CriacaoClienteResponseDTO response = clienteService.salvar(clienteDTO);    
-    	URI location = URI.create("/api/clientes/" + response.id());
+    	URI location = URI.create("/api/cliente/" + response.id());
         return ResponseEntity.created(location).body(response);
     }
     
@@ -55,7 +58,7 @@ public class ClienteController {
     }
     
     @PutMapping("/{id}")
-    public ResponseEntity<AtualizacaoClienteResponseDTO> atualizar(@RequestBody AtualizacaoClienteRequestDTO dto, @PathVariable Integer id){
+    public ResponseEntity<AtualizacaoClienteResponseDTO> atualizar(@Valid @RequestBody AtualizacaoClienteRequestDTO dto, @PathVariable Integer id){
         return ResponseEntity.ok(clienteService.atualizar(dto, id));
     }
     

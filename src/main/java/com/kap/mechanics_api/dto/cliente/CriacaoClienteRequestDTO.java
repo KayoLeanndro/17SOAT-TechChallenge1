@@ -21,6 +21,7 @@ public record CriacaoClienteRequestDTO(
 		
 		@Email(message = "E-mail inválido") 
 		String email
-		) {
+		)
+{
 	
 }

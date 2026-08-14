@@ -10,7 +10,7 @@ public record CriacaoUsuarioRequestDTO(
         String login,
 
         @NotBlank
-        String senha_hash,
+        String senha,
 
         @NotBlank
         String tipo
