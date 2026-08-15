@@ -1,7 +1,6 @@
 package com.kap.mechanics_api.controller;
 
 import com.kap.mechanics_api.documentation.ServicoControllerDoc;
-import com.kap.mechanics_api.dto.peca.PecaResponseDTO;
 import com.kap.mechanics_api.dto.servico.*;
 import com.kap.mechanics_api.service.ServicoService;
 import jakarta.validation.Valid;

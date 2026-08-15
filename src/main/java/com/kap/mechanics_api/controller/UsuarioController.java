@@ -1,7 +1,6 @@
 package com.kap.mechanics_api.controller;
 
 import com.kap.mechanics_api.dto.usuario.*;
-import com.kap.mechanics_api.dto.veiculo.CriacaoVeiculoResponseDTO;
 import com.kap.mechanics_api.service.UsuarioService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
