@@ -86,6 +86,8 @@ public class Cliente {
 		this.dataCriacao = dataCriacao;
 	}
 
+	public Cliente(){}
+
 	public Cliente(String nome, String cpfCnpj, String telefone, String email, LocalDateTime dataCriacao) {
 		super();
 		this.nome = nome;
