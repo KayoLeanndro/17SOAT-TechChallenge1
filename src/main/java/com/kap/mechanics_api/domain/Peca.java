@@ -30,9 +30,7 @@ public class Peca {
     @Column(name = "ativo", nullable = false)
     private boolean ativo;
 
-    public Peca() {
-
-    }
+    public Peca() {}
 
     public Peca(boolean ativo, String nome, String descricao, BigDecimal valorUnitario, Integer quantidadeAtual, Integer quantidadeMinima) {
         this.ativo = ativo;
@@ -45,6 +43,10 @@ public class Peca {
 
     public Integer getId() {
         return id;
+    }
+
+    public void setId(Integer id) {
+        this.id = id;
     }
 
     public String getNome() {
