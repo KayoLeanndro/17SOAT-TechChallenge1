@@ -7,7 +7,6 @@ import com.kap.mechanics_api.exception.NenhumCampoInformadoException;
 import com.kap.mechanics_api.exception.UsuarioNaoEncontradoException;
 import com.kap.mechanics_api.mapper.UsuarioMapper;
 import com.kap.mechanics_api.repository.UsuarioRepository;
-import jakarta.validation.Valid;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;

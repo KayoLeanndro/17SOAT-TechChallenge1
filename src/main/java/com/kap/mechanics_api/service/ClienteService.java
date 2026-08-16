@@ -33,9 +33,7 @@ public class ClienteService {
         Cliente cliente = clienteMapper.dtoToEntity(clienteDTO);
         cliente.setDataCriacao(LocalDateTime.now());
         cliente = clienteRepository.save(cliente);
-    	CriacaoClienteResponseDTO response = clienteMapper.entityToDto(cliente);
-    	
-        return response;
+    	return clienteMapper.entityToDto(cliente);
     }
     
     public List<ListagemClienteResponseDTO> listar(){

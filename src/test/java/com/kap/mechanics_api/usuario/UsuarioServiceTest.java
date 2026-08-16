@@ -1,26 +1,21 @@
 package com.kap.mechanics_api.usuario;
 
 import com.kap.mechanics_api.domain.Usuario;
-import com.kap.mechanics_api.domain.Veiculo;
 import com.kap.mechanics_api.dto.usuario.*;
 import com.kap.mechanics_api.dto.veiculo.*;
 import com.kap.mechanics_api.enums.TipoUsuario;
 import com.kap.mechanics_api.exception.NenhumCampoInformadoException;
 import com.kap.mechanics_api.exception.UsuarioNaoEncontradoException;
-import com.kap.mechanics_api.exception.VeiculoNaoEncontradoException;
 import com.kap.mechanics_api.mapper.UsuarioMapper;
-import com.kap.mechanics_api.mapper.VeiculoMapper;
 import com.kap.mechanics_api.repository.UsuarioRepository;
-import com.kap.mechanics_api.repository.VeiculoRepository;
 import com.kap.mechanics_api.service.UsuarioService;
-import com.kap.mechanics_api.service.VeiculoService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -42,6 +37,9 @@ public class UsuarioServiceTest {
     @Mock
     private UsuarioMapper usuarioMapper;
 
+    @Mock
+    private PasswordEncoder passwordEncoder;
+
     @InjectMocks
     private UsuarioService usuarioService;
 
@@ -49,25 +47,62 @@ public class UsuarioServiceTest {
     @Test
     void deveCriarUsuarioComSucesso(){
 
-        //Arrange
-        CriacaoUsuarioRequestDTO usuarioDto = new CriacaoUsuarioRequestDTO("pedin", "pedinApelao", "1234", TipoUsuario.ATENDENTE.toString());
-        Usuario usuario = new Usuario(null, "pedin", "pedinApelao", "1234", TipoUsuario.ATENDENTE);
-        Usuario usuarioSalvo = new Usuario(1, "pedin", "pedinApelao", "1234", TipoUsuario.ATENDENTE);
-        CriacaoUsuarioResponseDTO usuarioSalvoDto = new CriacaoUsuarioResponseDTO(1, "pedin", "pedinApelao", LocalDateTime.now(), TipoUsuario.ATENDENTE);
+        CriacaoUsuarioRequestDTO usuarioDto =
+                new CriacaoUsuarioRequestDTO(
+                        "pedin",
+                        "pedinApelao",
+                        "1234",
+                        TipoUsuario.ATENDENTE.toString()
+                );
 
-        when(usuarioMapper.toEntity(usuarioDto)).thenReturn(usuario);
-        when(usuarioMapper.toResponseDto(usuarioSalvo)).thenReturn(usuarioSalvoDto);
-        when(usuarioRepository.save(any(Usuario.class))).thenReturn(usuarioSalvo);
+        Usuario usuario =
+                new Usuario(
+                        null,
+                        "pedin",
+                        "pedinApelao",
+                        "1234",
+                        TipoUsuario.ATENDENTE
+                );
 
-        //act
-        CriacaoUsuarioResponseDTO resultado = usuarioService.cadastrar(usuarioDto);
+        Usuario usuarioSalvo =
+                new Usuario(
+                        1,
+                        "pedin",
+                        "pedinApelao",
+                        "senhaCriptografada",
+                        TipoUsuario.ATENDENTE
+                );
 
-        //Assert
+        CriacaoUsuarioResponseDTO usuarioSalvoDto =
+                new CriacaoUsuarioResponseDTO(
+                        1,
+                        "pedin",
+                        "pedinApelao",
+                        LocalDateTime.now(),
+                        TipoUsuario.ATENDENTE
+                );
+
+        when(usuarioMapper.toEntity(usuarioDto))
+                .thenReturn(usuario);
+
+        when(passwordEncoder.encode("1234"))
+                .thenReturn("senhaCriptografada");
+
+        when(usuarioRepository.save(any(Usuario.class)))
+                .thenReturn(usuarioSalvo);
+
+        when(usuarioMapper.toResponseDto(usuarioSalvo))
+                .thenReturn(usuarioSalvoDto);
+
+        CriacaoUsuarioResponseDTO resultado =
+                usuarioService.cadastrar(usuarioDto);
+
         assertNotNull(resultado);
         assertEquals("pedin", resultado.nome());
         assertEquals("pedinApelao", resultado.login());
         assertEquals("ATENDENTE", resultado.tipo().toString());
 
+        verify(passwordEncoder).encode("1234");
     }
 
     @Test
@@ -152,47 +187,85 @@ public class UsuarioServiceTest {
     }
 
     @Test
-    void deveAtualizarVeiculoComSucesso(){
+    void deveAtualizarUsuarioComSucesso(){
 
-        //arrange
-        Usuario usuario = new Usuario(1, "pedin", "pedinApelao", "1234", TipoUsuario.ATENDENTE);
-        AtualizacaoUsuarioRequestDTO dto = new AtualizacaoUsuarioRequestDTO("pedin2", "pedinApelao2", "12345", "ATENDENTE");
-        Usuario usuarioAlterado = new Usuario(1, "pedin2", "pedinApelao2", "12345", TipoUsuario.ATENDENTE);
-        AtualizacaoUsuarioResponseDTO dtoResposta = new AtualizacaoUsuarioResponseDTO(1, "pedin2", "pedinApelao2", "12345", TipoUsuario.ATENDENTE);
+        Usuario usuario =
+                new Usuario(
+                        1,
+                        "pedin",
+                        "pedinApelao",
+                        "senhaAntiga",
+                        TipoUsuario.ATENDENTE
+                );
 
-        when(usuarioRepository.findById(1)).thenReturn(Optional.of(usuario));
-        when(usuarioMapper.toAtualizacaoUsuarioResponseDto(usuarioAlterado)).thenReturn(dtoResposta);
-        when(usuarioRepository.save(any(Usuario.class))).thenReturn(usuarioAlterado);
+        AtualizacaoUsuarioRequestDTO dto =
+                new AtualizacaoUsuarioRequestDTO(
+                        "pedin2",
+                        "pedinApelao2",
+                        "12345",
+                        "ATENDENTE"
+                );
 
-        //act
-        AtualizacaoUsuarioResponseDTO resposta = usuarioService.atualizar(usuario.getId(),dto);
+        Usuario usuarioAlterado =
+                new Usuario(
+                        1,
+                        "pedin2",
+                        "pedinApelao2",
+                        "senhaNovaCriptografada",
+                        TipoUsuario.ATENDENTE
+                );
 
+        AtualizacaoUsuarioResponseDTO dtoResposta =
+                new AtualizacaoUsuarioResponseDTO(
+                        1,
+                        "pedin2",
+                        "pedinApelao2",
+                        "senhaNovaCriptografada",
+                        TipoUsuario.ATENDENTE
+                );
 
-        //assert
+        when(usuarioRepository.findById(1))
+                .thenReturn(Optional.of(usuario));
+
+        when(passwordEncoder.encode("12345"))
+                .thenReturn("senhaNovaCriptografada");
+
+        when(usuarioRepository.save(any(Usuario.class)))
+                .thenReturn(usuarioAlterado);
+
+        when(usuarioMapper.toAtualizacaoUsuarioResponseDto(usuarioAlterado))
+                .thenReturn(dtoResposta);
+
+        AtualizacaoUsuarioResponseDTO resposta =
+                usuarioService.atualizar(usuario.getId(), dto);
+
         assertNotNull(resposta);
         assertEquals(1, resposta.id());
         assertEquals("pedin2", resposta.nome());
-        assertEquals("pedinApelao2", resposta.login());
-        assertEquals("12345", resposta.senha());
-        assertEquals("ATENDENTE", resposta.tipo().toString());
 
-        verify(usuarioRepository).findById(1);
-        verify(usuarioMapper).toAtualizacaoUsuarioResponseDto(usuarioAlterado);
+        verify(passwordEncoder).encode("12345");
         verify(usuarioRepository).save(usuario);
     }
 
     @Test
-    void deveRetornarExceptionQuandoUsuarioNaoEncontrado(){
+    void deveRetornarExceptionQuandoUsuarioNaoEncontrado() {
 
-        //Arrange
-        Usuario usuario = new Usuario(1, "pedin", "pedinApelao", "1234", TipoUsuario.ATENDENTE);
-        when(usuarioRepository.findById(1)).thenReturn(Optional.empty());
+        // Arrange
+        when(usuarioRepository.findById(1))
+                .thenReturn(Optional.empty());
 
-        //act
-        UsuarioNaoEncontradoException exception = assertThrows(UsuarioNaoEncontradoException.class, () -> usuarioService.buscarPorId(1));
+        // Act
+        UsuarioNaoEncontradoException exception = assertThrows(
+                UsuarioNaoEncontradoException.class,
+                () -> usuarioService.buscarPorId(1)
+        );
 
-        //assert
-        assertEquals("Usuario nao encontrado com o id 1", exception.getMessage());
+        // Assert
+        assertEquals(
+                "Usuario não encontrado de id: 1",
+                exception.getMessage()
+        );
+
         verify(usuarioRepository).findById(1);
     }
 

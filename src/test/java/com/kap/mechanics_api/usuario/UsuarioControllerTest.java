@@ -3,20 +3,13 @@ package com.kap.mechanics_api.usuario;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.kap.mechanics_api.Utilities;
 import com.kap.mechanics_api.controller.UsuarioController;
-import com.kap.mechanics_api.controller.VeiculoController;
 import com.kap.mechanics_api.dto.usuario.AtualizacaoUsuarioRequestDTO;
-import com.kap.mechanics_api.dto.usuario.AtualizacaoUsuarioResponseDTO;
 import com.kap.mechanics_api.dto.usuario.CriacaoUsuarioRequestDTO;
 import com.kap.mechanics_api.dto.usuario.ListagemUsuarioDTO;
-import com.kap.mechanics_api.dto.veiculo.AtualizacaoVeiculoRequestDTO;
-import com.kap.mechanics_api.dto.veiculo.CriacaoVeiculoRequestDTO;
-import com.kap.mechanics_api.dto.veiculo.ListagemVeiculoResponseDTO;
 import com.kap.mechanics_api.enums.TipoUsuario;
 import com.kap.mechanics_api.exception.NenhumCampoInformadoException;
 import com.kap.mechanics_api.exception.UsuarioNaoEncontradoException;
-import com.kap.mechanics_api.exception.VeiculoNaoEncontradoException;
 import com.kap.mechanics_api.service.UsuarioService;
-import com.kap.mechanics_api.service.VeiculoService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
@@ -132,7 +125,9 @@ public class UsuarioControllerTest {
 
         mockMvc.perform(put(endPoint +"/99")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(Utilities.produzirAtualizacaoUsuarioResponseDto())))
+                        .content(objectMapper.writeValueAsString(
+                                Utilities.produzirAtualizacaoUsuarioDto()
+                        )))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.nome").value("pedin2"))
                 .andExpect(jsonPath("$.login").value("pedinApelao2"))
