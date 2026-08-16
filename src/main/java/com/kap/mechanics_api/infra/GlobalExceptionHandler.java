@@ -83,4 +83,25 @@ public class GlobalExceptionHandler {
         problemDetail.setTitle("Usuario não encontrado");
         return problemDetail;
     }
+
+    @ExceptionHandler(OrcamentoNaoEncontradoException.class)
+    public ProblemDetail lancarExcecaoOrcamentoNaoEncontrado(OrcamentoNaoEncontradoException ex) {
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, ex.getMessage());
+        problemDetail.setTitle("Orçamento não encontrado");
+        return problemDetail;
+    }
+
+    @ExceptionHandler(OrdemServicoNaoEncontradaException.class)
+    public ProblemDetail lancarExcecaoOrdemServicoNaoEncontrada(OrdemServicoNaoEncontradaException ex) {
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, ex.getMessage());
+        problemDetail.setTitle("Ordem de serviço não encontrada");
+        return problemDetail;
+    }
+
+    @ExceptionHandler(StatusOrdemServicoNaoEncontradoException.class)
+    public ProblemDetail lancarExcecaoStatusOrdemServicoNaoEncontrado(StatusOrdemServicoNaoEncontradoException ex) {
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, ex.getMessage());
+        problemDetail.setTitle("Status da ordem de serviço não encontrado");
+        return problemDetail;
+    }
 }
