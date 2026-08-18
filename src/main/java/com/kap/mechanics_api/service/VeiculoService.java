@@ -1,12 +1,16 @@
 package com.kap.mechanics_api.service;
 
 
+import com.kap.mechanics_api.domain.Cliente;
+import com.kap.mechanics_api.domain.ClienteVeiculo;
 import com.kap.mechanics_api.domain.Veiculo;
 import com.kap.mechanics_api.dto.veiculo.*;
 import com.kap.mechanics_api.exception.NenhumCampoInformadoException;
 import com.kap.mechanics_api.exception.VeiculoNaoEncontradoException;
 import com.kap.mechanics_api.mapper.VeiculoMapper;
+import com.kap.mechanics_api.repository.ClienteVeiculoRepository;
 import com.kap.mechanics_api.repository.VeiculoRepository;
+import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
@@ -19,64 +23,127 @@ public class VeiculoService {
 
     private final VeiculoRepository veiculoRepository;
     private final VeiculoMapper veiculoMapper;
+    private final ClienteVeiculoRepository clienteVeiculoRepository;
+    private final ClienteService clienteService;
 
-    public VeiculoService(VeiculoRepository veiculoRepository, VeiculoMapper mapper){
+    public VeiculoService(VeiculoRepository veiculoRepository, VeiculoMapper mapper, ClienteVeiculoRepository clienteVeiculoRepository,
+        ClienteService clienteService){
         this.veiculoRepository = veiculoRepository;
         this.veiculoMapper = mapper;
+        this.clienteVeiculoRepository = clienteVeiculoRepository;
+        this.clienteService = clienteService;
+
     }
 
-    public CriacaoVeiculoResponseDTO cadastrar(@Valid CriacaoVeiculoRequestDTO dto) {
+    @Transactional
+    public CriacaoVeiculoResponseDTO cadastrar(
+            @Valid CriacaoVeiculoRequestDTO dto
+    ) {
 
         Veiculo veiculo = veiculoMapper.toEntity(dto);
+
         veiculo.setDataCriacao(LocalDateTime.now());
-        veiculo = veiculoRepository.save(veiculo);
-        return veiculoMapper.toResponseDto(veiculo);
+
+        Veiculo veiculoSalvo = veiculoRepository.save(veiculo);
+
+        persistirVinculoClienteVeiculo(
+                dto.clienteId(),
+                veiculoSalvo
+        );
+
+        return veiculoMapper.toResponseDto(veiculoSalvo);
     }
 
-    public List<ListagemVeiculoResponseDTO> listar(){
+    private ClienteVeiculo persistirVinculoClienteVeiculo(
+            Integer idCliente,
+            Veiculo veiculo
+    ) {
+
+        Cliente cliente = clienteService.pesquisarPorId(idCliente);
+
+        ClienteVeiculo clienteVeiculo =
+                new ClienteVeiculo(veiculo, cliente);
+
+        return clienteVeiculoRepository.save(clienteVeiculo);
+    }
+
+    public List<ListagemVeiculoResponseDTO> listar() {
+
         List<Veiculo> veiculos = veiculoRepository.findAll();
+
         return veiculoMapper.toListagemDto(veiculos);
     }
 
-    public Veiculo pesquisarPorId(Integer id){
-        return veiculoRepository.findById(id).orElseThrow( () -> new VeiculoNaoEncontradoException(id));
+    public Veiculo pesquisarPorId(Integer id) {
+
+        return veiculoRepository.findById(id)
+                .orElseThrow(() -> new VeiculoNaoEncontradoException(id));
     }
 
-    public ListagemVeiculoResponseDTO buscarPorId(Integer id){
+    public ListagemVeiculoResponseDTO buscarPorId(Integer id) {
+
         Veiculo veiculo = pesquisarPorId(id);
+
         return veiculoMapper.toListagemVeiculoResponseDto(veiculo);
     }
 
     public void deletar(Integer id) {
+
         Veiculo veiculo = pesquisarPorId(id);
+
         veiculoRepository.delete(veiculo);
     }
 
-    public AtualizacaoVeiculoResponseDTO atualizar(AtualizacaoVeiculoRequestDTO dto, Integer id){
+    @Transactional
+    public AtualizacaoVeiculoResponseDTO atualizar(
+            AtualizacaoVeiculoRequestDTO dto,
+            Integer id
+    ) {
 
-        if(!dto.temAoMenosUmCampoPreenchido()){
-            throw new NenhumCampoInformadoException(AtualizacaoVeiculoRequestDTO.class);
+        if (!dto.temAoMenosUmCampoPreenchido()) {
+            throw new NenhumCampoInformadoException(
+                    AtualizacaoVeiculoRequestDTO.class
+            );
         }
 
         Veiculo veiculo = pesquisarPorId(id);
-        if(dto.ano() != null){
+
+        atualizarCamposVeiculo(dto, veiculo);
+
+        Veiculo veiculoAlterado =
+                veiculoRepository.save(veiculo);
+
+        if (dto.clienteId() != null) {
+            persistirVinculoClienteVeiculo(
+                    dto.clienteId(),
+                    veiculoAlterado
+            );
+        }
+
+        return veiculoMapper.toAtualizacaoVeiculoResponseDto(
+                veiculoAlterado
+        );
+    }
+
+    private void atualizarCamposVeiculo(
+            AtualizacaoVeiculoRequestDTO dto,
+            Veiculo veiculo
+    ) {
+
+        if (dto.ano() != null) {
             veiculo.setAno(dto.ano());
         }
 
-        if(StringUtils.hasText(dto.placa())){
+        if (StringUtils.hasText(dto.placa())) {
             veiculo.setPlaca(dto.placa());
         }
 
-        if(StringUtils.hasText(dto.marca())){
+        if (StringUtils.hasText(dto.marca())) {
             veiculo.setMarca(dto.marca());
         }
 
-
-        if(StringUtils.hasText(dto.modelo())){
+        if (StringUtils.hasText(dto.modelo())) {
             veiculo.setModelo(dto.modelo());
         }
-
-        Veiculo veiculoAlterado = veiculoRepository.save(veiculo);
-        return veiculoMapper.toAtualizacaoVeiculoResponseDto(veiculoAlterado);
     }
 }

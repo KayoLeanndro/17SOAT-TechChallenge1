@@ -18,6 +18,9 @@ public record CriacaoVeiculoRequestDTO(
         String modelo,
 
         @NotNull
-        Integer ano
+        int ano,
+
+        @NotNull
+        Integer clienteId
 ) {
 }

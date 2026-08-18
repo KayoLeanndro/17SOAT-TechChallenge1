@@ -5,6 +5,7 @@ public record AtualizacaoVeiculoResponseDTO(
         String placa,
         String marca,
         String modelo,
-        int ano
+        int ano,
+        Integer clienteId
 ) {
 }

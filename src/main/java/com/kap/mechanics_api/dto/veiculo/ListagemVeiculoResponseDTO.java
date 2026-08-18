@@ -5,6 +5,7 @@ public record ListagemVeiculoResponseDTO(
         String placa,
         String marca,
         String modelo,
-        int ano
+        int ano,
+        Integer cliente
 ) {
 }
