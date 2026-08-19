@@ -29,17 +29,10 @@ public class GlobalExceptionHandler {
         return problemDetail;
     }
 
-    @ExceptionHandler(PecaNaoEncontradaException.class)
-    public ProblemDetail lancarExcecaoPecaNaoEncontrada(PecaNaoEncontradaException ex) {
+    @ExceptionHandler(ItemEstoqueNaoEncontradoException.class)
+    public ProblemDetail lancarExcecaoItemEstoqueNaoEncontrado(ItemEstoqueNaoEncontradoException ex) {
         ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, ex.getMessage());
-        problemDetail.setTitle("Peça não encontrada");
-        return problemDetail;
-    }
-
-    @ExceptionHandler(InsumoNaoEncontradoException.class)
-    public ProblemDetail lancarExcecaoInsumoNaoEncontrado(InsumoNaoEncontradoException ex) {
-        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, ex.getMessage());
-        problemDetail.setTitle("Insumo não encontrado");
+        problemDetail.setTitle("Item de estoque não encontrado");
         return problemDetail;
     }
 
@@ -95,13 +88,6 @@ public class GlobalExceptionHandler {
     public ProblemDetail lancarExcecaoOrdemServicoNaoEncontrada(OrdemServicoNaoEncontradaException ex) {
         ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, ex.getMessage());
         problemDetail.setTitle("Ordem de serviço não encontrada");
-        return problemDetail;
-    }
-
-    @ExceptionHandler(StatusOrdemServicoNaoEncontradoException.class)
-    public ProblemDetail lancarExcecaoStatusOrdemServicoNaoEncontrado(StatusOrdemServicoNaoEncontradoException ex) {
-        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, ex.getMessage());
-        problemDetail.setTitle("Status da ordem de serviço não encontrado");
         return problemDetail;
     }
 }

@@ -1,18 +1,16 @@
 package com.kap.mechanics_api.service;
 
 import com.kap.mechanics_api.domain.OrdemServico;
-import com.kap.mechanics_api.domain.StatusOrdemServico;
 import com.kap.mechanics_api.dto.ordemservico.AtualizacaoOrdemServicoRequestDTO;
 import com.kap.mechanics_api.dto.ordemservico.CriacaoOrdemServicoRequestDTO;
 import com.kap.mechanics_api.dto.ordemservico.OrdemServicoResponseDTO;
+import com.kap.mechanics_api.enums.StatusOrdemServico;
 import com.kap.mechanics_api.exception.NenhumCampoInformadoException;
 import com.kap.mechanics_api.exception.OrcamentoNaoEncontradoException;
 import com.kap.mechanics_api.exception.OrdemServicoNaoEncontradaException;
-import com.kap.mechanics_api.exception.StatusOrdemServicoNaoEncontradoException;
 import com.kap.mechanics_api.mapper.OrdemServicoMapper;
 import com.kap.mechanics_api.repository.OrcamentoRepository;
 import com.kap.mechanics_api.repository.OrdemServicoRepository;
-import com.kap.mechanics_api.repository.StatusOrdemServicoRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -22,18 +20,15 @@ public class OrdemServicoService {
 
     private final OrdemServicoRepository ordemServicoRepository;
     private final OrcamentoRepository orcamentoRepository;
-    private final StatusOrdemServicoRepository statusOrdemServicoRepository;
     private final UsuarioService usuarioService;
     private final OrdemServicoMapper ordemServicoMapper;
 
     public OrdemServicoService(OrdemServicoRepository ordemServicoRepository,
                                OrcamentoRepository orcamentoRepository,
-                               StatusOrdemServicoRepository statusOrdemServicoRepository,
                                UsuarioService usuarioService,
                                OrdemServicoMapper ordemServicoMapper) {
         this.ordemServicoRepository = ordemServicoRepository;
         this.orcamentoRepository = orcamentoRepository;
-        this.statusOrdemServicoRepository = statusOrdemServicoRepository;
         this.usuarioService = usuarioService;
         this.ordemServicoMapper = ordemServicoMapper;
     }
@@ -43,7 +38,7 @@ public class OrdemServicoService {
         ordemServico.setOrcamento(orcamentoRepository.findById(dto.orcamentoId()).orElseThrow(() -> new OrcamentoNaoEncontradoException(
                         "Orçamento não encontrado com o id " + dto.orcamentoId())));
         ordemServico.setUsuarioAtendente(usuarioService.buscarPorId(dto.usuarioAtendenteId()));
-        ordemServico.setStatus(buscarStatusPorId(dto.statusId()));
+        ordemServico.setStatus(StatusOrdemServico.RECEBIDA);
 
         return ordemServicoMapper.toResponseDto(ordemServicoRepository.save(ordemServico));
     }
@@ -71,7 +66,7 @@ public class OrdemServicoService {
             ordemServico.setUsuarioAtendente(usuarioService.buscarPorId(dto.usuarioAtendenteId()));
         }
         if (dto.statusId() != null) {
-            ordemServico.setStatus(buscarStatusPorId(dto.statusId()));
+            ordemServico.setStatus(StatusOrdemServico.EM_EXECUCAO);
         }
         if (dto.dataEntrega() != null) {
             ordemServico.setDataEntrega(dto.dataEntrega());
@@ -82,10 +77,5 @@ public class OrdemServicoService {
 
     public void deletar(Integer id) {
         ordemServicoRepository.delete(pesquisarPorId(id));
-    }
-
-    private StatusOrdemServico buscarStatusPorId(Integer id) {
-        return statusOrdemServicoRepository.findById(id)
-                .orElseThrow(() -> new StatusOrdemServicoNaoEncontradoException(id));
     }
 }

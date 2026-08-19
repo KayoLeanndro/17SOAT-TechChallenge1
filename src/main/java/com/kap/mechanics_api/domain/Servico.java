@@ -21,7 +21,7 @@ public class Servico {
     @Column(name = "valor_mao_obra", nullable = false)
     private BigDecimal valorMaoDeObra;
 
-    @Column(name = "tempoEstimadoMin", nullable = false)
+    @Column(name = "tempo_estimado_min", nullable = false)
     private Integer tempoEstimadoMin;
 
     @Column(name = "ativo", nullable = false)

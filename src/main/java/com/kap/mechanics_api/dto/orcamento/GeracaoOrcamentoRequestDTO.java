@@ -12,8 +12,6 @@ public record GeracaoOrcamentoRequestDTO(
         Integer veiculoId,
 
         @NotNull
-        List<Integer> servicosIds,
-
-        List<Integer> pecasIds
+        List<Integer> servicosIds
 ) {
 }

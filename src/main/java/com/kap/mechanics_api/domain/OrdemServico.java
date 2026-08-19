@@ -1,15 +1,7 @@
 package com.kap.mechanics_api.domain;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToOne;
-import jakarta.persistence.PrePersist;
-import jakarta.persistence.Table;
+import com.kap.mechanics_api.enums.StatusOrdemServico;
+import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
 
@@ -29,8 +21,7 @@ public class OrdemServico {
     @JoinColumn(name = "usuario_atendente_id", nullable = false)
     private Usuario usuarioAtendente;
 
-    @ManyToOne
-    @JoinColumn(name = "status_id", nullable = false)
+    @Enumerated(EnumType.STRING)
     private StatusOrdemServico status;
 
     @Column(name = "data_abertura", nullable = false, updatable = false)

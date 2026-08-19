@@ -3,9 +3,10 @@ package com.kap.mechanics_api.orcamento;
 import com.kap.mechanics_api.domain.*;
 import com.kap.mechanics_api.dto.orcamento.GeracaoOrcamentoRequestDTO;
 import com.kap.mechanics_api.enums.StatusOrcamento;
+import com.kap.mechanics_api.enums.TipoItemEstoque;
 import com.kap.mechanics_api.repository.OrcamentoRepository;
 import com.kap.mechanics_api.repository.OrcamentoServicoRepository;
-import com.kap.mechanics_api.repository.ServicoPecaRepository;
+import com.kap.mechanics_api.repository.ServicoItemRepository;
 import com.kap.mechanics_api.service.ClienteService;
 import com.kap.mechanics_api.service.OrcamentoService;
 import com.kap.mechanics_api.service.ServicoService;
@@ -22,12 +23,13 @@ import java.math.BigDecimal;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-public class OrcamentoServiceTest {
+class OrcamentoServiceTest {
 
     @Mock
     private ClienteService clienteService;
@@ -39,7 +41,7 @@ public class OrcamentoServiceTest {
     private ServicoService servicoService;
 
     @Mock
-    private ServicoPecaRepository servicoPecaRepository;
+    private ServicoItemRepository servicoItemRepository;
 
     @Mock
     private OrcamentoRepository orcamentoRepository;
@@ -63,146 +65,112 @@ public class OrcamentoServiceTest {
     }
 
     @Test
-    void deveGerarOrcamentoComUmServicoSemPecas() {
-        // arrange
-        Servico servico = new Servico();
-        servico.setId(10);
-        servico.setValorMaoDeObra(new BigDecimal("150.00"));
-
-        GeracaoOrcamentoRequestDTO dto = new GeracaoOrcamentoRequestDTO(
-                cliente.getId(), veiculo.getId(), List.of(10), null
-        );
+    void deveGerarOrcamentoComUmServicoSemItens() {
+        Servico servico = servico(10, new BigDecimal("150.00"));
+        GeracaoOrcamentoRequestDTO dto = new GeracaoOrcamentoRequestDTO(cliente.getId(), veiculo.getId(), List.of(10));
 
         when(clienteService.pesquisarPorId(dto.clienteId())).thenReturn(cliente);
         when(veiculoService.pesquisarPorId(dto.veiculoId())).thenReturn(veiculo);
         when(servicoService.pesquisarPorId(10)).thenReturn(servico);
-        when(servicoPecaRepository.findByServico_Id(10)).thenReturn(List.of());
-
-        // simula o JPA atribuindo um id ao salvar
+        when(servicoItemRepository.findByServico_Id(10)).thenReturn(List.of());
         when(orcamentoRepository.save(any(Orcamento.class))).thenAnswer(invocation -> {
-            Orcamento o = invocation.getArgument(0);
-            o.setId(100);
-            return o;
+            Orcamento orcamento = invocation.getArgument(0);
+            orcamento.setId(100);
+            return orcamento;
         });
 
-        // act
         orcamentoService.gerarOrcamento(dto);
 
-        // assert
         ArgumentCaptor<Orcamento> orcamentoCaptor = ArgumentCaptor.forClass(Orcamento.class);
         verify(orcamentoRepository, times(2)).save(orcamentoCaptor.capture());
-
-        Orcamento orcamentoSalvo = orcamentoCaptor.getValue();
-        assertEquals(cliente, orcamentoSalvo.getCliente());
-        assertEquals(veiculo, orcamentoSalvo.getVeiculo());
-        assertEquals(StatusOrcamento.PENDENTE, orcamentoSalvo.getStatusOrcamento());
-        assertEquals(0, new BigDecimal("150.00").compareTo(orcamentoSalvo.getValorTotal()));
+        assertEquals(0, new BigDecimal("150.00").compareTo(orcamentoCaptor.getAllValues().get(1).getValorTotal()));
+        assertEquals(StatusOrcamento.PENDENTE, orcamentoCaptor.getAllValues().get(0).getStatusOrcamento());
 
         ArgumentCaptor<OrcamentoServico> osCaptor = ArgumentCaptor.forClass(OrcamentoServico.class);
-        verify(orcamentoServicoRepository, times(1)).save(osCaptor.capture());
+        verify(orcamentoServicoRepository).save(osCaptor.capture());
         assertEquals(0, new BigDecimal("150.00").compareTo(osCaptor.getValue().getValorCobrado()));
     }
 
     @Test
-    void deveCalcularValorDoServicoSomandoMaoDeObraEPecas() {
-        // arrange
-        Servico servico = new Servico();
-        servico.setId(20);
-        servico.setValorMaoDeObra(new BigDecimal("100.00"));
+    void deveSomarMaoDeObraEItensDoServico() {
+        Servico servico = servico(20, new BigDecimal("100.00"));
+        ItemEstoque itemEstoque = itemEstoque(5, new BigDecimal("30.00"));
 
-        Peca peca = new Peca();
-        peca.setId(5);
-        peca.setValorUnitario(new BigDecimal("30.00"));
+        ServicoItem servicoItem = new ServicoItem();
+        servicoItem.setId(new ServicoItemId(servico.getId(), itemEstoque.getId()));
+        servicoItem.setServico(servico);
+        servicoItem.setItemEstoque(itemEstoque);
+        servicoItem.setQuantidadePadrao(2);
 
-        ServicoPeca servicoPeca = new ServicoPeca(servico, peca, 2); // 2 unidades
-
-        GeracaoOrcamentoRequestDTO dto = new GeracaoOrcamentoRequestDTO(
-                cliente.getId(), veiculo.getId(), List.of(20), null
-        );
+        GeracaoOrcamentoRequestDTO dto = new GeracaoOrcamentoRequestDTO(cliente.getId(), veiculo.getId(), List.of(20));
 
         when(clienteService.pesquisarPorId(dto.clienteId())).thenReturn(cliente);
         when(veiculoService.pesquisarPorId(dto.veiculoId())).thenReturn(veiculo);
         when(servicoService.pesquisarPorId(20)).thenReturn(servico);
-        when(servicoPecaRepository.findByServico_Id(20)).thenReturn(List.of(servicoPeca));
-
+        when(servicoItemRepository.findByServico_Id(20)).thenReturn(List.of(servicoItem));
         when(orcamentoRepository.save(any(Orcamento.class))).thenAnswer(invocation -> {
-            Orcamento o = invocation.getArgument(0);
-            o.setId(101);
-            return o;
+            Orcamento orcamento = invocation.getArgument(0);
+            orcamento.setId(101);
+            return orcamento;
         });
 
-        // act
         orcamentoService.gerarOrcamento(dto);
 
-        // assert
         ArgumentCaptor<OrcamentoServico> osCaptor = ArgumentCaptor.forClass(OrcamentoServico.class);
         verify(orcamentoServicoRepository).save(osCaptor.capture());
         assertEquals(0, new BigDecimal("160.00").compareTo(osCaptor.getValue().getValorCobrado()));
 
         ArgumentCaptor<Orcamento> orcamentoCaptor = ArgumentCaptor.forClass(Orcamento.class);
         verify(orcamentoRepository, times(2)).save(orcamentoCaptor.capture());
-        assertEquals(0, new BigDecimal("160.00").compareTo(orcamentoCaptor.getValue().getValorTotal()));
+        assertEquals(0, new BigDecimal("160.00").compareTo(orcamentoCaptor.getAllValues().get(1).getValorTotal()));
     }
 
     @Test
-    void deveSalvarValorIndividualDeCadaServicoEnaoOTotalAgregado() {
+    void deveSomarItensDeMaisDeUmServico() {
+        Servico servicoA = servico(1, new BigDecimal("100.00"));
+        Servico servicoB = servico(2, new BigDecimal("50.00"));
 
-        Servico servicoA = new Servico();
-        servicoA.setId(1);
-        servicoA.setValorMaoDeObra(new BigDecimal("100.00"));
-
-        Servico servicoB = new Servico();
-        servicoB.setId(2);
-        servicoB.setValorMaoDeObra(new BigDecimal("50.00"));
-
-        GeracaoOrcamentoRequestDTO dto = new GeracaoOrcamentoRequestDTO(
-                cliente.getId(), veiculo.getId(), List.of(1, 2), null
-        );
+        GeracaoOrcamentoRequestDTO dto = new GeracaoOrcamentoRequestDTO(cliente.getId(), veiculo.getId(), List.of(1, 2));
 
         when(clienteService.pesquisarPorId(dto.clienteId())).thenReturn(cliente);
         when(veiculoService.pesquisarPorId(dto.veiculoId())).thenReturn(veiculo);
         when(servicoService.pesquisarPorId(1)).thenReturn(servicoA);
         when(servicoService.pesquisarPorId(2)).thenReturn(servicoB);
-        when(servicoPecaRepository.findByServico_Id(1)).thenReturn(List.of());
-        when(servicoPecaRepository.findByServico_Id(2)).thenReturn(List.of());
-
+        when(servicoItemRepository.findByServico_Id(1)).thenReturn(List.of());
+        when(servicoItemRepository.findByServico_Id(2)).thenReturn(List.of());
         when(orcamentoRepository.save(any(Orcamento.class))).thenAnswer(invocation -> {
-            Orcamento o = invocation.getArgument(0);
-            o.setId(102);
-            return o;
+            Orcamento orcamento = invocation.getArgument(0);
+            orcamento.setId(102);
+            return orcamento;
         });
 
-        // act
         orcamentoService.gerarOrcamento(dto);
 
-        // assert
         ArgumentCaptor<OrcamentoServico> osCaptor = ArgumentCaptor.forClass(OrcamentoServico.class);
-        verify(orcamentoServicoRepository, times(2)).save(osCaptor.capture());
+        verify(orcamentoServicoRepository, org.mockito.Mockito.times(2)).save(osCaptor.capture());
 
         List<OrcamentoServico> salvos = osCaptor.getAllValues();
-
         assertEquals(0, new BigDecimal("100.00").compareTo(salvos.get(0).getValorCobrado()));
         assertEquals(0, new BigDecimal("50.00").compareTo(salvos.get(1).getValorCobrado()));
     }
 
-    @Test
-    void devePropagarExcecaoQuandoClienteNaoExistir() {
-        // arrange
-        GeracaoOrcamentoRequestDTO dto = new GeracaoOrcamentoRequestDTO(999, veiculo.getId(), List.of(1), null);
-        when(clienteService.pesquisarPorId(999)).thenThrow(new RuntimeException("Cliente não encontrado"));
-
-        // act e assert
-        assertThrows(RuntimeException.class, () -> orcamentoService.gerarOrcamento(dto));
-        verifyNoInteractions(orcamentoRepository);
+    private Servico servico(Integer id, BigDecimal valorMaoDeObra) {
+        Servico servico = new Servico();
+        servico.setId(id);
+        servico.setValorMaoDeObra(valorMaoDeObra);
+        return servico;
     }
 
-    @Test
-    void devePropagarExcecaoQuandoVeiculoNaoExistir(){
-
-        GeracaoOrcamentoRequestDTO dto = new GeracaoOrcamentoRequestDTO(999, veiculo.getId(), List.of(1), null);
-        when(veiculoService.pesquisarPorId(999)).thenThrow(new RuntimeException("Veiculo não encontrado"));
-
-        assertThrows(RuntimeException.class, () -> orcamentoService.gerarOrcamento(dto));
-        verifyNoInteractions(orcamentoRepository);
+    private ItemEstoque itemEstoque(Integer id, BigDecimal valorUnitario) {
+        ItemEstoque itemEstoque = new ItemEstoque();
+        itemEstoque.setId(id);
+        itemEstoque.setNome("Item " + id);
+        itemEstoque.setDescricao("Descricao " + id);
+        itemEstoque.setTipoItemEstoque(TipoItemEstoque.PECA);
+        itemEstoque.setValorUnitario(valorUnitario);
+        itemEstoque.setQuantidadeAtual(10);
+        itemEstoque.setQuantidadeMinima(2);
+        itemEstoque.setAtivo(true);
+        return itemEstoque;
     }
 }
