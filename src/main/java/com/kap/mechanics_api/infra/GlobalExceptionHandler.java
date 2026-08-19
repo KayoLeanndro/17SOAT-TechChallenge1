@@ -77,8 +77,8 @@ public class GlobalExceptionHandler {
         return problemDetail;
     }
 
-    @ExceptionHandler(OrcamentoNaoEncontradoException.class)
-    public ProblemDetail lancarExcecaoOrcamentoNaoEncontrado(OrcamentoNaoEncontradoException ex) {
+    @ExceptionHandler(UsuarioNaoEncontradoException.class)
+    public ProblemDetail lancarExcecaoOrcamentoNaoEncontrado(OrcamentoNaoEncontradoException ex){
         ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, ex.getMessage());
         problemDetail.setTitle("Orçamento não encontrado");
         return problemDetail;
