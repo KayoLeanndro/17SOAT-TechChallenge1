@@ -21,7 +21,7 @@ public class OrcamentoServicoId implements Serializable {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof ServicoPecaId)) return false;
+        if (!(o instanceof OrcamentoServicoId)) return false;
         OrcamentoServicoId that = (OrcamentoServicoId) o;
         return Objects.equals(servicoId, that.servicoId) &&
                 Objects.equals(orcamentoId, that.orcamentoId);

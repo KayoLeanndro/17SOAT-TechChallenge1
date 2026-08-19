@@ -93,6 +93,7 @@ public class SecurityConfig {
             JwtAuthenticationConverter jwtAuthenticationConverter) {
 
         return http
+                .csrf(csrf -> csrf.disable())
 
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(
