@@ -1,6 +1,6 @@
 package com.kap.mechanics_api.enums;
 
-public enum StatusOrdemServico {
+public enum StatusOrdemServicoEnum {
 
     RECEBIDA,
     EM_DIAGNOSTICO,

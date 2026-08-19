@@ -77,7 +77,7 @@ public class GlobalExceptionHandler {
         return problemDetail;
     }
 
-    @ExceptionHandler(UsuarioNaoEncontradoException.class)
+    @ExceptionHandler(OrcamentoNaoEncontradoException.class)
     public ProblemDetail lancarExcecaoOrcamentoNaoEncontrado(OrcamentoNaoEncontradoException ex){
         ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, ex.getMessage());
         problemDetail.setTitle("Orçamento não encontrado");
@@ -97,4 +97,20 @@ public class GlobalExceptionHandler {
 //        problemDetail.setTitle("Status da ordem de serviço não encontrado");
 //        return problemDetail;
 //    }
+    @ExceptionHandler(OrcamentoNaoAprovadoException.class)
+    public ProblemDetail lancarExcecaoOrcamentoNaoAprovado(OrcamentoNaoAprovadoException ex){
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, ex.getMessage());
+        problemDetail.setTitle("Orçamento precisa estar aprovado para gerar OS");
+        return problemDetail;
+    }
+
+    @ExceptionHandler(OrdemServicoJaExisteException.class)
+    public ProblemDetail lancarExcecaoOrdemServicoExistente(OrdemServicoJaExisteException ex){
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, ex.getMessage());
+        problemDetail.setTitle("Este orçamento já possui uma OS gerada");
+        return problemDetail;
+    }
+
+
+
 }

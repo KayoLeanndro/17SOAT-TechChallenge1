@@ -3,6 +3,7 @@ package com.kap.mechanics_api.service;
 import com.kap.mechanics_api.domain.*;
 import com.kap.mechanics_api.dto.orcamento.GeracaoOrcamentoRequestDTO;
 import com.kap.mechanics_api.enums.StatusOrcamento;
+import com.kap.mechanics_api.exception.OrcamentoNaoEncontradoException;
 import com.kap.mechanics_api.repository.OrcamentoRepository;
 import com.kap.mechanics_api.repository.OrcamentoServicoRepository;
 import com.kap.mechanics_api.repository.ServicoItemRepository;
@@ -68,5 +69,9 @@ public class OrcamentoService {
 
         orcamento.setValorTotal(valorTotal);
         orcamentoRepository.save(orcamento);
+    }
+
+    public Orcamento pesquisarPorId(Integer id){
+        return orcamentoRepository.findById(id).orElseThrow(() -> new OrcamentoNaoEncontradoException("Orçamento nao encontrado"));
     }
 }

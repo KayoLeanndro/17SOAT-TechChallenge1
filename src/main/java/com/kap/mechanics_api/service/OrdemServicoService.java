@@ -1,5 +1,6 @@
 package com.kap.mechanics_api.service;
 
+import com.kap.mechanics_api.domain.Orcamento;
 import com.kap.mechanics_api.domain.OrdemServico;
 //import com.kap.mechanics_api.dto.ordemservico.AtualizacaoOrdemServicoRequestDTO;
 //import com.kap.mechanics_api.dto.ordemservico.CriacaoOrdemServicoRequestDTO;
@@ -11,71 +12,58 @@ import com.kap.mechanics_api.domain.OrdemServico;
 //import com.kap.mechanics_api.mapper.OrdemServicoMapper;
 //import com.kap.mechanics_api.repository.OrcamentoRepository;
 //import com.kap.mechanics_api.repository.OrdemServicoRepository;
+import com.kap.mechanics_api.domain.StatusOrdemServico;
+import com.kap.mechanics_api.domain.Usuario;
+import com.kap.mechanics_api.enums.StatusOrcamento;
+import com.kap.mechanics_api.enums.StatusOrdemServicoEnum;
+import com.kap.mechanics_api.exception.OrcamentoNaoAprovadoException;
+import com.kap.mechanics_api.exception.OrdemServicoJaExisteException;
+import com.kap.mechanics_api.repository.OrdemServicoRepository;
+import com.kap.mechanics_api.repository.StatusOrdemServicoRepository;
+import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
 public class OrdemServicoService {
 
-//    private final OrdemServicoRepository ordemServicoRepository;
-//    private final OrcamentoRepository orcamentoRepository;
-//    private final UsuarioService usuarioService;
-//    private final OrdemServicoMapper ordemServicoMapper;
-//
-//    public OrdemServicoService(OrdemServicoRepository ordemServicoRepository,
-//                               OrcamentoRepository orcamentoRepository,
-//                               UsuarioService usuarioService,
-//                               OrdemServicoMapper ordemServicoMapper) {
-//        this.ordemServicoRepository = ordemServicoRepository;
-//        this.orcamentoRepository = orcamentoRepository;
-//        this.usuarioService = usuarioService;
-//        this.ordemServicoMapper = ordemServicoMapper;
-//    }
-//
-//    public OrdemServicoResponseDTO cadastrar(CriacaoOrdemServicoRequestDTO dto) {
-//        OrdemServico ordemServico = ordemServicoMapper.toEntity(dto);
-//        ordemServico.setOrcamento(orcamentoRepository.findById(dto.orcamentoId()).orElseThrow(() -> new OrcamentoNaoEncontradoException(
-//                        "Orçamento não encontrado com o id " + dto.orcamentoId())));
-//        ordemServico.setUsuarioAtendente(usuarioService.buscarPorId(dto.usuarioAtendenteId()));
-//        ordemServico.setStatus(StatusOrdemServico.RECEBIDA);
-//
-//        return ordemServicoMapper.toResponseDto(ordemServicoRepository.save(ordemServico));
-//    }
-//
-//    public List<OrdemServicoResponseDTO> listar() {
-//        return ordemServicoMapper.toResponseDtoList(ordemServicoRepository.findAll());
-//    }
-//
-//    public OrdemServico pesquisarPorId(Integer id) {
-//        return ordemServicoRepository.findById(id)
-//                .orElseThrow(() -> new OrdemServicoNaoEncontradaException(id));
-//    }
-//
-//    public OrdemServicoResponseDTO buscarPorId(Integer id) {
-//        return ordemServicoMapper.toResponseDto(pesquisarPorId(id));
-//    }
-//
-//    public OrdemServicoResponseDTO atualizar(Integer id, AtualizacaoOrdemServicoRequestDTO dto) {
-//        if (!dto.temAoMenosUmCampoPreenchido()) {
-//            throw new NenhumCampoInformadoException(AtualizacaoOrdemServicoRequestDTO.class);
-//        }
-//
-//        OrdemServico ordemServico = pesquisarPorId(id);
-//        if (dto.usuarioAtendenteId() != null) {
-//            ordemServico.setUsuarioAtendente(usuarioService.buscarPorId(dto.usuarioAtendenteId()));
-//        }
-//        if (dto.statusId() != null) {
-//            ordemServico.setStatus(StatusOrdemServico.EM_EXECUCAO);
-//        }
-//        if (dto.dataEntrega() != null) {
-//            ordemServico.setDataEntrega(dto.dataEntrega());
-//        }
-//
-//        return ordemServicoMapper.toResponseDto(ordemServicoRepository.save(ordemServico));
-//    }
-//
-//    public void deletar(Integer id) {
-//        ordemServicoRepository.delete(pesquisarPorId(id));
-//    }
+    private final OrdemServicoRepository ordemServicoRepository;
+    private final StatusOrdemServicoRepository statusOrdemServicoRepository;
+    private final OrcamentoService orcamentoService;
+
+    public OrdemServicoService(OrdemServicoRepository ordemServicoRepository, StatusOrdemServicoRepository statusOrdemServicoRepository
+                               , OrcamentoService orcamentoService){
+        this.orcamentoService = orcamentoService;
+        this.ordemServicoRepository = ordemServicoRepository;
+        this.statusOrdemServicoRepository = statusOrdemServicoRepository;
+    }
+
+    @Transactional
+    public OrdemServico gerarOrdemServico(Long orcamentoId, Usuario usuario){
+
+        var orcamento = orcamentoService.pesquisarPorId(orcamentoId.intValue());
+
+        if (!orcamento.getStatusOrcamento().equals(StatusOrcamento.APROVADO)) {
+            throw new OrcamentoNaoAprovadoException("Orçamento precisa estar aprovado para gerar OS");
+        }
+        if (ordemServicoRepository.existsByOrcamentoId(orcamentoId)) {
+            throw new OrdemServicoJaExisteException("Este orçamento já possui uma OS gerada");
+        }
+
+        StatusOrdemServico statusInicial = statusOrdemServicoRepository
+                .findByNome(StatusOrdemServicoEnum.RECEBIDA.name())
+                .orElseThrow(() -> new IllegalStateException("Status RECEBIDA não cadastrado"));
+
+        OrdemServico os = new OrdemServico();
+        os.setOrcamento(orcamento);
+        os.setUsuarioAtendente(usuario);
+        os.setStatusOrdemServico(statusInicial);
+        os.setDataAbertura(LocalDateTime.now());
+
+        return ordemServicoRepository.save(os);
+
+    }
+
 }

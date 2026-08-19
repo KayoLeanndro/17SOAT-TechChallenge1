@@ -1,6 +1,6 @@
 
 CREATE TYPE  tipo_usuario AS ENUM ('ATENDENTE', 'ESTOQUISTA', 'ADMIN');
-CREATE TYPE  status_aprovacao_orcamento AS ENUM ('PENDENTE', 'APROVADO', 'REJEITADO');
+CREATE TYPE  status_orcamento AS ENUM ('PENDENTE', 'APROVADO', 'REJEITADO');
 CREATE TYPE  tipo_movimentacao AS ENUM ('ENTRADA', 'SAIDA');
 CREATE TYPE  origem_item_os AS ENUM ('ORCADO', 'ADICIONAL');
 
@@ -91,7 +91,7 @@ CREATE TABLE  orcamento (
                            cliente_id          BIGINT NOT NULL REFERENCES cliente(id),
                            veiculo_id          BIGINT NOT NULL REFERENCES veiculo(id),
                            valor_total          DECIMAL(10,2) NOT NULL DEFAULT 0 CHECK (valor_total >= 0),
-                           status_aprovacao    status_aprovacao_orcamento NOT NULL DEFAULT 'PENDENTE',
+                           status_orcamento    status_orcamento NOT NULL DEFAULT 'PENDENTE',
                            data_criacao        TIMESTAMP NOT NULL DEFAULT now(),
                            data_resposta        TIMESTAMP
 );
