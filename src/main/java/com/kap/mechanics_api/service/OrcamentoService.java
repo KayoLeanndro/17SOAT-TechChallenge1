@@ -3,15 +3,19 @@ package com.kap.mechanics_api.service;
 import com.kap.mechanics_api.domain.*;
 import com.kap.mechanics_api.dto.orcamento.GeracaoOrcamentoRequestDTO;
 import com.kap.mechanics_api.enums.StatusOrcamento;
+import com.kap.mechanics_api.exception.OrcamentoNaoEncontradoException;
+import com.kap.mechanics_api.exception.StatusOrcamentoInvalidoException;
 import com.kap.mechanics_api.repository.OrcamentoRepository;
 import com.kap.mechanics_api.repository.OrcamentoServicoRepository;
 import com.kap.mechanics_api.repository.ServicoItemRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Locale;
 
 @Service
 public class OrcamentoService {
@@ -68,5 +72,36 @@ public class OrcamentoService {
 
         orcamento.setValorTotal(valorTotal);
         orcamentoRepository.save(orcamento);
+    }
+
+    public Orcamento pesquisarPorId(Integer id) {
+        return orcamentoRepository.findById(id)
+                .orElseThrow(() -> new OrcamentoNaoEncontradoException(id));
+    }
+
+    @Transactional
+    public void atualizarStatus(Integer id, String status) {
+        Orcamento orcamento = pesquisarPorId(id);
+        StatusOrcamento novoStatus = converterStatus(status);
+
+        orcamento.setStatusOrcamento(novoStatus);
+
+        if (StatusOrcamento.APROVADO.equals(novoStatus) || StatusOrcamento.REJEITADO.equals(novoStatus)) {
+            orcamento.setDataResposta(LocalDateTime.now());
+        }
+
+        orcamentoRepository.save(orcamento);
+    }
+
+    private StatusOrcamento converterStatus(String status) {
+        if (!StringUtils.hasText(status)) {
+            throw new StatusOrcamentoInvalidoException(status);
+        }
+
+        try {
+            return StatusOrcamento.valueOf(status.trim().toUpperCase(Locale.ROOT));
+        } catch (IllegalArgumentException ex) {
+            throw new StatusOrcamentoInvalidoException(status);
+        }
     }
 }

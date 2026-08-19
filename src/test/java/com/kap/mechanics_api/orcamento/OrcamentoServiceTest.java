@@ -3,6 +3,8 @@ package com.kap.mechanics_api.orcamento;
 import com.kap.mechanics_api.domain.*;
 import com.kap.mechanics_api.dto.orcamento.GeracaoOrcamentoRequestDTO;
 import com.kap.mechanics_api.enums.StatusOrcamento;
+import com.kap.mechanics_api.exception.OrcamentoNaoEncontradoException;
+import com.kap.mechanics_api.exception.StatusOrcamentoInvalidoException;
 import com.kap.mechanics_api.enums.TipoItemEstoque;
 import com.kap.mechanics_api.repository.OrcamentoRepository;
 import com.kap.mechanics_api.repository.OrcamentoServicoRepository;
@@ -21,6 +23,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
@@ -173,4 +176,48 @@ class OrcamentoServiceTest {
         itemEstoque.setAtivo(true);
         return itemEstoque;
     }
+
+    @Test
+    void deveAtualizarStatusDoOrcamento() {
+        Orcamento orcamento = new Orcamento();
+        orcamento.setId(1);
+        orcamento.setStatusOrcamento(StatusOrcamento.PENDENTE);
+
+        when(orcamentoRepository.findById(1)).thenReturn(Optional.of(orcamento));
+        when(orcamentoRepository.save(any(Orcamento.class))).thenReturn(orcamento);
+
+        orcamentoService.atualizarStatus(1, "aprovado");
+
+        assertEquals(StatusOrcamento.APROVADO, orcamento.getStatusOrcamento());
+        verify(orcamentoRepository).save(orcamento);
+    }
+
+    @Test
+    void deveLancarExcecaoQuandoOrcamentoNaoExistirAoAtualizarStatus() {
+        when(orcamentoRepository.findById(999)).thenReturn(Optional.empty());
+
+        assertThrows(
+                OrcamentoNaoEncontradoException.class,
+                () -> orcamentoService.atualizarStatus(999, "APROVADO")
+        );
+
+        verify(orcamentoRepository, never()).save(any(Orcamento.class));
+    }
+
+    @Test
+    void deveLancarExcecaoQuandoStatusForInvalido() {
+        Orcamento orcamento = new Orcamento();
+        orcamento.setId(1);
+        orcamento.setStatusOrcamento(StatusOrcamento.PENDENTE);
+
+        when(orcamentoRepository.findById(1)).thenReturn(Optional.of(orcamento));
+
+        assertThrows(
+                StatusOrcamentoInvalidoException.class,
+                () -> orcamentoService.atualizarStatus(1, "FINALIZADO")
+        );
+
+        verify(orcamentoRepository, never()).save(any(Orcamento.class));
+    }
 }
+

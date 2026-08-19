@@ -77,24 +77,18 @@ public class GlobalExceptionHandler {
         return problemDetail;
     }
 
-    @ExceptionHandler(UsuarioNaoEncontradoException.class)
+    @ExceptionHandler(OrcamentoNaoEncontradoException.class)
     public ProblemDetail lancarExcecaoOrcamentoNaoEncontrado(OrcamentoNaoEncontradoException ex){
         ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, ex.getMessage());
         problemDetail.setTitle("Orçamento não encontrado");
         return problemDetail;
     }
 
-//    @ExceptionHandler(OrdemServicoNaoEncontradaException.class)
-//    public ProblemDetail lancarExcecaoOrdemServicoNaoEncontrada(OrdemServicoNaoEncontradaException ex) {
-//        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, ex.getMessage());
-//        problemDetail.setTitle("Ordem de serviço não encontrada");
-//        return problemDetail;
-//    }
-//
-//    @ExceptionHandler(StatusOrdemServicoNaoEncontradoException.class)
-//    public ProblemDetail lancarExcecaoStatusOrdemServicoNaoEncontrado(StatusOrdemServicoNaoEncontradoException ex) {
-//        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, ex.getMessage());
-//        problemDetail.setTitle("Status da ordem de serviço não encontrado");
-//        return problemDetail;
-//    }
+    @ExceptionHandler(StatusOrcamentoInvalidoException.class)
+    public ProblemDetail lancarExcecaoStatusOrcamentoInvalido(StatusOrcamentoInvalidoException ex){
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, ex.getMessage());
+        problemDetail.setTitle("Status de orçamento inválido");
+        return problemDetail;
+    }
 }
+
