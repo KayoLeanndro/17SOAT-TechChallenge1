@@ -1,5 +1,6 @@
 package com.kap.mechanics_api.controller;
 
+import com.kap.mechanics_api.documentation.UsuarioControllerDoc;
 import com.kap.mechanics_api.dto.usuario.*;
 import com.kap.mechanics_api.service.UsuarioService;
 import jakarta.validation.Valid;
@@ -13,7 +14,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/usuario")
 @PreAuthorize("hasRole('ADMIN')")
-public class UsuarioController {
+public class UsuarioController implements UsuarioControllerDoc {
 
     private final UsuarioService usuarioService;
 
@@ -22,6 +23,7 @@ public class UsuarioController {
     }
 
     @PostMapping
+    @Override
     public ResponseEntity<CriacaoUsuarioResponseDTO> cadastrar(@Valid @RequestBody CriacaoUsuarioRequestDTO dto){
         CriacaoUsuarioResponseDTO response = usuarioService.cadastrar(dto);
         URI location = URI.create("/api/usuario/" + response.id());
@@ -30,21 +32,25 @@ public class UsuarioController {
     }
 
     @GetMapping("/{id}")
+    @Override
     public ResponseEntity<ListagemUsuarioDTO> pesquisarPorId(@PathVariable Integer id){
         return ResponseEntity.ok(usuarioService.pesquisarPorId(id));
     }
 
     @GetMapping
+    @Override
     public ResponseEntity<List<ListagemUsuarioDTO>> listar(){
         return ResponseEntity.ok(usuarioService.listar());
     }
 
     @PutMapping("/{id}")
+    @Override
     public ResponseEntity<AtualizacaoUsuarioResponseDTO> atualizar(@PathVariable Integer id, @RequestBody AtualizacaoUsuarioRequestDTO dto){
         return ResponseEntity.ok(usuarioService.atualizar(id, dto));
     }
 
     @DeleteMapping("/{id}")
+    @Override
     public ResponseEntity<Void> deletar(@PathVariable Integer id){
         usuarioService.deletar(id);
         return ResponseEntity.noContent().build();
