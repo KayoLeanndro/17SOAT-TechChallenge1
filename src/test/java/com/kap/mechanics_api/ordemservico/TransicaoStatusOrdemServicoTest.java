@@ -65,8 +65,8 @@ public class TransicaoStatusOrdemServicoTest {
 
     @ParameterizedTest
     @CsvSource({
-            "EM_DIAGNOSTICO, AGUARDANDO_APROVACAO",
-            "AGUARDANDO_APROVACAO, EM_EXECUCAO",
+            "AGUARDANDO_APROVACAO, EM_DIAGNOSTICO",
+            "EM_DIAGNOSTICO, EM_EXECUCAO",
             "EM_EXECUCAO, FINALIZADA",
             "FINALIZADA, ENTREGUE"
     })

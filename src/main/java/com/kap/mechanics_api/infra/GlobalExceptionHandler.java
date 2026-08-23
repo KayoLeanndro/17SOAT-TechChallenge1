@@ -153,7 +153,10 @@ public class GlobalExceptionHandler {
         problemDetail.setTitle("Este orçamento já possui uma OS gerada");
         return problemDetail;
     }
-
-
-
+    @ExceptionHandler({OrcamentoJaRespondidoException.class, IllegalArgumentException.class})
+    public ProblemDetail lancarExcecaoRespostaOrcamentoInvalida(RuntimeException ex) {
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, ex.getMessage());
+        problemDetail.setTitle("Resposta de orçamento inválida");
+        return problemDetail;
+    }
 }

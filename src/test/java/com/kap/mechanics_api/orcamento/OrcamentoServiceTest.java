@@ -9,6 +9,7 @@ import com.kap.mechanics_api.repository.OrcamentoServicoRepository;
 import com.kap.mechanics_api.repository.ServicoItemRepository;
 import com.kap.mechanics_api.service.ClienteService;
 import com.kap.mechanics_api.service.OrcamentoService;
+import com.kap.mechanics_api.service.OrdemServicoService;
 import com.kap.mechanics_api.service.ServicoService;
 import com.kap.mechanics_api.service.VeiculoService;
 import org.junit.jupiter.api.BeforeEach;
@@ -49,6 +50,9 @@ class OrcamentoServiceTest {
     @Mock
     private OrcamentoServicoRepository orcamentoServicoRepository;
 
+    @Mock
+    private OrdemServicoService ordemServicoService;
+
     @InjectMocks
     private OrcamentoService orcamentoService;
 
@@ -79,14 +83,13 @@ class OrcamentoServiceTest {
             return orcamento;
         });
 
-
-
-        orcamentoService.gerarOrcamento(dto);
+        orcamentoService.gerarOrcamento(dto, "atendente");
 
         ArgumentCaptor<Orcamento> orcamentoCaptor = ArgumentCaptor.forClass(Orcamento.class);
         verify(orcamentoRepository, times(2)).save(orcamentoCaptor.capture());
         assertEquals(0, new BigDecimal("150.00").compareTo(orcamentoCaptor.getAllValues().get(1).getValorTotal()));
         assertEquals(StatusOrcamento.PENDENTE, orcamentoCaptor.getAllValues().get(0).getStatusOrcamento());
+        verify(ordemServicoService).criarParaOrcamentoPendente(100, "atendente");
 
         ArgumentCaptor<OrcamentoServico> osCaptor = ArgumentCaptor.forClass(OrcamentoServico.class);
         verify(orcamentoServicoRepository).save(osCaptor.capture());
@@ -116,7 +119,7 @@ class OrcamentoServiceTest {
             return orcamento;
         });
 
-        orcamentoService.gerarOrcamento(dto);
+        orcamentoService.gerarOrcamento(dto, "atendente");
 
         ArgumentCaptor<OrcamentoServico> osCaptor = ArgumentCaptor.forClass(OrcamentoServico.class);
         verify(orcamentoServicoRepository).save(osCaptor.capture());
@@ -146,7 +149,7 @@ class OrcamentoServiceTest {
             return orcamento;
         });
 
-        orcamentoService.gerarOrcamento(dto);
+        orcamentoService.gerarOrcamento(dto, "atendente");
 
         ArgumentCaptor<OrcamentoServico> osCaptor = ArgumentCaptor.forClass(OrcamentoServico.class);
         verify(orcamentoServicoRepository, org.mockito.Mockito.times(2)).save(osCaptor.capture());
@@ -154,6 +157,37 @@ class OrcamentoServiceTest {
         List<OrcamentoServico> salvos = osCaptor.getAllValues();
         assertEquals(0, new BigDecimal("100.00").compareTo(salvos.get(0).getValorCobrado()));
         assertEquals(0, new BigDecimal("50.00").compareTo(salvos.get(1).getValorCobrado()));
+    }
+
+    @Test
+    void deveAprovarOrcamentoSemCriarNovaOrdemServico() {
+        Orcamento orcamento = orcamentoPendente(100);
+        when(orcamentoRepository.findById(100)).thenReturn(java.util.Optional.of(orcamento));
+
+        orcamentoService.responder(100, StatusOrcamento.APROVADO);
+
+        assertEquals(StatusOrcamento.APROVADO, orcamento.getStatusOrcamento());
+        assertEquals(true, orcamento.getDataResposta() != null);
+        org.mockito.Mockito.verify(ordemServicoService).iniciarDiagnosticoPorOrcamento(100);
+    }
+
+    @Test
+    void deveRejeitarOrcamentoEFinalizarOrdemServico() {
+        Orcamento orcamento = orcamentoPendente(101);
+        when(orcamentoRepository.findById(101)).thenReturn(java.util.Optional.of(orcamento));
+
+        orcamentoService.responder(101, StatusOrcamento.REJEITADO);
+
+        assertEquals(StatusOrcamento.REJEITADO, orcamento.getStatusOrcamento());
+        assertEquals(true, orcamento.getDataResposta() != null);
+        verify(ordemServicoService).finalizarPorOrcamento(101);
+    }
+
+    private Orcamento orcamentoPendente(Integer id) {
+        Orcamento orcamento = new Orcamento();
+        orcamento.setId(id);
+        orcamento.setStatusOrcamento(StatusOrcamento.PENDENTE);
+        return orcamento;
     }
 
     private Servico servico(Integer id, BigDecimal valorMaoDeObra) {

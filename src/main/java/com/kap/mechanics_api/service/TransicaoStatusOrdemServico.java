@@ -45,8 +45,8 @@ public class TransicaoStatusOrdemServico {
     private Set<StatusOrdemServicoEnum> transicoesValidas(String statusAtual) {
         return switch (StatusOrdemServicoEnum.valueOf(statusAtual)) {
             case RECEBIDA -> Set.of(StatusOrdemServicoEnum.EM_DIAGNOSTICO);
-            case EM_DIAGNOSTICO -> Set.of(StatusOrdemServicoEnum.AGUARDANDO_APROVACAO);
-            case AGUARDANDO_APROVACAO -> Set.of(StatusOrdemServicoEnum.EM_EXECUCAO);
+            case EM_DIAGNOSTICO -> Set.of(StatusOrdemServicoEnum.EM_EXECUCAO);
+            case AGUARDANDO_APROVACAO -> Set.of(StatusOrdemServicoEnum.EM_DIAGNOSTICO);
             case EM_EXECUCAO -> Set.of(StatusOrdemServicoEnum.FINALIZADA);
             case FINALIZADA -> Set.of(StatusOrdemServicoEnum.ENTREGUE);
             case ENTREGUE -> Set.of();
