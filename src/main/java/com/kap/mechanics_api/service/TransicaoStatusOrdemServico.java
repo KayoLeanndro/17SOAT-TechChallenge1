@@ -5,6 +5,7 @@ import com.kap.mechanics_api.domain.StatusOrdemServico;
 import com.kap.mechanics_api.enums.StatusOrdemServicoEnum;
 import com.kap.mechanics_api.exception.TransicaoStatusInvalidaException;
 import com.kap.mechanics_api.repository.StatusOrdemServicoRepository;
+import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Component;
 
 import java.util.Set;
@@ -13,24 +14,32 @@ import java.util.Set;
 public class TransicaoStatusOrdemServico {
 
     private final StatusOrdemServicoRepository statusRepository;
+    private final MovimentacaoEstoqueService movimentacaoEstoqueService;
 
-    public TransicaoStatusOrdemServico(StatusOrdemServicoRepository repository){
+    public TransicaoStatusOrdemServico(StatusOrdemServicoRepository repository,
+                                       MovimentacaoEstoqueService movimentacaoEstoqueService){
         this.statusRepository = repository;
+        this.movimentacaoEstoqueService = movimentacaoEstoqueService;
     }
 
+    @Transactional
     public void transicionar(OrdemServico os, StatusOrdemServicoEnum novoStatus) {
-        boolean valida = transicoesValidas(os.getStatusOrdemServico().getDescricao())
+        boolean valida = transicoesValidas(os.getStatusOrdemServico().getNome())
                 .contains(novoStatus);
 
         if (!valida) {
             throw new TransicaoStatusInvalidaException(
-                    "Não é possível ir de " + os.getStatusOrdemServico().getDescricao() + " para " + novoStatus);
+                    "Não é possível ir de " + os.getStatusOrdemServico().getNome() + " para " + novoStatus);
         }
 
         StatusOrdemServico status = statusRepository.findByNome(novoStatus.name())
                 .orElseThrow(() -> new IllegalStateException("Status não cadastrado: " + novoStatus));
 
         os.setStatusOrdemServico(status);
+
+        if (novoStatus == StatusOrdemServicoEnum.EM_EXECUCAO) {
+            movimentacaoEstoqueService.baixarItensDaOrdemServico(os);
+        }
     }
 
     private Set<StatusOrdemServicoEnum> transicoesValidas(String statusAtual) {

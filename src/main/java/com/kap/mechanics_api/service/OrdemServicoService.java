@@ -1,30 +1,19 @@
 package com.kap.mechanics_api.service;
 
-import com.kap.mechanics_api.domain.Orcamento;
 import com.kap.mechanics_api.domain.OrdemServico;
-//import com.kap.mechanics_api.dto.ordemservico.AtualizacaoOrdemServicoRequestDTO;
-//import com.kap.mechanics_api.dto.ordemservico.CriacaoOrdemServicoRequestDTO;
-//import com.kap.mechanics_api.dto.ordemservico.OrdemServicoResponseDTO;
-//import com.kap.mechanics_api.enums.StatusOrdemServico;
-//import com.kap.mechanics_api.exception.NenhumCampoInformadoException;
-//import com.kap.mechanics_api.exception.OrcamentoNaoEncontradoException;
-//import com.kap.mechanics_api.exception.OrdemServicoNaoEncontradaException;
-//import com.kap.mechanics_api.mapper.OrdemServicoMapper;
-//import com.kap.mechanics_api.repository.OrcamentoRepository;
-//import com.kap.mechanics_api.repository.OrdemServicoRepository;
 import com.kap.mechanics_api.domain.StatusOrdemServico;
 import com.kap.mechanics_api.domain.Usuario;
 import com.kap.mechanics_api.enums.StatusOrcamento;
 import com.kap.mechanics_api.enums.StatusOrdemServicoEnum;
 import com.kap.mechanics_api.exception.OrcamentoNaoAprovadoException;
 import com.kap.mechanics_api.exception.OrdemServicoJaExisteException;
+import com.kap.mechanics_api.exception.OrdemServicoNaoEncontradaException;
 import com.kap.mechanics_api.repository.OrdemServicoRepository;
 import com.kap.mechanics_api.repository.StatusOrdemServicoRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
 @Service
 public class OrdemServicoService {
@@ -32,12 +21,15 @@ public class OrdemServicoService {
     private final OrdemServicoRepository ordemServicoRepository;
     private final StatusOrdemServicoRepository statusOrdemServicoRepository;
     private final OrcamentoService orcamentoService;
+    private final TransicaoStatusOrdemServico transicaoStatusOrdemServico;
 
     public OrdemServicoService(OrdemServicoRepository ordemServicoRepository, StatusOrdemServicoRepository statusOrdemServicoRepository
-                               , OrcamentoService orcamentoService){
+                               , OrcamentoService orcamentoService,
+                               TransicaoStatusOrdemServico transicaoStatusOrdemServico){
         this.orcamentoService = orcamentoService;
         this.ordemServicoRepository = ordemServicoRepository;
         this.statusOrdemServicoRepository = statusOrdemServicoRepository;
+        this.transicaoStatusOrdemServico = transicaoStatusOrdemServico;
     }
 
     @Transactional
@@ -64,6 +56,15 @@ public class OrdemServicoService {
 
         return ordemServicoRepository.save(os);
 
+    }
+
+    @Transactional
+    public OrdemServico transicionarStatus(Long ordemServicoId, StatusOrdemServicoEnum novoStatus) {
+        OrdemServico ordemServico = ordemServicoRepository.findById(ordemServicoId)
+                .orElseThrow(() -> new OrdemServicoNaoEncontradaException(ordemServicoId));
+
+        transicaoStatusOrdemServico.transicionar(ordemServico, novoStatus);
+        return ordemServicoRepository.save(ordemServico);
     }
 
 }

@@ -36,6 +36,49 @@ public class GlobalExceptionHandler {
         return problemDetail;
     }
 
+    @ExceptionHandler(MovimentacaoEstoqueNaoEncontradaException.class)
+    public ProblemDetail lancarExcecaoMovimentacaoEstoqueNaoEncontrada(MovimentacaoEstoqueNaoEncontradaException ex) {
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, ex.getMessage());
+        problemDetail.setTitle("Movimentacao de estoque nao encontrada");
+        return problemDetail;
+    }
+
+    @ExceptionHandler(OrdemServicoNaoEncontradaException.class)
+    public ProblemDetail lancarExcecaoOrdemServicoNaoEncontrada(OrdemServicoNaoEncontradaException ex) {
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, ex.getMessage());
+        problemDetail.setTitle("Ordem de servico nao encontrada");
+        return problemDetail;
+    }
+
+    @ExceptionHandler(EstoqueInsuficienteException.class)
+    public ProblemDetail lancarExcecaoEstoqueInsuficiente(EstoqueInsuficienteException ex) {
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, ex.getMessage());
+        problemDetail.setTitle("Estoque insuficiente");
+        return problemDetail;
+    }
+
+    @ExceptionHandler({MovimentacaoEstoqueObrigatoriaException.class,
+            OrdemServicoNaoEstaEmExecucaoException.class, ItemEstoqueInativoException.class})
+    public ProblemDetail lancarExcecaoRegraMovimentacaoEstoque(RuntimeException ex) {
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, ex.getMessage());
+        problemDetail.setTitle("Movimentacao de estoque invalida");
+        return problemDetail;
+    }
+
+    @ExceptionHandler(PeriodoMovimentacaoInvalidoException.class)
+    public ProblemDetail lancarExcecaoPeriodoMovimentacaoInvalido(PeriodoMovimentacaoInvalidoException ex) {
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, ex.getMessage());
+        problemDetail.setTitle("Periodo de movimentacao invalido");
+        return problemDetail;
+    }
+
+    @ExceptionHandler(TransicaoStatusInvalidaException.class)
+    public ProblemDetail lancarExcecaoTransicaoStatusInvalida(TransicaoStatusInvalidaException ex) {
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, ex.getMessage());
+        problemDetail.setTitle("Transicao de status invalida");
+        return problemDetail;
+    }
+
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ProblemDetail handleValidationException(MethodArgumentNotValidException ex) {
         ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(

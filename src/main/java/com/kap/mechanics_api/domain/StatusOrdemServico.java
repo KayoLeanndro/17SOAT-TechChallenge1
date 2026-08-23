@@ -10,8 +10,8 @@ public class StatusOrdemServico {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "nome",nullable = false, unique = true, length = 30)
-    private String descricao;
+    @Column(name = "nome", nullable = false, unique = true, length = 30)
+    private String nome;
 
     public Long getId() {
         return id;
@@ -21,22 +21,22 @@ public class StatusOrdemServico {
         this.id = id;
     }
 
-    public String getDescricao() {
-        return descricao;
+    public String getNome() {
+        return nome;
     }
 
-    public void setDescricao(String descricao) {
-        this.descricao = descricao;
+    public void setNome(String nome) {
+        this.nome = nome;
     }
 
     public StatusOrdemServico(){}
 
-    public StatusOrdemServico( String descricao) {
-        this.descricao = descricao;
+    public StatusOrdemServico(String nome) {
+        this.nome = nome;
     }
 
-    public StatusOrdemServico(Long id, String descricao) {
+    public StatusOrdemServico(Long id, String nome) {
         this.id = id;
-        this.descricao = descricao;
+        this.nome = nome;
     }
 }

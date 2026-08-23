@@ -66,6 +66,15 @@ O token tem duração de 1 hora e carrega as roles do usuário no claim `roles`.
 - `GET /api/peca/{id}`
 - `PATCH /api/peca/{id}`
 - `DELETE /api/peca/{id}`
+- `POST /api/movimentacao-estoque/entrada`
+- `POST /api/movimentacao-estoque/saida`
+- `GET /api/movimentacao-estoque`
+- `GET /api/movimentacao-estoque/{id}`
+- `GET /api/movimentacao-estoque/item/{itemEstoqueId}`
+- `GET /api/movimentacao-estoque/ordem-servico/{ordemServicoId}`
+- `GET /api/movimentacao-estoque/tipo/{tipo}`
+- `GET /api/movimentacao-estoque/periodo?inicio=...&fim=...`
+- `PATCH /api/ordem-servico/{id}/status`
 - `POST /api/servico`
 - `GET /api/servico`
 - `GET /api/servico/{id}`
