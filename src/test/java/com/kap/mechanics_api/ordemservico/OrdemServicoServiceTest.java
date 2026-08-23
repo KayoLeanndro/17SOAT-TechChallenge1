@@ -17,6 +17,7 @@ import com.kap.mechanics_api.exception.OrcamentoNaoAprovadoException;
 import com.kap.mechanics_api.exception.OrdemServicoJaExisteException;
 import com.kap.mechanics_api.repository.OrdemServicoRepository;
 import com.kap.mechanics_api.repository.StatusOrdemServicoRepository;
+import com.kap.mechanics_api.repository.UsuarioRepository;
 import com.kap.mechanics_api.service.OrcamentoService;
 import com.kap.mechanics_api.service.OrdemServicoService;
 import com.kap.mechanics_api.service.TransicaoStatusOrdemServico;
@@ -51,6 +52,9 @@ class OrdemServicoServiceTest {
 
     @Mock
     private TransicaoStatusOrdemServico transicaoStatusOrdemServico;
+
+    @Mock
+    private UsuarioRepository usuarioRepository;
 
     @InjectMocks
     private OrdemServicoService ordemServicoService;
@@ -96,6 +100,25 @@ class OrdemServicoServiceTest {
         verify(ordemServicoRepository).save(captor.capture());
         assertThat(captor.getValue().getStatusOrdemServico().getNome())
                 .isEqualTo(StatusOrdemServicoEnum.RECEBIDA.name());
+    }
+
+    @Test
+    void deveAssociarUsuarioLogadoAoGerarOrdemServico() {
+        Integer orcamentoId = 1;
+        usuario.setLogin("atendente");
+
+        when(usuarioRepository.findByLogin("atendente")).thenReturn(Optional.of(usuario));
+        when(orcamentoService.pesquisarPorId(orcamentoId)).thenReturn(orcamento);
+        when(ordemServicoRepository.existsByOrcamentoId(orcamentoId)).thenReturn(false);
+        when(statusOrdemServicoRepository.findByNome(StatusOrdemServicoEnum.RECEBIDA.name()))
+                .thenReturn(Optional.of(statusRecebida));
+        when(ordemServicoRepository.save(any(OrdemServico.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+
+        OrdemServico resultado = ordemServicoService.gerarOrdemServico(orcamentoId, "atendente");
+
+        assertThat(resultado.getUsuarioAtendente()).isEqualTo(usuario);
+        verify(usuarioRepository).findByLogin("atendente");
     }
 
     @Test

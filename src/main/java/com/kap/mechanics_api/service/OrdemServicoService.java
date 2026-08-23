@@ -8,8 +8,10 @@ import com.kap.mechanics_api.enums.StatusOrdemServicoEnum;
 import com.kap.mechanics_api.exception.OrcamentoNaoAprovadoException;
 import com.kap.mechanics_api.exception.OrdemServicoJaExisteException;
 import com.kap.mechanics_api.exception.OrdemServicoNaoEncontradaException;
+import com.kap.mechanics_api.exception.UsuarioNaoEncontradoException;
 import com.kap.mechanics_api.repository.OrdemServicoRepository;
 import com.kap.mechanics_api.repository.StatusOrdemServicoRepository;
+import com.kap.mechanics_api.repository.UsuarioRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
@@ -22,14 +24,24 @@ public class OrdemServicoService {
     private final StatusOrdemServicoRepository statusOrdemServicoRepository;
     private final OrcamentoService orcamentoService;
     private final TransicaoStatusOrdemServico transicaoStatusOrdemServico;
+    private final UsuarioRepository usuarioRepository;
 
     public OrdemServicoService(OrdemServicoRepository ordemServicoRepository, StatusOrdemServicoRepository statusOrdemServicoRepository
                                , OrcamentoService orcamentoService,
-                               TransicaoStatusOrdemServico transicaoStatusOrdemServico){
+                               TransicaoStatusOrdemServico transicaoStatusOrdemServico,
+                               UsuarioRepository usuarioRepository){
         this.orcamentoService = orcamentoService;
         this.ordemServicoRepository = ordemServicoRepository;
         this.statusOrdemServicoRepository = statusOrdemServicoRepository;
         this.transicaoStatusOrdemServico = transicaoStatusOrdemServico;
+        this.usuarioRepository = usuarioRepository;
+    }
+
+    @Transactional
+    public OrdemServico gerarOrdemServico(Integer orcamentoId, String usuarioLogin) {
+        Usuario usuario = usuarioRepository.findByLogin(usuarioLogin)
+                .orElseThrow(() -> new UsuarioNaoEncontradoException(usuarioLogin));
+        return gerarOrdemServico(orcamentoId, usuario);
     }
 
     @Transactional
