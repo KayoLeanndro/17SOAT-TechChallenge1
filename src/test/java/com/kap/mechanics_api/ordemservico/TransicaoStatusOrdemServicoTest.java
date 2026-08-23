@@ -40,7 +40,7 @@ public class TransicaoStatusOrdemServicoTest {
 
     private StatusOrdemServico statusOrdemServico(String nome) {
         StatusOrdemServico status = new StatusOrdemServico();
-        status.setId(1L);
+        status.setId(1);
         status.setNome(nome);
         return status;
     }

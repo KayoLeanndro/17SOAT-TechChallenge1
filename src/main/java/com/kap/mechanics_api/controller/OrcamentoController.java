@@ -4,6 +4,7 @@ import com.kap.mechanics_api.dto.orcamento.GeracaoOrcamentoRequestDTO;
 import com.kap.mechanics_api.service.OrcamentoService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -20,9 +21,9 @@ public class OrcamentoController {
     }
 
     @PostMapping("/gerarOrcamento")
-    public ResponseEntity<String> gerarOrcamento(@Valid @RequestBody GeracaoOrcamentoRequestDTO dto){
+    public ResponseEntity<String> gerarOrcamento(@Valid @RequestBody GeracaoOrcamentoRequestDTO dto, Authentication authentication){
 
-        orcamentoService.gerarOrcamento(dto);
+        orcamentoService.gerarOrcamento(dto, authentication.getName());
         return ResponseEntity.ok("orçamento gerado com sucesso!");
     }
 

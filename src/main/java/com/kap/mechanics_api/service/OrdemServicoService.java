@@ -33,7 +33,7 @@ public class OrdemServicoService {
     }
 
     @Transactional
-    public OrdemServico gerarOrdemServico(Long orcamentoId, Usuario usuario){
+    public OrdemServico gerarOrdemServico(Integer orcamentoId, Usuario usuario){
 
         var orcamento = orcamentoService.pesquisarPorId(orcamentoId.intValue());
 
@@ -59,7 +59,7 @@ public class OrdemServicoService {
     }
 
     @Transactional
-    public OrdemServico transicionarStatus(Long ordemServicoId, StatusOrdemServicoEnum novoStatus) {
+    public OrdemServico transicionarStatus(Integer ordemServicoId, StatusOrdemServicoEnum novoStatus) {
         OrdemServico ordemServico = ordemServicoRepository.findById(ordemServicoId)
                 .orElseThrow(() -> new OrdemServicoNaoEncontradaException(ordemServicoId));
 

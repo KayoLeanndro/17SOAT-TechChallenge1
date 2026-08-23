@@ -82,7 +82,7 @@ class MovimentacaoEstoqueIntegrationTest {
 
     private Integer itemId;
     private Integer usuarioId;
-    private Long ordemServicoId;
+    private Integer ordemServicoId;
 
     @BeforeEach
     void setup() {
@@ -180,7 +180,7 @@ class MovimentacaoEstoqueIntegrationTest {
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.tipo").value(TipoMovimentacaoEstoque.SAIDA.name()))
                 .andExpect(jsonPath("$.saldoItemEstoque").value(6))
-                .andExpect(jsonPath("$.ordemServicoId").value(ordemServicoId.intValue()));
+                .andExpect(jsonPath("$.ordemServicoId").value(ordemServicoId));
 
         ItemEstoque itemAtualizado = itemEstoqueRepository.findById(itemId).orElseThrow();
         assertEquals(6, itemAtualizado.getQuantidadeAtual());

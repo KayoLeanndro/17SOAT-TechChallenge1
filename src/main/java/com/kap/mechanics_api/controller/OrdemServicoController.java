@@ -24,7 +24,7 @@ public class OrdemServicoController {
 
     @PatchMapping("/{id}/status")
     public ResponseEntity<Void> transicionarStatus(
-            @PathVariable Long id,
+            @PathVariable Integer id,
             @Valid @RequestBody AtualizacaoStatusOrdemServicoRequestDTO dto) {
         ordemServicoService.transicionarStatus(id, dto.status());
         return ResponseEntity.noContent().build();

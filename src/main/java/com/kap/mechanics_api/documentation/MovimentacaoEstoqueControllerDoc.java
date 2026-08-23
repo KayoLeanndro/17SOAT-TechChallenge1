@@ -60,7 +60,7 @@ public interface MovimentacaoEstoqueControllerDoc {
             @ApiResponse(responseCode = "200", description = "Lista retornada com sucesso")
     })
     ResponseEntity<List<MovimentacaoEstoqueResponseDTO>> listarPorOrdemServico(
-            @PathVariable Long ordemServicoId
+            @PathVariable Integer ordemServicoId
     );
 
     @Operation(summary = "Listar movimentacoes de estoque por tipo")
@@ -86,6 +86,6 @@ public interface MovimentacaoEstoqueControllerDoc {
             @ApiResponse(responseCode = "404", description = "Movimentacao nao encontrada")
     })
     ResponseEntity<MovimentacaoEstoqueResponseDTO> buscarPorId(
-            @PathVariable Long id
+            @PathVariable Integer id
     );
 }

@@ -89,14 +89,14 @@ class MovimentacaoEstoqueServiceTest {
         ItemEstoque item = item(2, 12);
         Usuario usuario = usuario(8);
         OrdemServico ordemServico = new OrdemServico();
-        ordemServico.setId(55L);
+        ordemServico.setId(55);
         ordemServico.setStatusOrdemServico(statusEmExecucao());
         RegistroSaidaMovimentacaoEstoqueRequestDTO request =
-                new RegistroSaidaMovimentacaoEstoqueRequestDTO(2, 4, 55L);
+                new RegistroSaidaMovimentacaoEstoqueRequestDTO(2, 4, 55);
 
         when(itemEstoqueRepository.findByIdForUpdate(2)).thenReturn(Optional.of(item));
         when(usuarioRepository.findByLogin("usuario8")).thenReturn(Optional.of(usuario));
-        when(ordemServicoRepository.findById(55L)).thenReturn(Optional.of(ordemServico));
+        when(ordemServicoRepository.findById(55)).thenReturn(Optional.of(ordemServico));
         when(itemEstoqueRepository.save(item)).thenReturn(item);
         when(movimentacaoEstoqueRepository.save(any(MovimentacaoEstoque.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
@@ -113,15 +113,15 @@ class MovimentacaoEstoqueServiceTest {
         ItemEstoque item = item(3, 2);
         Usuario usuario = usuario(9);
         OrdemServico ordemServico = new OrdemServico();
-        ordemServico.setId(10L);
+        ordemServico.setId(10);
         ordemServico.setStatusOrdemServico(statusEmExecucao());
 
         when(itemEstoqueRepository.findByIdForUpdate(3)).thenReturn(Optional.of(item));
         when(usuarioRepository.findByLogin("usuario9")).thenReturn(Optional.of(usuario));
-        when(ordemServicoRepository.findById(10L)).thenReturn(Optional.of(ordemServico));
+        when(ordemServicoRepository.findById(10)).thenReturn(Optional.of(ordemServico));
 
         assertThrows(EstoqueInsuficienteException.class, () ->
-                service.registrarSaida(new RegistroSaidaMovimentacaoEstoqueRequestDTO(3, 5, 10L), "usuario9"));
+                service.registrarSaida(new RegistroSaidaMovimentacaoEstoqueRequestDTO(3, 5, 10), "usuario9"));
     }
 
     @Test
@@ -145,10 +145,10 @@ class MovimentacaoEstoqueServiceTest {
     void deveRetornarErroQuandoOrdemServicoNaoExisteNaSaida() {
         when(itemEstoqueRepository.findByIdForUpdate(1)).thenReturn(Optional.of(item(1, 5)));
         when(usuarioRepository.findByLogin("usuario1")).thenReturn(Optional.of(usuario(1)));
-        when(ordemServicoRepository.findById(99L)).thenReturn(Optional.empty());
+        when(ordemServicoRepository.findById(99)).thenReturn(Optional.empty());
 
         assertThrows(OrdemServicoNaoEncontradaException.class, () ->
-                service.registrarSaida(new RegistroSaidaMovimentacaoEstoqueRequestDTO(1, 1, 99L), "usuario1"));
+                service.registrarSaida(new RegistroSaidaMovimentacaoEstoqueRequestDTO(1, 1, 99), "usuario1"));
     }
 
     @Test
@@ -164,13 +164,13 @@ class MovimentacaoEstoqueServiceTest {
 
     @Test
     void deveListarMovimentacoesPorOrdemServico() {
-        when(movimentacaoEstoqueRepository.findByOrdemServico_IdOrderByDataHoraDesc(55L))
+        when(movimentacaoEstoqueRepository.findByOrdemServico_IdOrderByDataHoraDesc(55))
                 .thenReturn(java.util.List.of());
 
-        var resultado = service.listarPorOrdemServico(55L);
+        var resultado = service.listarPorOrdemServico(55);
 
         assertTrue(resultado.isEmpty());
-        verify(movimentacaoEstoqueRepository).findByOrdemServico_IdOrderByDataHoraDesc(55L);
+        verify(movimentacaoEstoqueRepository).findByOrdemServico_IdOrderByDataHoraDesc(55);
     }
 
     @Test

@@ -69,13 +69,13 @@ class OrdemServicoServiceTest {
         usuario.setId(1);
 
         statusRecebida = new StatusOrdemServico();
-        statusRecebida.setId(1L);
+        statusRecebida.setId(1);
         statusRecebida.setNome(StatusOrdemServicoEnum.RECEBIDA.name());
     }
 
     @Test
     void deveGerarOrdemServicoQuandoOrcamentoAprovadoESemOsExistente() {
-        Long orcamentoId = 1L;
+        Integer orcamentoId = Integer.valueOf(1);
 
         when(orcamentoService.pesquisarPorId(orcamentoId.intValue())).thenReturn(orcamento);
         when(ordemServicoRepository.existsByOrcamentoId(orcamentoId)).thenReturn(false);
@@ -100,7 +100,7 @@ class OrdemServicoServiceTest {
 
     @Test
     void deveLancarExcecaoQuandoOrcamentoNaoEstiverAprovado() {
-        Long orcamentoId = 1L;
+        Integer orcamentoId = Integer.valueOf(1);
         orcamento.setStatusOrcamento(StatusOrcamento.PENDENTE);
 
         when(orcamentoService.pesquisarPorId(orcamentoId.intValue())).thenReturn(orcamento);
@@ -115,7 +115,7 @@ class OrdemServicoServiceTest {
 
     @Test
     void deveLancarExcecaoQuandoOrcamentoJaPossuirOrdemServico() {
-        Long orcamentoId = 1L;
+        Integer orcamentoId = Integer.valueOf(1);
 
         when(orcamentoService.pesquisarPorId(orcamentoId.intValue())).thenReturn(orcamento);
         when(ordemServicoRepository.existsByOrcamentoId(orcamentoId)).thenReturn(true);
@@ -130,7 +130,7 @@ class OrdemServicoServiceTest {
 
     @Test
     void deveLancarExcecaoQuandoStatusRecebidaNaoEstiverCadastrado() {
-        Long orcamentoId = 1L;
+        Integer orcamentoId = Integer.valueOf(1);
 
         when(orcamentoService.pesquisarPorId(orcamentoId.intValue())).thenReturn(orcamento);
         when(ordemServicoRepository.existsByOrcamentoId(orcamentoId)).thenReturn(false);
@@ -147,13 +147,13 @@ class OrdemServicoServiceTest {
     @Test
     void deveTransicionarStatusDaOrdemServico() {
         OrdemServico ordemServico = new OrdemServico();
-        ordemServico.setId(9L);
+        ordemServico.setId(Integer.valueOf(9));
 
-        when(ordemServicoRepository.findById(9L)).thenReturn(Optional.of(ordemServico));
+        when(ordemServicoRepository.findById(9)).thenReturn(Optional.of(ordemServico));
         when(ordemServicoRepository.save(ordemServico)).thenReturn(ordemServico);
 
         OrdemServico resultado = ordemServicoService
-                .transicionarStatus(9L, StatusOrdemServicoEnum.EM_DIAGNOSTICO);
+                .transicionarStatus(9, StatusOrdemServicoEnum.EM_DIAGNOSTICO);
 
         assertEquals(ordemServico, resultado);
         verify(transicaoStatusOrdemServico)

@@ -35,7 +35,7 @@ class MovimentacaoEstoqueControllerTest {
 
     @Test
     void deveRegistrarEntrada() {
-        MovimentacaoEstoqueResponseDTO response = response(1L, TipoMovimentacaoEstoque.ENTRADA, 10, null, 20);
+        MovimentacaoEstoqueResponseDTO response = response(1, TipoMovimentacaoEstoque.ENTRADA, 10, null, 20);
         when(service.registrarEntrada(any(RegistroEntradaMovimentacaoEstoqueRequestDTO.class), any())).thenReturn(response);
 
         ResponseEntity<MovimentacaoEstoqueResponseDTO> result =
@@ -48,11 +48,11 @@ class MovimentacaoEstoqueControllerTest {
 
     @Test
     void deveRegistrarSaida() {
-        MovimentacaoEstoqueResponseDTO response = response(2L, TipoMovimentacaoEstoque.SAIDA, 4, 99L, 16);
+        MovimentacaoEstoqueResponseDTO response = response(2, TipoMovimentacaoEstoque.SAIDA, 4, 99, 16);
         when(service.registrarSaida(any(RegistroSaidaMovimentacaoEstoqueRequestDTO.class), any())).thenReturn(response);
 
         ResponseEntity<MovimentacaoEstoqueResponseDTO> result =
-                controller.registrarSaida(new RegistroSaidaMovimentacaoEstoqueRequestDTO(1, 4, 99L), autenticacao());
+                controller.registrarSaida(new RegistroSaidaMovimentacaoEstoqueRequestDTO(1, 4, 99), autenticacao());
 
         assertEquals(201, result.getStatusCode().value());
         assertEquals(response, result.getBody());
@@ -61,8 +61,8 @@ class MovimentacaoEstoqueControllerTest {
     @Test
     void deveListarMovimentacoes() {
         when(service.listar()).thenReturn(List.of(
-                response(1L, TipoMovimentacaoEstoque.ENTRADA, 10, null, 20),
-                response(2L, TipoMovimentacaoEstoque.SAIDA, 3, 99L, 17)
+                response(1, TipoMovimentacaoEstoque.ENTRADA, 10, null, 20),
+                response(2, TipoMovimentacaoEstoque.SAIDA, 3, 99, 17)
         ));
 
         ResponseEntity<List<MovimentacaoEstoqueResponseDTO>> result = controller.listar();
@@ -74,7 +74,7 @@ class MovimentacaoEstoqueControllerTest {
     @Test
     void deveListarMovimentacoesPorItem() {
         when(service.listarPorItem(1)).thenReturn(List.of(
-                response(1L, TipoMovimentacaoEstoque.ENTRADA, 10, null, 20)
+                response(1, TipoMovimentacaoEstoque.ENTRADA, 10, null, 20)
         ));
 
         ResponseEntity<List<MovimentacaoEstoqueResponseDTO>> result = controller.listarPorItem(1);
@@ -85,11 +85,11 @@ class MovimentacaoEstoqueControllerTest {
 
     @Test
     void deveListarMovimentacoesPorOrdemServico() {
-        when(service.listarPorOrdemServico(99L)).thenReturn(List.of(
-                response(2L, TipoMovimentacaoEstoque.SAIDA, 3, 99L, 17)
+        when(service.listarPorOrdemServico(99)).thenReturn(List.of(
+                response(2, TipoMovimentacaoEstoque.SAIDA, 3, 99, 17)
         ));
 
-        ResponseEntity<List<MovimentacaoEstoqueResponseDTO>> result = controller.listarPorOrdemServico(99L);
+        ResponseEntity<List<MovimentacaoEstoqueResponseDTO>> result = controller.listarPorOrdemServico(99);
 
         assertEquals(200, result.getStatusCode().value());
         assertEquals(1, result.getBody().size());
@@ -98,7 +98,7 @@ class MovimentacaoEstoqueControllerTest {
     @Test
     void deveListarMovimentacoesPorTipo() {
         when(service.listarPorTipo(TipoMovimentacaoEstoque.ENTRADA)).thenReturn(List.of(
-                response(1L, TipoMovimentacaoEstoque.ENTRADA, 10, null, 20)
+                response(1, TipoMovimentacaoEstoque.ENTRADA, 10, null, 20)
         ));
 
         ResponseEntity<List<MovimentacaoEstoqueResponseDTO>> result = controller.listarPorTipo(TipoMovimentacaoEstoque.ENTRADA);
@@ -112,7 +112,7 @@ class MovimentacaoEstoqueControllerTest {
         LocalDateTime inicio = LocalDateTime.of(2026, 8, 1, 0, 0);
         LocalDateTime fim = LocalDateTime.of(2026, 8, 31, 23, 59);
         when(service.listarPorPeriodo(inicio, fim)).thenReturn(List.of(
-                response(1L, TipoMovimentacaoEstoque.ENTRADA, 10, null, 20)
+                response(1, TipoMovimentacaoEstoque.ENTRADA, 10, null, 20)
         ));
 
         ResponseEntity<List<MovimentacaoEstoqueResponseDTO>> result = controller.listarPorPeriodo(inicio, fim);
@@ -123,19 +123,19 @@ class MovimentacaoEstoqueControllerTest {
 
     @Test
     void deveBuscarPorId() {
-        MovimentacaoEstoqueResponseDTO response = response(3L, TipoMovimentacaoEstoque.ENTRADA, 7, null, 27);
-        when(service.buscarPorId(3L)).thenReturn(response);
+        MovimentacaoEstoqueResponseDTO response = response(3, TipoMovimentacaoEstoque.ENTRADA, 7, null, 27);
+        when(service.buscarPorId(3)).thenReturn(response);
 
-        ResponseEntity<MovimentacaoEstoqueResponseDTO> result = controller.buscarPorId(3L);
+        ResponseEntity<MovimentacaoEstoqueResponseDTO> result = controller.buscarPorId(3);
 
         assertEquals(200, result.getStatusCode().value());
         assertEquals(response, result.getBody());
     }
 
-    private MovimentacaoEstoqueResponseDTO response(Long id,
+    private MovimentacaoEstoqueResponseDTO response(Integer id,
                                                     TipoMovimentacaoEstoque tipo,
                                                     Integer quantidade,
-                                                    Long ordemServicoId,
+                                                    Integer ordemServicoId,
                                                     Integer saldo) {
         return new MovimentacaoEstoqueResponseDTO(
                 id,

@@ -67,7 +67,7 @@ public class MovimentacaoEstoqueController implements MovimentacaoEstoqueControl
 
     @Override
     @GetMapping("/ordem-servico/{ordemServicoId}")
-    public ResponseEntity<List<MovimentacaoEstoqueResponseDTO>> listarPorOrdemServico(@PathVariable Long ordemServicoId) {
+    public ResponseEntity<List<MovimentacaoEstoqueResponseDTO>> listarPorOrdemServico(@PathVariable Integer ordemServicoId) {
         return ResponseEntity.ok(movimentacaoEstoqueService.listarPorOrdemServico(ordemServicoId));
     }
 
@@ -87,7 +87,7 @@ public class MovimentacaoEstoqueController implements MovimentacaoEstoqueControl
 
     @Override
     @GetMapping("/{id}")
-    public ResponseEntity<MovimentacaoEstoqueResponseDTO> buscarPorId(@PathVariable Long id) {
+    public ResponseEntity<MovimentacaoEstoqueResponseDTO> buscarPorId(@PathVariable Integer id) {
         return ResponseEntity.ok(movimentacaoEstoqueService.buscarPorId(id));
     }
 }

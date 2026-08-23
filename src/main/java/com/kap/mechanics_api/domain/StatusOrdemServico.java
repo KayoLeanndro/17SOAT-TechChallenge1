@@ -8,16 +8,16 @@ public class StatusOrdemServico {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Integer id;
 
     @Column(name = "nome", nullable = false, unique = true, length = 30)
     private String nome;
 
-    public Long getId() {
+    public Integer getId() {
         return id;
     }
 
-    public void setId(Long id) {
+    public void setId(Integer id) {
         this.id = id;
     }
 
@@ -35,7 +35,7 @@ public class StatusOrdemServico {
         this.nome = nome;
     }
 
-    public StatusOrdemServico(Long id, String nome) {
+    public StatusOrdemServico(Integer id, String nome) {
         this.id = id;
         this.nome = nome;
     }

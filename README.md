@@ -13,7 +13,7 @@ O projeto expõe uma API REST para cadastro e manutenção de:
 - serviços
 - insumos
 
-A aplicação também conta com autenticação via JWT, documentação Swagger/OpenAPI, migrações com Flyway e persistência em PostgreSQL.
+A aplicação também conta com autenticação via JWT, documentação Swagger/OpenAPI, migrações com Flyway, persistência em PostgreSQL e análise de qualidade com SonarQube.
 
 ## Tecnologias
 
@@ -46,11 +46,11 @@ O token tem duração de 1 hora e carrega as roles do usuário no claim `roles`.
 ## Principais endpoints
 
 - `POST /api/auth/login`
-- `POST /api/cliente`
-- `GET /api/cliente`
-- `GET /api/cliente/{id}`
-- `PUT /api/cliente/{id}`
-- `DELETE /api/cliente/{id}`
+- `POST /api/clientes`
+- `GET /api/clientes`
+- `GET /api/clientes/{id}`
+- `PUT /api/clientes/{id}`
+- `DELETE /api/clientes/{id}`
 - `POST /api/veiculo`
 - `GET /api/veiculo`
 - `GET /api/veiculo/{id}`
@@ -144,18 +144,43 @@ Comandos úteis:
 ```bash
 mvn test
 mvn verify
-mvn sonar:sonar
 ```
 
 ## SonarQube
 
-Há um serviço opcional de SonarQube no `compose.yaml`, usando o profile `quality`.
+O projeto possui um serviço opcional de SonarQube no `compose.yaml`, usando o profile `quality`.
 
-Para subir o SonarQube:
+Suba o SonarQube local:
 
 ```bash
 docker compose --profile quality up -d sonarqube
 ```
+
+Se o container `sonarqube` já existir, remova antes de subir novamente:
+
+```bash
+docker rm -f sonarqube
+```
+
+Abra a interface em:
+
+- `http://localhost:9000`
+
+Crie um token na interface do SonarQube e execute a análise apontando para o servidor local:
+
+```bash
+mvn sonar:sonar -Dsonar.host.url=http://localhost:9000 -Dsonar.token=<SEU_TOKEN>
+```
+
+Se necessário, informe a chave do projeto explicitamente:
+
+```bash
+mvn sonar:sonar -Dsonar.host.url=http://localhost:9000 -Dsonar.token=<SEU_TOKEN> -Dsonar.projectKey=com.kap:mechanics-api
+```
+
+Observação:
+
+- `sonar.organization` não é usado no SonarQube local. Esse parâmetro é do SonarCloud.
 
 ## Variáveis importantes
 

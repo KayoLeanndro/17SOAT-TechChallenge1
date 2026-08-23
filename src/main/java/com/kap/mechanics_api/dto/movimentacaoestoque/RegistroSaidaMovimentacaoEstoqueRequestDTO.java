@@ -12,6 +12,6 @@ public record RegistroSaidaMovimentacaoEstoqueRequestDTO(
         Integer quantidade,
 
         @NotNull(message = "Informe a ordem de servico")
-        Long ordemServicoId
+        Integer ordemServicoId
 ) {
 }

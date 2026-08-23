@@ -142,7 +142,7 @@ public class MovimentacaoEstoqueService {
         return montarRespostas(movimentacaoEstoqueRepository.findByItemEstoque_IdOrderByDataHoraDesc(itemEstoqueId));
     }
 
-    public List<MovimentacaoEstoqueResponseDTO> listarPorOrdemServico(Long ordemServicoId) {
+    public List<MovimentacaoEstoqueResponseDTO> listarPorOrdemServico(Integer ordemServicoId) {
         return montarRespostas(movimentacaoEstoqueRepository.findByOrdemServico_IdOrderByDataHoraDesc(ordemServicoId));
     }
 
@@ -158,11 +158,11 @@ public class MovimentacaoEstoqueService {
         return montarRespostas(movimentacaoEstoqueRepository.findByDataHoraBetweenOrderByDataHoraDesc(inicio, fim));
     }
 
-    public MovimentacaoEstoqueResponseDTO buscarPorId(Long id) {
+    public MovimentacaoEstoqueResponseDTO buscarPorId(Integer id) {
         return toResponse(pesquisarPorId(id));
     }
 
-    public MovimentacaoEstoque pesquisarPorId(Long id) {
+    public MovimentacaoEstoque pesquisarPorId(Integer id) {
         return movimentacaoEstoqueRepository.findById(id)
                 .orElseThrow(() -> new MovimentacaoEstoqueNaoEncontradaException(id));
     }
@@ -177,7 +177,7 @@ public class MovimentacaoEstoqueService {
                 .orElseThrow(() -> new UsuarioNaoEncontradoException(login));
     }
 
-    private OrdemServico buscarOrdemServico(Long id) {
+    private OrdemServico buscarOrdemServico(Integer id) {
         return ordemServicoRepository.findById(id)
                 .orElseThrow(() -> new OrdemServicoNaoEncontradaException(id));
     }
@@ -196,7 +196,7 @@ public class MovimentacaoEstoqueService {
     }
 
     private List<MovimentacaoEstoqueResponseDTO> montarRespostas(List<MovimentacaoEstoque> movimentacoes) {
-        Map<Long, Integer> saldosPorMovimentacao = calcularSaldosHistoricos(movimentacoes);
+        Map<Integer, Integer> saldosPorMovimentacao = calcularSaldosHistoricos(movimentacoes);
 
         return movimentacoes.stream()
                 .map(movimentacao -> toResponse(movimentacao, saldosPorMovimentacao.get(movimentacao.getId())))
@@ -207,8 +207,8 @@ public class MovimentacaoEstoqueService {
         return toResponse(movimentacao, calcularSaldoHistoricoDoRegistro(movimentacao));
     }
 
-    private Map<Long, Integer> calcularSaldosHistoricos(List<MovimentacaoEstoque> movimentacoes) {
-        Map<Long, Integer> saldosPorMovimentacao = new HashMap<>();
+    private Map<Integer, Integer> calcularSaldosHistoricos(List<MovimentacaoEstoque> movimentacoes) {
+        Map<Integer, Integer> saldosPorMovimentacao = new HashMap<>();
         Map<Integer, List<MovimentacaoEstoque>> movimentosPorItem = movimentacoes.stream()
                 .collect(java.util.stream.Collectors.groupingBy(movimentacao -> movimentacao.getItemEstoque().getId()));
 
