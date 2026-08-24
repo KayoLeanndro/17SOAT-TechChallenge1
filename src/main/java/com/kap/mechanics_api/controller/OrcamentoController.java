@@ -2,6 +2,7 @@ package com.kap.mechanics_api.controller;
 
 import com.kap.mechanics_api.dto.orcamento.AtualizacaoStatusOrcamentoRequestDTO;
 import com.kap.mechanics_api.dto.orcamento.GeracaoOrcamentoRequestDTO;
+import com.kap.mechanics_api.enums.StatusOrcamento;
 import com.kap.mechanics_api.service.OrcamentoService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
@@ -47,7 +48,9 @@ public class OrcamentoController {
     public ResponseEntity<Void> responderOrcamento(
             @PathVariable Integer id,
             @Valid @RequestBody AtualizacaoStatusOrcamentoRequestDTO dto) {
-        orcamentoService.responder(id, dto.status());
+
+        StatusOrcamento status = StatusOrcamento.valueOf(dto.status());
+        orcamentoService.responder(id, status);
         return ResponseEntity.noContent().build();
     }
 }

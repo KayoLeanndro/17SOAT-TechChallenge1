@@ -8,7 +8,7 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-
+import com.kap.mechanics_api.exception.OrdemServicoNaoEncontradaException;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -43,12 +43,6 @@ public class GlobalExceptionHandler {
         return problemDetail;
     }
 
-    @ExceptionHandler(OrdemServicoNaoEncontradaException.class)
-    public ProblemDetail lancarExcecaoOrdemServicoNaoEncontrada(OrdemServicoNaoEncontradaException ex) {
-        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, ex.getMessage());
-        problemDetail.setTitle("Ordem de servico nao encontrada");
-        return problemDetail;
-    }
 
     @ExceptionHandler(EstoqueInsuficienteException.class)
     public ProblemDetail lancarExcecaoEstoqueInsuficiente(EstoqueInsuficienteException ex) {
@@ -129,9 +123,11 @@ public class GlobalExceptionHandler {
 
 
     @ExceptionHandler(StatusOrcamentoInvalidoException.class)
-    public ProblemDetail lancarExcecaoStatusOrcamentoInvalido(StatusOrcamentoInvalidoException ex){
+    public ProblemDetail lancarExcecaoStatusOrcamentoInvalido(StatusOrcamentoInvalidoException ex) {
         ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, ex.getMessage());
         problemDetail.setTitle("Status de orçamento inválido");
+        return problemDetail;
+    }
 
     @ExceptionHandler(OrdemServicoNaoEncontradaException.class)
     public ProblemDetail lancarExcecaoOrdemServicoNaoEncontrada(OrdemServicoNaoEncontradaException ex) {
@@ -140,12 +136,12 @@ public class GlobalExceptionHandler {
         return problemDetail;
     }
 
-    @ExceptionHandler(StatusOrdemServicoNaoEncontradoException.class)
-    public ProblemDetail lancarExcecaoStatusOrdemServicoNaoEncontrado(StatusOrdemServicoNaoEncontradoException ex) {
-        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, ex.getMessage());
-        problemDetail.setTitle("Status da ordem de serviço não encontrado");
-        return problemDetail;
-    }
+//    @ExceptionHandler(StatusOrdemServicoNaoEncontradoException.class)
+//    public ProblemDetail lancarExcecaoStatusOrdemServicoNaoEncontrado(StatusOrdemServicoNaoEncontradoException ex) {
+//        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, ex.getMessage());
+//        problemDetail.setTitle("Status da ordem de serviço não encontrado");
+//        return problemDetail;
+//    }
       
     @ExceptionHandler(OrcamentoNaoAprovadoException.class)
     public ProblemDetail lancarExcecaoOrcamentoNaoAprovado(OrcamentoNaoAprovadoException ex){
@@ -160,6 +156,7 @@ public class GlobalExceptionHandler {
         problemDetail.setTitle("Este orçamento já possui uma OS gerada");
         return problemDetail;
     }
+
     @ExceptionHandler({OrcamentoJaRespondidoException.class, IllegalArgumentException.class})
     public ProblemDetail lancarExcecaoRespostaOrcamentoInvalida(RuntimeException ex) {
         ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, ex.getMessage());

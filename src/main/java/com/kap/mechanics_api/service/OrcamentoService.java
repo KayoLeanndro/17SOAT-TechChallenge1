@@ -117,10 +117,6 @@ public class OrcamentoService {
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 
-    public Orcamento pesquisarPorId(Integer id) {
-        return orcamentoRepository.findById(id)
-                .orElseThrow(() -> new OrcamentoNaoEncontradoException(id));
-    }
 
     @Transactional
     public void atualizarStatus(Integer id, String status) {
