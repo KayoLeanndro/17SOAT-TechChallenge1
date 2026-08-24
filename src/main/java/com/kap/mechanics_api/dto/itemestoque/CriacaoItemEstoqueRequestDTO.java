@@ -22,10 +22,6 @@ public record CriacaoItemEstoqueRequestDTO(
         @DecimalMin(value = "0.0", inclusive = true, message = "O valor unitário não pode ser negativo")
         BigDecimal valorUnitario,
 
-        @NotNull(message = "Informe a quantidade atual")
-        @PositiveOrZero(message = "A quantidade atual não pode ser negativa")
-        Integer quantidadeAtual,
-
         @NotNull(message = "Informe a quantidade mínima")
         @PositiveOrZero(message = "A quantidade mínima não pode ser negativa")
         Integer quantidadeMinima,

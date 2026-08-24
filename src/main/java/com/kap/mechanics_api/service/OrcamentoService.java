@@ -1,10 +1,20 @@
 package com.kap.mechanics_api.service;
 
-import com.kap.mechanics_api.domain.*;
+import com.kap.mechanics_api.domain.Cliente;
+import com.kap.mechanics_api.domain.Orcamento;
+import com.kap.mechanics_api.domain.OrcamentoServico;
+import com.kap.mechanics_api.domain.Servico;
+import com.kap.mechanics_api.domain.ServicoItem;
+import com.kap.mechanics_api.domain.Veiculo;
 import com.kap.mechanics_api.dto.orcamento.GeracaoOrcamentoRequestDTO;
 import com.kap.mechanics_api.enums.StatusOrcamento;
+
 import com.kap.mechanics_api.exception.OrcamentoNaoEncontradoException;
 import com.kap.mechanics_api.exception.StatusOrcamentoInvalidoException;
+
+import com.kap.mechanics_api.exception.OrcamentoJaRespondidoException;
+import com.kap.mechanics_api.exception.OrcamentoNaoEncontradoException;
+
 import com.kap.mechanics_api.repository.OrcamentoRepository;
 import com.kap.mechanics_api.repository.OrcamentoServicoRepository;
 import com.kap.mechanics_api.repository.ServicoItemRepository;
@@ -26,52 +36,85 @@ public class OrcamentoService {
     private final ServicoService servicoService;
     private final ServicoItemRepository servicoItemRepository;
     private final OrcamentoServicoRepository orcamentoServicoRepository;
+    private final OrdemServicoService ordemServicoService;
 
-
-    public OrcamentoService(OrcamentoRepository repository, ClienteService clienteService, VeiculoService veiculoService,
-                            ServicoService servicoService, ServicoItemRepository servicoItemRepository, OrcamentoServicoRepository orcamentoServicoRepository){
-        this.orcamentoRepository = repository;
-        this.veiculoService = veiculoService;
+    public OrcamentoService(OrcamentoRepository orcamentoRepository,
+                            ClienteService clienteService,
+                            VeiculoService veiculoService,
+                            ServicoService servicoService,
+                            ServicoItemRepository servicoItemRepository,
+                            OrcamentoServicoRepository orcamentoServicoRepository,
+                            OrdemServicoService ordemServicoService) {
+        this.orcamentoRepository = orcamentoRepository;
         this.clienteService = clienteService;
+        this.veiculoService = veiculoService;
         this.servicoService = servicoService;
         this.servicoItemRepository = servicoItemRepository;
         this.orcamentoServicoRepository = orcamentoServicoRepository;
+        this.ordemServicoService = ordemServicoService;
     }
 
     @Transactional
-    public void gerarOrcamento(GeracaoOrcamentoRequestDTO dto) {
-        Orcamento orcamento = new Orcamento();
+    public void gerarOrcamento(GeracaoOrcamentoRequestDTO dto, String usuarioLogin) {
         Cliente cliente = clienteService.pesquisarPorId(dto.clienteId());
         Veiculo veiculo = veiculoService.pesquisarPorId(dto.veiculoId());
+
+        Orcamento orcamento = new Orcamento();
         orcamento.setCliente(cliente);
         orcamento.setVeiculo(veiculo);
         orcamento.setDataCriacao(LocalDateTime.now());
         orcamento.setStatusOrcamento(StatusOrcamento.PENDENTE);
-        orcamento.setValorTotal(BigDecimal.ZERO); // valor provisório, ajustado depois
+        orcamento.setValorTotal(BigDecimal.ZERO);
         orcamento = orcamentoRepository.save(orcamento);
 
         BigDecimal valorTotal = BigDecimal.ZERO;
+        for (Integer servicoId : dto.servicosIds()) {
+            Servico servico = servicoService.pesquisarPorId(servicoId);
+            BigDecimal valorItens = calcularValorItens(servico.getId());
+            BigDecimal valorServico = servico.getValorMaoDeObra().add(valorItens);
 
-        for (Integer id : dto.servicosIds()) {
-            Servico servico = servicoService.pesquisarPorId(id);
-            BigDecimal valorMaoDeObra = servico.getValorMaoDeObra();
-            BigDecimal valorItems = BigDecimal.ZERO;
-
-            List<ServicoItem> itensDoServico = servicoItemRepository.findByServico_Id(servico.getId());
-            for (ServicoItem servicoItem : itensDoServico) {
-                BigDecimal valorItem = servicoItem.getItemEstoque().getValorUnitario()
-                        .multiply(BigDecimal.valueOf(servicoItem.getQuantidadePadrao()));
-                valorItems = valorItems.add(valorItem);
-            }
-
-            BigDecimal valorServicoCompleto = valorMaoDeObra.add(valorItems);
-            valorTotal = valorTotal.add(valorServicoCompleto);
-
-            orcamentoServicoRepository.save(new OrcamentoServico(orcamento, servico, valorServicoCompleto));
+            valorTotal = valorTotal.add(valorServico);
+            orcamentoServicoRepository.save(new OrcamentoServico(orcamento, servico, valorServico));
         }
 
         orcamento.setValorTotal(valorTotal);
         orcamentoRepository.save(orcamento);
+        ordemServicoService.criarParaOrcamentoPendente(orcamento.getId(), usuarioLogin);
+    }
+
+    @Transactional
+    public void responder(Integer orcamentoId, StatusOrcamento novoStatus) {
+        if (novoStatus == StatusOrcamento.PENDENTE) {
+            throw new IllegalArgumentException("O orçamento só pode ser aprovado ou rejeitado.");
+        }
+
+        Orcamento orcamento = pesquisarPorId(orcamentoId);
+        if (orcamento.getStatusOrcamento() != StatusOrcamento.PENDENTE) {
+            throw new OrcamentoJaRespondidoException(orcamentoId);
+        }
+
+        orcamento.setStatusOrcamento(novoStatus);
+        orcamento.setDataResposta(LocalDateTime.now());
+        orcamentoRepository.save(orcamento);
+
+        if (novoStatus == StatusOrcamento.APROVADO) {
+            ordemServicoService.iniciarDiagnosticoPorOrcamento(orcamentoId);
+        } else {
+            ordemServicoService.finalizarPorOrcamento(orcamentoId);
+        }
+    }
+
+    public Orcamento pesquisarPorId(Integer id) {
+        return orcamentoRepository.findById(id)
+                .orElseThrow(() -> new OrcamentoNaoEncontradoException("Orçamento não encontrado"));
+    }
+
+    private BigDecimal calcularValorItens(Integer servicoId) {
+        List<ServicoItem> itensDoServico = servicoItemRepository.findByServico_Id(servicoId);
+        return itensDoServico.stream()
+                .map(item -> item.getItemEstoque().getValorUnitario()
+                        .multiply(BigDecimal.valueOf(item.getQuantidadePadrao())))
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 
     public Orcamento pesquisarPorId(Integer id) {

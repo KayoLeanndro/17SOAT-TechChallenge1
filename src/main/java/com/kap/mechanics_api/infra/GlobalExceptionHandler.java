@@ -36,6 +36,49 @@ public class GlobalExceptionHandler {
         return problemDetail;
     }
 
+    @ExceptionHandler(MovimentacaoEstoqueNaoEncontradaException.class)
+    public ProblemDetail lancarExcecaoMovimentacaoEstoqueNaoEncontrada(MovimentacaoEstoqueNaoEncontradaException ex) {
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, ex.getMessage());
+        problemDetail.setTitle("Movimentacao de estoque nao encontrada");
+        return problemDetail;
+    }
+
+    @ExceptionHandler(OrdemServicoNaoEncontradaException.class)
+    public ProblemDetail lancarExcecaoOrdemServicoNaoEncontrada(OrdemServicoNaoEncontradaException ex) {
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, ex.getMessage());
+        problemDetail.setTitle("Ordem de servico nao encontrada");
+        return problemDetail;
+    }
+
+    @ExceptionHandler(EstoqueInsuficienteException.class)
+    public ProblemDetail lancarExcecaoEstoqueInsuficiente(EstoqueInsuficienteException ex) {
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, ex.getMessage());
+        problemDetail.setTitle("Estoque insuficiente");
+        return problemDetail;
+    }
+
+    @ExceptionHandler({MovimentacaoEstoqueObrigatoriaException.class,
+            OrdemServicoNaoEstaEmExecucaoException.class, ItemEstoqueInativoException.class})
+    public ProblemDetail lancarExcecaoRegraMovimentacaoEstoque(RuntimeException ex) {
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, ex.getMessage());
+        problemDetail.setTitle("Movimentacao de estoque invalida");
+        return problemDetail;
+    }
+
+    @ExceptionHandler(PeriodoMovimentacaoInvalidoException.class)
+    public ProblemDetail lancarExcecaoPeriodoMovimentacaoInvalido(PeriodoMovimentacaoInvalidoException ex) {
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, ex.getMessage());
+        problemDetail.setTitle("Periodo de movimentacao invalido");
+        return problemDetail;
+    }
+
+    @ExceptionHandler(TransicaoStatusInvalidaException.class)
+    public ProblemDetail lancarExcecaoTransicaoStatusInvalida(TransicaoStatusInvalidaException ex) {
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, ex.getMessage());
+        problemDetail.setTitle("Transicao de status invalida");
+        return problemDetail;
+    }
+
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ProblemDetail handleValidationException(MethodArgumentNotValidException ex) {
         ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(
@@ -84,10 +127,43 @@ public class GlobalExceptionHandler {
         return problemDetail;
     }
 
+
     @ExceptionHandler(StatusOrcamentoInvalidoException.class)
     public ProblemDetail lancarExcecaoStatusOrcamentoInvalido(StatusOrcamentoInvalidoException ex){
         ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, ex.getMessage());
         problemDetail.setTitle("Status de orçamento inválido");
+
+    @ExceptionHandler(OrdemServicoNaoEncontradaException.class)
+    public ProblemDetail lancarExcecaoOrdemServicoNaoEncontrada(OrdemServicoNaoEncontradaException ex) {
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, ex.getMessage());
+        problemDetail.setTitle("Ordem de serviço não encontrada");
+        return problemDetail;
+    }
+
+    @ExceptionHandler(StatusOrdemServicoNaoEncontradoException.class)
+    public ProblemDetail lancarExcecaoStatusOrdemServicoNaoEncontrado(StatusOrdemServicoNaoEncontradoException ex) {
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, ex.getMessage());
+        problemDetail.setTitle("Status da ordem de serviço não encontrado");
+        return problemDetail;
+    }
+      
+    @ExceptionHandler(OrcamentoNaoAprovadoException.class)
+    public ProblemDetail lancarExcecaoOrcamentoNaoAprovado(OrcamentoNaoAprovadoException ex){
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, ex.getMessage());
+        problemDetail.setTitle("Orçamento precisa estar aprovado para gerar OS");
+        return problemDetail;
+    }
+
+    @ExceptionHandler(OrdemServicoJaExisteException.class)
+    public ProblemDetail lancarExcecaoOrdemServicoExistente(OrdemServicoJaExisteException ex){
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, ex.getMessage());
+        problemDetail.setTitle("Este orçamento já possui uma OS gerada");
+        return problemDetail;
+    }
+    @ExceptionHandler({OrcamentoJaRespondidoException.class, IllegalArgumentException.class})
+    public ProblemDetail lancarExcecaoRespostaOrcamentoInvalida(RuntimeException ex) {
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, ex.getMessage());
+        problemDetail.setTitle("Resposta de orçamento inválida");
         return problemDetail;
     }
 }

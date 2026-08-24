@@ -20,9 +20,6 @@ public record AtualizacaoItemEstoqueRequestDTO(
         @DecimalMin(value = "0.0", inclusive = true, message = "O valor unitário não pode ser negativo")
         BigDecimal valorUnitario,
 
-        @PositiveOrZero(message = "A quantidade atual não pode ser negativa")
-        Integer quantidadeAtual,
-
         @PositiveOrZero(message = "A quantidade mínima não pode ser negativa")
         Integer quantidadeMinima,
 
@@ -31,7 +28,8 @@ public record AtualizacaoItemEstoqueRequestDTO(
     public boolean temAoMenosUmCampoPreenchido() {
         return StringUtils.hasText(nome) || StringUtils.hasText(descricao)
                 || tipoItemEstoque != null || valorUnitario != null
-                || quantidadeAtual != null || quantidadeMinima != null
+//                || quantidadeAtual != null
+                || quantidadeMinima != null
                 || ativo != null;
     }
 }

@@ -1,6 +1,5 @@
 package com.kap.mechanics_api.domain;
 
-import com.kap.mechanics_api.enums.StatusOrdemServico;
 import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
@@ -21,21 +20,15 @@ public class OrdemServico {
     @JoinColumn(name = "usuario_atendente_id", nullable = false)
     private Usuario usuarioAtendente;
 
-    @Enumerated(EnumType.STRING)
-    private StatusOrdemServico status;
+    @ManyToOne
+    @JoinColumn(name = "status_id", nullable = false)
+    private StatusOrdemServico statusOrdemServico;
 
-    @Column(name = "data_abertura", nullable = false, updatable = false)
+    @Column(name = "data_abertura", nullable = false)
     private LocalDateTime dataAbertura;
 
     @Column(name = "data_entrega")
     private LocalDateTime dataEntrega;
-
-    @PrePersist
-    private void prePersist() {
-        if (dataAbertura == null) {
-            dataAbertura = LocalDateTime.now();
-        }
-    }
 
     public Integer getId() {
         return id;
@@ -61,16 +54,20 @@ public class OrdemServico {
         this.usuarioAtendente = usuarioAtendente;
     }
 
-    public StatusOrdemServico getStatus() {
-        return status;
+    public StatusOrdemServico getStatusOrdemServico() {
+        return statusOrdemServico;
     }
 
-    public void setStatus(StatusOrdemServico status) {
-        this.status = status;
+    public void setStatusOrdemServico(StatusOrdemServico statusOrdemServico) {
+        this.statusOrdemServico = statusOrdemServico;
     }
 
     public LocalDateTime getDataAbertura() {
         return dataAbertura;
+    }
+
+    public void setDataAbertura(LocalDateTime dataAbertura) {
+        this.dataAbertura = dataAbertura;
     }
 
     public LocalDateTime getDataEntrega() {
