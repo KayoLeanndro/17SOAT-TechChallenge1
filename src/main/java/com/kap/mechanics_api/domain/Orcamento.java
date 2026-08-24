@@ -18,7 +18,7 @@ public class Orcamento {
     private Integer id;
 
     @ManyToOne
-    @JoinColumn(name = "clientes_id")
+    @JoinColumn(name = "cliente_id")
     private Cliente cliente;
 
     @ManyToOne

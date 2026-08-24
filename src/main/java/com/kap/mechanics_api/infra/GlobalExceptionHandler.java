@@ -127,19 +127,26 @@ public class GlobalExceptionHandler {
         return problemDetail;
     }
 
-//    @ExceptionHandler(OrdemServicoNaoEncontradaException.class)
-//    public ProblemDetail lancarExcecaoOrdemServicoNaoEncontrada(OrdemServicoNaoEncontradaException ex) {
-//        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, ex.getMessage());
-//        problemDetail.setTitle("Ordem de serviço não encontrada");
-//        return problemDetail;
-//    }
-//
-//    @ExceptionHandler(StatusOrdemServicoNaoEncontradoException.class)
-//    public ProblemDetail lancarExcecaoStatusOrdemServicoNaoEncontrado(StatusOrdemServicoNaoEncontradoException ex) {
-//        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, ex.getMessage());
-//        problemDetail.setTitle("Status da ordem de serviço não encontrado");
-//        return problemDetail;
-//    }
+
+    @ExceptionHandler(StatusOrcamentoInvalidoException.class)
+    public ProblemDetail lancarExcecaoStatusOrcamentoInvalido(StatusOrcamentoInvalidoException ex){
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, ex.getMessage());
+        problemDetail.setTitle("Status de orçamento inválido");
+
+    @ExceptionHandler(OrdemServicoNaoEncontradaException.class)
+    public ProblemDetail lancarExcecaoOrdemServicoNaoEncontrada(OrdemServicoNaoEncontradaException ex) {
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, ex.getMessage());
+        problemDetail.setTitle("Ordem de serviço não encontrada");
+        return problemDetail;
+    }
+
+    @ExceptionHandler(StatusOrdemServicoNaoEncontradoException.class)
+    public ProblemDetail lancarExcecaoStatusOrdemServicoNaoEncontrado(StatusOrdemServicoNaoEncontradoException ex) {
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, ex.getMessage());
+        problemDetail.setTitle("Status da ordem de serviço não encontrado");
+        return problemDetail;
+    }
+      
     @ExceptionHandler(OrcamentoNaoAprovadoException.class)
     public ProblemDetail lancarExcecaoOrcamentoNaoAprovado(OrcamentoNaoAprovadoException ex){
         ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, ex.getMessage());
@@ -160,3 +167,4 @@ public class GlobalExceptionHandler {
         return problemDetail;
     }
 }
+
