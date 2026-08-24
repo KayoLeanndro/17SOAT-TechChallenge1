@@ -5,6 +5,7 @@ import com.kap.mechanics_api.dto.itemestoque.AtualizacaoItemEstoqueRequestDTO;
 import com.kap.mechanics_api.dto.itemestoque.CriacaoItemEstoqueRequestDTO;
 import com.kap.mechanics_api.dto.itemestoque.ItemEstoqueResponseDTO;
 import com.kap.mechanics_api.exception.ItemEstoqueNaoEncontradoException;
+import com.kap.mechanics_api.exception.MovimentacaoEstoqueObrigatoriaException;
 import com.kap.mechanics_api.exception.NenhumCampoInformadoException;
 import com.kap.mechanics_api.mapper.ItemEstoqueMapper;
 import com.kap.mechanics_api.repository.ItemEstoqueRepository;
@@ -51,7 +52,6 @@ public class ItemEstoqueService {
         if (StringUtils.hasText(dto.descricao())) item.setDescricao(dto.descricao());
         if (dto.tipoItemEstoque() != null) item.setTipoItemEstoque(dto.tipoItemEstoque());
         if (dto.valorUnitario() != null) item.setValorUnitario(dto.valorUnitario());
-        if (dto.quantidadeAtual() != null) item.setQuantidadeAtual(dto.quantidadeAtual());
         if (dto.quantidadeMinima() != null) item.setQuantidadeMinima(dto.quantidadeMinima());
         if (dto.ativo() != null) item.setAtivo(dto.ativo());
 

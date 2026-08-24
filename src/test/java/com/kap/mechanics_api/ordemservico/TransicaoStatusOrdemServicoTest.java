@@ -6,6 +6,7 @@ import com.kap.mechanics_api.enums.StatusOrdemServicoEnum;
 import com.kap.mechanics_api.exception.TransicaoStatusInvalidaException;
 import com.kap.mechanics_api.repository.StatusOrdemServicoRepository;
 import com.kap.mechanics_api.service.TransicaoStatusOrdemServico;
+import com.kap.mechanics_api.service.MovimentacaoEstoqueService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -20,6 +21,7 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -28,6 +30,9 @@ public class TransicaoStatusOrdemServicoTest {
     @Mock
     private StatusOrdemServicoRepository statusOrdemServicoRepository;
 
+    @Mock
+    private MovimentacaoEstoqueService movimentacaoEstoqueService;
+
     @InjectMocks
     private TransicaoStatusOrdemServico transicaoStatusOrdemServico;
 
@@ -35,8 +40,8 @@ public class TransicaoStatusOrdemServicoTest {
 
     private StatusOrdemServico statusOrdemServico(String nome) {
         StatusOrdemServico status = new StatusOrdemServico();
-        status.setId(1L);
-        status.setDescricao(nome);
+        status.setId(1);
+        status.setNome(nome);
         return status;
     }
 
@@ -60,8 +65,8 @@ public class TransicaoStatusOrdemServicoTest {
 
     @ParameterizedTest
     @CsvSource({
-            "EM_DIAGNOSTICO, AGUARDANDO_APROVACAO",
-            "AGUARDANDO_APROVACAO, EM_EXECUCAO",
+            "AGUARDANDO_APROVACAO, EM_DIAGNOSTICO",
+            "EM_DIAGNOSTICO, EM_EXECUCAO",
             "EM_EXECUCAO, FINALIZADA",
             "FINALIZADA, ENTREGUE"
     })
@@ -74,7 +79,11 @@ public class TransicaoStatusOrdemServicoTest {
 
         transicaoStatusOrdemServico.transicionar(ordemServico, destino);
 
-        assertThat(ordemServico.getStatusOrdemServico().getDescricao()).isEqualTo(statusDestino);
+        assertThat(ordemServico.getStatusOrdemServico().getNome()).isEqualTo(statusDestino);
+
+        if (destino == StatusOrdemServicoEnum.EM_EXECUCAO) {
+            verify(movimentacaoEstoqueService).baixarItensDaOrdemServico(ordemServico);
+        }
     }
 
     @Test

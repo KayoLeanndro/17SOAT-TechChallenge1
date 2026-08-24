@@ -10,7 +10,7 @@ public class OrdemServico {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Integer id;
 
     @OneToOne
     @JoinColumn(name = "orcamento_id", nullable = false, unique = true)
@@ -30,11 +30,11 @@ public class OrdemServico {
     @Column(name = "data_entrega")
     private LocalDateTime dataEntrega;
 
-    public Long getId() {
+    public Integer getId() {
         return id;
     }
 
-    public void setId(Long id) {
+    public void setId(Integer id) {
         this.id = id;
     }
 

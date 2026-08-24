@@ -17,8 +17,9 @@ import com.kap.mechanics_api.exception.OrcamentoNaoAprovadoException;
 import com.kap.mechanics_api.exception.OrdemServicoJaExisteException;
 import com.kap.mechanics_api.repository.OrdemServicoRepository;
 import com.kap.mechanics_api.repository.StatusOrdemServicoRepository;
-import com.kap.mechanics_api.service.OrcamentoService;
+import com.kap.mechanics_api.repository.UsuarioRepository;
 import com.kap.mechanics_api.service.OrdemServicoService;
+import com.kap.mechanics_api.service.TransicaoStatusOrdemServico;
 import com.kap.mechanics_api.service.UsuarioService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -40,13 +41,19 @@ import static org.mockito.Mockito.*;
 class OrdemServicoServiceTest {
 
     @Mock
-    private OrcamentoService orcamentoService;
+    private com.kap.mechanics_api.repository.OrcamentoRepository orcamentoRepository;
 
     @Mock
     private OrdemServicoRepository ordemServicoRepository;
 
     @Mock
     private StatusOrdemServicoRepository statusOrdemServicoRepository;
+
+    @Mock
+    private TransicaoStatusOrdemServico transicaoStatusOrdemServico;
+
+    @Mock
+    private UsuarioRepository usuarioRepository;
 
     @InjectMocks
     private OrdemServicoService ordemServicoService;
@@ -65,17 +72,17 @@ class OrdemServicoServiceTest {
         usuario.setId(1);
 
         statusRecebida = new StatusOrdemServico();
-        statusRecebida.setId(1L);
-        statusRecebida.setDescricao(StatusOrdemServicoEnum.RECEBIDA.name());
+        statusRecebida.setId(1);
+        statusRecebida.setNome(StatusOrdemServicoEnum.AGUARDANDO_APROVACAO.name());
     }
 
     @Test
     void deveGerarOrdemServicoQuandoOrcamentoAprovadoESemOsExistente() {
-        Long orcamentoId = 1L;
+        Integer orcamentoId = Integer.valueOf(1);
 
-        when(orcamentoService.pesquisarPorId(orcamentoId.intValue())).thenReturn(orcamento);
+        when(orcamentoRepository.findById(orcamentoId)).thenReturn(Optional.of(orcamento));
         when(ordemServicoRepository.existsByOrcamentoId(orcamentoId)).thenReturn(false);
-        when(statusOrdemServicoRepository.findByNome(StatusOrdemServicoEnum.RECEBIDA.name()))
+        when(statusOrdemServicoRepository.findByNome(StatusOrdemServicoEnum.AGUARDANDO_APROVACAO.name()))
                 .thenReturn(Optional.of(statusRecebida));
         when(ordemServicoRepository.save(any(OrdemServico.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
@@ -90,16 +97,73 @@ class OrdemServicoServiceTest {
 
         ArgumentCaptor<OrdemServico> captor = ArgumentCaptor.forClass(OrdemServico.class);
         verify(ordemServicoRepository).save(captor.capture());
-        assertThat(captor.getValue().getStatusOrdemServico().getDescricao())
-                .isEqualTo(StatusOrdemServicoEnum.RECEBIDA.name());
+        assertThat(captor.getValue().getStatusOrdemServico().getNome())
+                .isEqualTo(StatusOrdemServicoEnum.AGUARDANDO_APROVACAO.name());
+    }
+
+    @Test
+    void deveAssociarUsuarioLogadoAoGerarOrdemServico() {
+        Integer orcamentoId = 1;
+        usuario.setLogin("atendente");
+
+        when(usuarioRepository.findByLogin("atendente")).thenReturn(Optional.of(usuario));
+        when(orcamentoRepository.findById(orcamentoId)).thenReturn(Optional.of(orcamento));
+        when(ordemServicoRepository.existsByOrcamentoId(orcamentoId)).thenReturn(false);
+        when(statusOrdemServicoRepository.findByNome(StatusOrdemServicoEnum.AGUARDANDO_APROVACAO.name()))
+                .thenReturn(Optional.of(statusRecebida));
+        when(ordemServicoRepository.save(any(OrdemServico.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+
+        OrdemServico resultado = ordemServicoService.gerarOrdemServico(orcamentoId, "atendente");
+
+        assertThat(resultado.getUsuarioAtendente()).isEqualTo(usuario);
+        verify(usuarioRepository).findByLogin("atendente");
+    }
+
+    @Test
+    void deveCriarOrdemServicoPendenteAoGerarOrcamento() {
+        Integer orcamentoId = 1;
+        usuario.setLogin("atendente");
+        orcamento.setStatusOrcamento(StatusOrcamento.PENDENTE);
+
+        when(usuarioRepository.findByLogin("atendente")).thenReturn(Optional.of(usuario));
+        when(orcamentoRepository.findById(orcamentoId)).thenReturn(Optional.of(orcamento));
+        when(ordemServicoRepository.existsByOrcamentoId(orcamentoId)).thenReturn(false);
+        when(statusOrdemServicoRepository.findByNome(StatusOrdemServicoEnum.AGUARDANDO_APROVACAO.name()))
+                .thenReturn(Optional.of(statusRecebida));
+        when(ordemServicoRepository.save(any(OrdemServico.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+
+        OrdemServico resultado = ordemServicoService.criarParaOrcamentoPendente(orcamentoId, "atendente");
+
+        assertThat(resultado.getStatusOrdemServico()).isEqualTo(statusRecebida);
+        assertThat(resultado.getUsuarioAtendente()).isEqualTo(usuario);
+    }
+
+    @Test
+    void deveFinalizarOrdemServicoQuandoOrcamentoForRejeitado() {
+        Integer orcamentoId = 1;
+        OrdemServico ordemServico = new OrdemServico();
+        StatusOrdemServico finalizada = new StatusOrdemServico();
+        finalizada.setNome(StatusOrdemServicoEnum.FINALIZADA.name());
+
+        when(ordemServicoRepository.findByOrcamento_Id(orcamentoId)).thenReturn(Optional.of(ordemServico));
+        when(statusOrdemServicoRepository.findByNome(StatusOrdemServicoEnum.FINALIZADA.name()))
+                .thenReturn(Optional.of(finalizada));
+        when(ordemServicoRepository.save(ordemServico)).thenReturn(ordemServico);
+
+        OrdemServico resultado = ordemServicoService.finalizarPorOrcamento(orcamentoId);
+
+        assertThat(resultado.getStatusOrdemServico()).isEqualTo(finalizada);
+        verify(ordemServicoRepository).save(ordemServico);
     }
 
     @Test
     void deveLancarExcecaoQuandoOrcamentoNaoEstiverAprovado() {
-        Long orcamentoId = 1L;
+        Integer orcamentoId = Integer.valueOf(1);
         orcamento.setStatusOrcamento(StatusOrcamento.PENDENTE);
 
-        when(orcamentoService.pesquisarPorId(orcamentoId.intValue())).thenReturn(orcamento);
+        when(orcamentoRepository.findById(orcamentoId)).thenReturn(Optional.of(orcamento));
 
         assertThatThrownBy(() -> ordemServicoService.gerarOrdemServico(orcamentoId, usuario))
                 .isInstanceOf(OrcamentoNaoAprovadoException.class)
@@ -111,9 +175,9 @@ class OrdemServicoServiceTest {
 
     @Test
     void deveLancarExcecaoQuandoOrcamentoJaPossuirOrdemServico() {
-        Long orcamentoId = 1L;
+        Integer orcamentoId = Integer.valueOf(1);
 
-        when(orcamentoService.pesquisarPorId(orcamentoId.intValue())).thenReturn(orcamento);
+        when(orcamentoRepository.findById(orcamentoId)).thenReturn(Optional.of(orcamento));
         when(ordemServicoRepository.existsByOrcamentoId(orcamentoId)).thenReturn(true);
 
         assertThatThrownBy(() -> ordemServicoService.gerarOrdemServico(orcamentoId, usuario))
@@ -126,18 +190,35 @@ class OrdemServicoServiceTest {
 
     @Test
     void deveLancarExcecaoQuandoStatusRecebidaNaoEstiverCadastrado() {
-        Long orcamentoId = 1L;
+        Integer orcamentoId = Integer.valueOf(1);
 
-        when(orcamentoService.pesquisarPorId(orcamentoId.intValue())).thenReturn(orcamento);
+        when(orcamentoRepository.findById(orcamentoId)).thenReturn(Optional.of(orcamento));
         when(ordemServicoRepository.existsByOrcamentoId(orcamentoId)).thenReturn(false);
-        when(statusOrdemServicoRepository.findByNome(StatusOrdemServicoEnum.RECEBIDA.name()))
+        when(statusOrdemServicoRepository.findByNome(StatusOrdemServicoEnum.AGUARDANDO_APROVACAO.name()))
                 .thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> ordemServicoService.gerarOrdemServico(orcamentoId, usuario))
                 .isInstanceOf(IllegalStateException.class)
-                .hasMessage("Status RECEBIDA não cadastrado");
+                .hasMessage("Status AGUARDANDO_APROVACAO não cadastrado");
 
         verify(ordemServicoRepository, never()).save(any());
+    }
+
+    @Test
+    void deveTransicionarStatusDaOrdemServico() {
+        OrdemServico ordemServico = new OrdemServico();
+        ordemServico.setId(Integer.valueOf(9));
+
+        when(ordemServicoRepository.findById(9)).thenReturn(Optional.of(ordemServico));
+        when(ordemServicoRepository.save(ordemServico)).thenReturn(ordemServico);
+
+        OrdemServico resultado = ordemServicoService
+                .transicionarStatus(9, StatusOrdemServicoEnum.EM_DIAGNOSTICO);
+
+        assertEquals(ordemServico, resultado);
+        verify(transicaoStatusOrdemServico)
+                .transicionar(ordemServico, StatusOrdemServicoEnum.EM_DIAGNOSTICO);
+        verify(ordemServicoRepository).save(ordemServico);
     }
 
 }

@@ -5,6 +5,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;
 
-public interface StatusOrdemServicoRepository extends JpaRepository<StatusOrdemServico, Long> {
+public interface StatusOrdemServicoRepository extends JpaRepository<StatusOrdemServico, Integer> {
     Optional<StatusOrdemServico> findByNome(String nome);
 }
