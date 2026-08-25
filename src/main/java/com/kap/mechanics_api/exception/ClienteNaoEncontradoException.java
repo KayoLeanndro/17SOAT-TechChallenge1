@@ -6,4 +6,7 @@ public class ClienteNaoEncontradoException extends RuntimeException {
         super("Cliente nao encontrado com o id " + id);
     }
 
+    public ClienteNaoEncontradoException(String documento){
+        super("Cliente nao encontrado com o documento " + documento);
+    }
 }

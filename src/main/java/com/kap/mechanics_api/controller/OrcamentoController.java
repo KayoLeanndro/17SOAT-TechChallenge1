@@ -1,5 +1,6 @@
 package com.kap.mechanics_api.controller;
 
+import com.kap.mechanics_api.documentation.OrcamentoControllerDoc;
 import com.kap.mechanics_api.dto.orcamento.AtualizacaoStatusOrcamentoRequestDTO;
 import com.kap.mechanics_api.dto.orcamento.GeracaoOrcamentoRequestDTO;
 import com.kap.mechanics_api.enums.StatusOrcamento;
@@ -20,7 +21,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/orcamento")
 @PreAuthorize("hasAnyRole('ADMIN', 'ATENDENTE')")
-public class OrcamentoController {
+public class OrcamentoController implements OrcamentoControllerDoc {
 
     private final OrcamentoService orcamentoService;
 
@@ -29,6 +30,7 @@ public class OrcamentoController {
     }
 
     @PostMapping("/gerarOrcamento")
+    @Override
     public ResponseEntity<String> gerarOrcamento(
             @Valid @RequestBody GeracaoOrcamentoRequestDTO dto,
             Authentication authentication) {
@@ -37,6 +39,7 @@ public class OrcamentoController {
     }
 
     @PatchMapping("/{id}/status")
+    @Override
     public ResponseEntity<String> atualizarStatus(
             @PathVariable Integer id,
             @Valid @RequestBody AtualizacaoStatusOrcamentoRequestDTO dto) {

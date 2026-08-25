@@ -10,8 +10,6 @@ import com.kap.mechanics_api.exception.ClienteNaoEncontradoException;
 import com.kap.mechanics_api.exception.NenhumCampoInformadoException;
 import com.kap.mechanics_api.service.ClienteService;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.http.MediaType;
@@ -23,12 +21,13 @@ import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@ExtendWith(MockitoExtension.class)
+@WebMvcTest(ClienteController.class)
 public class ClienteControllerTest {
 
     @Autowired
@@ -140,5 +139,60 @@ public class ClienteControllerTest {
                 .andExpect(jsonPath("$.cpfCnpj").value("12345678900"))
                 .andExpect(jsonPath("$.telefone").value("51988887777"))
                 .andExpect(jsonPath("$.email").value("joaojr@email.com"));
+    }
+
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    void deveRetornar200QuandoBuscarClientePorCpf() throws Exception {
+        String cpf = "12345678900";
+        ListagemClienteResponseDTO response = Utilities.produzirRespostaListagemClienteDto();
+
+        when(clienteService.buscarPorDocumento(cpf)).thenReturn(response);
+
+        mockMvc.perform(get(endPoint + "/documento/" + cpf))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(1))
+                .andExpect(jsonPath("$.nome").value("João Silva"))
+                .andExpect(jsonPath("$.cpfCnpj").value(cpf));
+
+        verify(clienteService).buscarPorDocumento(cpf);
+    }
+
+    @Test
+    @WithMockUser(roles = "ATENDENTE")
+    void deveRetornar200QuandoBuscarClientePorCnpj() throws Exception {
+        String cnpj = "12345678000190";
+        ListagemClienteResponseDTO response = new ListagemClienteResponseDTO(
+                2,
+                "Oficina Exemplo",
+                cnpj,
+                "51988888888",
+                "contato@oficina.com"
+        );
+
+        when(clienteService.buscarPorDocumento(cnpj)).thenReturn(response);
+
+        mockMvc.perform(get(endPoint + "/documento/" + cnpj))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(2))
+                .andExpect(jsonPath("$.nome").value("Oficina Exemplo"))
+                .andExpect(jsonPath("$.cpfCnpj").value(cnpj));
+
+        verify(clienteService).buscarPorDocumento(cnpj);
+    }
+
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    void deveRetornar404QuandoClienteNaoForEncontradoPorDocumento() throws Exception {
+        String documento = "12345678900";
+
+        when(clienteService.buscarPorDocumento(documento))
+                .thenThrow(new ClienteNaoEncontradoException(documento));
+
+        mockMvc.perform(get(endPoint + "/documento/" + documento))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.title").value("Cliente não encontrado"));
+
+        verify(clienteService).buscarPorDocumento(documento);
     }
 }
