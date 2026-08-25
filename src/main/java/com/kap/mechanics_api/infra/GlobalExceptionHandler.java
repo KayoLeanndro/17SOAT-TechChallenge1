@@ -163,5 +163,12 @@ public class GlobalExceptionHandler {
         problemDetail.setTitle("Resposta de orçamento inválida");
         return problemDetail;
     }
+
+    @ExceptionHandler(ClienteNaoEncontradoException.class)
+    public ProblemDetail lancarExcecaoClienteNaoEncontrado(ClienteNaoEncontradoException ex){
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, ex.getMessage());
+        problemDetail.setTitle("Cliente não encontrado");
+        return problemDetail;
+    }
 }
 

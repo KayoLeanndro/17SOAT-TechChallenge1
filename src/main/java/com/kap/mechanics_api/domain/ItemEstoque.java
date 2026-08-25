@@ -114,23 +114,7 @@ public class ItemEstoque {
         this.ativo = ativo;
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (!(o instanceof ItemEstoque that)) return false;
-        return quantidadeAtual == that.quantidadeAtual
-                && quantidadeMinima == that.quantidadeMinima
-                && ativo == that.ativo && Objects.equals(id, that.id)
-                && Objects.equals(nome, that.nome)
-                && Objects.equals(descricao, that.descricao)
-                && tipoItemEstoque == that.tipoItemEstoque
-                && Objects.equals(valorUnitario, that.valorUnitario);
-    }
 
-    @Override
-    public int hashCode() {
-        return Objects.hash(id, nome, descricao, tipoItemEstoque,
-                valorUnitario, quantidadeAtual, quantidadeMinima, ativo);
-    }
 
     @Override
     public String toString() {
