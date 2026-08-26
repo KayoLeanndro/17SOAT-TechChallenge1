@@ -1,189 +1,162 @@
-# KAP - Mechanics
+# KAP Mechanics API
 
-API para gerenciamento de oficina mecânica.
+API REST para o MVP de gestão de uma oficina mecânica. O sistema centraliza o cadastro de clientes, veículos, serviços, itens de estoque, orçamentos e ordens de serviço, reduzindo controles manuais e dando rastreabilidade ao atendimento.
 
-## Visão geral
+## Objetivo
 
-O projeto expõe uma API REST para cadastro e manutenção de:
+Este projeto foi desenvolvido para o **Tech Challenge — Fase 1** da FIAP. A solução aplica os conceitos de DDD, qualidade de software e segurança para apoiar o fluxo de atendimento da oficina, desde o orçamento até a entrega do veículo.
 
-- clientes
-- veículos
-- usuários
-- peças
-- serviços
-- insumos
+## Funcionalidades
 
-A aplicação também conta com autenticação via JWT, documentação Swagger/OpenAPI, migrações com Flyway, persistência em PostgreSQL e análise de qualidade com SonarQube.
+- Cadastro e manutenção de clientes, veículos e usuários internos.
+- Cadastro de serviços e itens de estoque (peças e insumos).
+- Registro e consulta de movimentações de estoque.
+- Geração e aprovação de orçamentos.
+- Criação de ordens de serviço a partir de orçamentos aprovados.
+- Acompanhamento dos status da OS: `RECEBIDA`, `EM_DIAGNOSTICO`, `AGUARDANDO_APROVACAO`, `EM_EXECUCAO`, `FINALIZADA` e `ENTREGUE`.
+- Autenticação JWT e controle de acesso por perfil: `ADMIN`, `ATENDENTE` e `ESTOQUISTA`.
+- Documentação interativa via Swagger/OpenAPI.
 
 ## Tecnologias
 
+- Java 21 e Spring Boot 4.1
+- Spring Web, Spring Data JPA, Spring Security e Validation
+- PostgreSQL 16 e Flyway
+- JWT
+- Docker Compose
+- Swagger/OpenAPI (Springdoc)
+- JUnit, JaCoCo e SonarQube
+
+## Pré-requisitos
+
 - Java 21
-- Spring Boot 4.1.0
-- Spring Security
-- Spring Data JPA
-- PostgreSQL
-- Flyway
-- Docker
-- SpringDoc OpenAPI
-- MapStruct
-- JaCoCo
-- SonarQube
+- Docker e Docker Compose
 
-## Autenticação
+> O Maven Wrapper está incluído no projeto; não é necessário instalar o Maven globalmente.
 
-O login é feito pelo endpoint:
+## Como executar
 
-- `POST /api/auth/login`
+1. Inicie o PostgreSQL:
 
-As demais rotas exigem token JWT no header:
+   ```powershell
+   docker compose up -d db
+   ```
+
+2. Defina um segredo JWT seguro (recomendado):
+
+   ```powershell
+   $env:JWT_SECRET = "uma-chave-segura-com-pelo-menos-32-caracteres"
+   ```
+
+3. Inicie a aplicação:
+
+   ```powershell
+   .\mvnw.cmd spring-boot:run
+   ```
+
+As migrations do Flyway são executadas na inicialização. A API ficará disponível em `http://localhost:8080`.
+
+### Configuração do banco
+
+Por padrão, a aplicação usa o banco criado pelo `compose.yaml`:
+
+| Propriedade | Valor |
+| --- | --- |
+| Banco | `oficina_db` |
+| Usuário | `oficina_user` |
+| Porta | `5432` |
+
+Para usar outra instância PostgreSQL, ajuste as propriedades `spring.datasource.*` em `src/main/resources/application.properties`.
+
+### Primeiro acesso local
+
+Em uma base nova, crie o usuário administrador de desenvolvimento abaixo diretamente no PostgreSQL antes de realizar o login:
+
+```sql
+INSERT INTO usuario (nome, login, senha_hash, tipo, data_criacao)
+VALUES (
+    'Administrador Local',
+    'admin',
+    '$2a$10$Tkvd6E6bTQgy7znCFW3l9eYkH8BZKHbK2XrSw6p8pElb8tz1x1sw6',
+    'ADMIN',
+    CURRENT_TIMESTAMP
+)
+ON CONFLICT (login) DO UPDATE
+SET nome = EXCLUDED.nome,
+    senha_hash = EXCLUDED.senha_hash,
+    tipo = EXCLUDED.tipo;
+```
+
+Credenciais locais: `admin` / `admin`. Altere ou remova esse usuário fora do ambiente de desenvolvimento.
+
+## Autenticação e documentação da API
+
+O login é realizado em `POST /api/auth/login` com `login` e `senha`. Use o token retornado nas rotas protegidas:
 
 ```http
 Authorization: Bearer <token>
 ```
 
-O token tem duração de 1 hora e carrega as roles do usuário no claim `roles`.
+A documentação completa dos endpoints, payloads e respostas está disponível após iniciar a aplicação:
 
-## Principais endpoints
+- Swagger UI: `http://localhost:8080/swagger-ui/index.html`
+- OpenAPI JSON: `http://localhost:8080/v3/api-docs`
 
-- `POST /api/auth/login`
-- `POST /api/clientes`
-- `GET /api/clientes`
-- `GET /api/clientes/{id}`
-- `PUT /api/clientes/{id}`
-- `DELETE /api/clientes/{id}`
-- `POST /api/veiculo`
-- `GET /api/veiculo`
-- `GET /api/veiculo/{id}`
-- `PUT /api/veiculo/{id}`
-- `DELETE /api/veiculo/{id}`
-- `POST /api/usuario`
-- `GET /api/usuario`
-- `GET /api/usuario/{id}`
-- `PUT /api/usuario/{id}`
-- `DELETE /api/usuario/{id}`
-- `POST /api/peca`
-- `GET /api/peca`
-- `GET /api/peca/{id}`
-- `PATCH /api/peca/{id}`
-- `DELETE /api/peca/{id}`
-- `POST /api/movimentacao-estoque/entrada`
-- `POST /api/movimentacao-estoque/saida`
-- `GET /api/movimentacao-estoque`
-- `GET /api/movimentacao-estoque/{id}`
-- `GET /api/movimentacao-estoque/item/{itemEstoqueId}`
-- `GET /api/movimentacao-estoque/ordem-servico/{ordemServicoId}`
-- `GET /api/movimentacao-estoque/tipo/{tipo}`
-- `GET /api/movimentacao-estoque/periodo?inicio=...&fim=...`
-- `PATCH /api/ordem-servico/{id}/status`
-- `POST /api/servico`
-- `GET /api/servico`
-- `GET /api/servico/{id}`
-- `PATCH /api/servico/{id}`
-- `DELETE /api/servico/{id}`
-- `POST /api/insumos`
-- `GET /api/insumos`
-- `GET /api/insumos/{id}`
-- `PATCH /api/insumos/{id}`
-- `DELETE /api/insumos/{id}`
+As rotas de autenticação e documentação são públicas; as demais exigem JWT e respeitam as permissões de cada perfil.
 
-## Documentação da API
+## Principais recursos da API
 
-A documentação Swagger fica disponível em:
+| Recurso | Base da rota |
+| --- | --- |
+| Autenticação | `/api/auth` |
+| Clientes | `/api/cliente` |
+| Veículos | `/api/veiculo` |
+| Usuários | `/api/usuario` |
+| Serviços | `/api/servico` |
+| Itens de estoque | `/api/item-estoque` |
+| Movimentações de estoque | `/api/movimentacao-estoque` |
+| Orçamentos | `/api/orcamento` |
+| Ordens de serviço | `/api/ordem-servico` |
 
-- `http://localhost:8080/swagger-ui/index.html`
+## Testes e qualidade
 
-## Pré-requisitos
+Execute a suíte de testes:
 
-- Java 21
-- Maven
-- Docker e Docker Compose
-
-## Como executar com Docker
-
-1. Suba o banco PostgreSQL:
-
-```bash
-docker compose up -d db
+```powershell
+.\mvnw.cmd test
 ```
 
-2. Execute a aplicação:
+Para executar os testes e gerar o relatório de cobertura JaCoCo:
 
-```bash
-mvn spring-boot:run
+```powershell
+.\mvnw.cmd verify
 ```
 
-## Como executar localmente
+O relatório fica em `target/site/jacoco/index.html`.
 
-Se preferir não usar Docker para subir o banco, ajuste as configurações em `src/main/resources/application.properties`:
+Opcionalmente, inicie o SonarQube local:
 
-- `spring.datasource.url`
-- `spring.datasource.username`
-- `spring.datasource.password`
-- `jwt.secret`
-
-Depois execute:
-
-```bash
-mvn spring-boot:run
-```
-
-## Banco de dados
-
-O projeto usa PostgreSQL com migrações Flyway localizadas em:
-
-- `src/main/resources/db/migration`
-
-## Qualidade e cobertura
-
-O projeto já está configurado para gerar cobertura com JaCoCo e expor o relatório XML em:
-
-- `target/site/jacoco/jacoco.xml`
-
-Comandos úteis:
-
-```bash
-mvn test
-mvn verify
-```
-
-## SonarQube
-
-O projeto possui um serviço opcional de SonarQube no `compose.yaml`, usando o profile `quality`.
-
-Suba o SonarQube local:
-
-```bash
+```powershell
 docker compose --profile quality up -d sonarqube
 ```
 
-Se o container `sonarqube` já existir, remova antes de subir novamente:
+Em seguida, acesse `http://localhost:9000` e execute a análise com um token criado na plataforma:
 
-```bash
-docker rm -f sonarqube
+```powershell
+.\mvnw.cmd sonar:sonar -Dsonar.host.url=http://localhost:9000 -Dsonar.token=<SEU_TOKEN>
 ```
 
-Abra a interface em:
+## Estrutura do projeto
 
-- `http://localhost:9000`
-
-Crie um token na interface do SonarQube e execute a análise apontando para o servidor local:
-
-```bash
-mvn sonar:sonar -Dsonar.host.url=http://localhost:9000 -Dsonar.token=<SEU_TOKEN>
+```text
+src/main/java/com/kap/mechanics_api
+├── controller     # Endpoints REST
+├── service        # Regras de negócio
+├── domain         # Entidades do domínio
+├── repository     # Persistência
+├── dto            # Contratos de entrada e saída
+├── security       # Autenticação JWT
+└── config         # Segurança e OpenAPI
 ```
 
-Se necessário, informe a chave do projeto explicitamente:
-
-```bash
-mvn sonar:sonar -Dsonar.host.url=http://localhost:9000 -Dsonar.token=<SEU_TOKEN> -Dsonar.projectKey=com.kap:mechanics-api
-```
-
-Observação:
-
-- `sonar.organization` não é usado no SonarQube local. Esse parâmetro é do SonarCloud.
-
-## Variáveis importantes
-
-- `JWT_SECRET`: segredo usado para assinar os tokens JWT
-
-Se a variável não for informada, a aplicação usa um valor padrão local configurado em `application.properties`.
+As migrations do banco estão em `src/main/resources/db/migration`. Os documentos complementares dos fluxos de ordem de serviço e estoque estão na raiz do repositório.
