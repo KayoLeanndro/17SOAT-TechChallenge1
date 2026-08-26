@@ -1,407 +1,162 @@
 # KAP Mechanics API
 
-Backend REST para gestao de uma oficina mecanica, desenvolvido como MVP do Tech Challenge. A aplicacao centraliza os cadastros administrativos da oficina e oferece uma base segura e organizada para atendimento, catalogo de servicos, controle de pecas, insumos e usuarios internos.
+API REST para o MVP de gestão de uma oficina mecânica. O sistema centraliza o cadastro de clientes, veículos, serviços, itens de estoque, orçamentos e ordens de serviço, reduzindo controles manuais e dando rastreabilidade ao atendimento.
 
-## Visao Geral
+## Objetivo
 
-O KAP Mechanics API foi pensado para apoiar a operacao de uma oficina mecanica de medio porte, substituindo controles manuais e planilhas por uma API monolitica em camadas. O projeto usa autenticacao JWT, persistencia relacional com PostgreSQL, migrations com Flyway e documentacao interativa via Swagger/OpenAPI.
+Este projeto foi desenvolvido para o **Tech Challenge — Fase 1** da FIAP. A solução aplica os conceitos de DDD, qualidade de software e segurança para apoiar o fluxo de atendimento da oficina, desde o orçamento até a entrega do veículo.
 
-O backend disponibiliza recursos para:
+## Funcionalidades
 
-- Gerenciar clientes.
-- Gerenciar veiculos.
-- Gerenciar usuarios administrativos.
-- Gerenciar servicos oferecidos pela oficina.
-- Gerenciar pecas e seus dados de estoque.
-- Gerenciar insumos e seus dados de estoque.
-- Proteger endpoints administrativos com JWT e roles.
-- Versionar o schema do banco de dados com Flyway.
-- Consultar e testar endpoints pela interface Swagger.
+- Cadastro e manutenção de clientes, veículos e usuários internos.
+- Cadastro de serviços e itens de estoque (peças e insumos).
+- Registro e consulta de movimentações de estoque.
+- Geração e aprovação de orçamentos.
+- Criação de ordens de serviço a partir de orçamentos aprovados.
+- Acompanhamento dos status da OS: `RECEBIDA`, `EM_DIAGNOSTICO`, `AGUARDANDO_APROVACAO`, `EM_EXECUCAO`, `FINALIZADA` e `ENTREGUE`.
+- Autenticação JWT e controle de acesso por perfil: `ADMIN`, `ATENDENTE` e `ESTOQUISTA`.
+- Documentação interativa via Swagger/OpenAPI.
 
-## Stack Tecnica
+## Tecnologias
+
+- Java 21 e Spring Boot 4.1
+- Spring Web, Spring Data JPA, Spring Security e Validation
+- PostgreSQL 16 e Flyway
+- JWT
+- Docker Compose
+- Swagger/OpenAPI (Springdoc)
+- JUnit, JaCoCo e SonarQube
+
+## Pré-requisitos
 
 - Java 21
-- Spring Boot 4.1.0
-- Spring Web MVC
-- Spring Data JPA
-- Spring Security
-- OAuth2 Resource Server
-- JWT
-- PostgreSQL 16
-- Flyway
-- MapStruct
-- Maven
-- Docker Compose
-- Springdoc OpenAPI
-- JUnit
-- Mockito
+- Docker e Docker Compose
 
-## Arquitetura
+> O Maven Wrapper está incluído no projeto; não é necessário instalar o Maven globalmente.
 
-O projeto segue uma arquitetura monolitica em camadas, separando responsabilidades de entrada HTTP, regra de aplicacao, persistencia, seguranca e contratos de API.
+## Como executar
+
+1. Inicie o PostgreSQL:
+
+   ```powershell
+   docker compose up -d db
+   ```
+
+2. Defina um segredo JWT seguro (recomendado):
+
+   ```powershell
+   $env:JWT_SECRET = "uma-chave-segura-com-pelo-menos-32-caracteres"
+   ```
+
+3. Inicie a aplicação:
+
+   ```powershell
+   .\mvnw.cmd spring-boot:run
+   ```
+
+As migrations do Flyway são executadas na inicialização. A API ficará disponível em `http://localhost:8080`.
+
+### Configuração do banco
+
+Por padrão, a aplicação usa o banco criado pelo `compose.yaml`:
+
+| Propriedade | Valor |
+| --- | --- |
+| Banco | `oficina_db` |
+| Usuário | `oficina_user` |
+| Porta | `5432` |
+
+Para usar outra instância PostgreSQL, ajuste as propriedades `spring.datasource.*` em `src/main/resources/application.properties`.
+
+### Primeiro acesso local
+
+Em uma base nova, crie o usuário administrador de desenvolvimento abaixo diretamente no PostgreSQL antes de realizar o login:
+
+```sql
+INSERT INTO usuario (nome, login, senha_hash, tipo, data_criacao)
+VALUES (
+    'Administrador Local',
+    'admin',
+    '$2a$10$Tkvd6E6bTQgy7znCFW3l9eYkH8BZKHbK2XrSw6p8pElb8tz1x1sw6',
+    'ADMIN',
+    CURRENT_TIMESTAMP
+)
+ON CONFLICT (login) DO UPDATE
+SET nome = EXCLUDED.nome,
+    senha_hash = EXCLUDED.senha_hash,
+    tipo = EXCLUDED.tipo;
+```
+
+Credenciais locais: `admin` / `admin`. Altere ou remova esse usuário fora do ambiente de desenvolvimento.
+
+## Autenticação e documentação da API
+
+O login é realizado em `POST /api/auth/login` com `login` e `senha`. Use o token retornado nas rotas protegidas:
+
+```http
+Authorization: Bearer <token>
+```
+
+A documentação completa dos endpoints, payloads e respostas está disponível após iniciar a aplicação:
+
+- Swagger UI: `http://localhost:8080/swagger-ui/index.html`
+- OpenAPI JSON: `http://localhost:8080/v3/api-docs`
+
+As rotas de autenticação e documentação são públicas; as demais exigem JWT e respeitam as permissões de cada perfil.
+
+## Principais recursos da API
+
+| Recurso | Base da rota |
+| --- | --- |
+| Autenticação | `/api/auth` |
+| Clientes | `/api/cliente` |
+| Veículos | `/api/veiculo` |
+| Usuários | `/api/usuario` |
+| Serviços | `/api/servico` |
+| Itens de estoque | `/api/item-estoque` |
+| Movimentações de estoque | `/api/movimentacao-estoque` |
+| Orçamentos | `/api/orcamento` |
+| Ordens de serviço | `/api/ordem-servico` |
+
+## Testes e qualidade
+
+Execute a suíte de testes:
+
+```powershell
+.\mvnw.cmd test
+```
+
+Para executar os testes e gerar o relatório de cobertura JaCoCo:
+
+```powershell
+.\mvnw.cmd verify
+```
+
+O relatório fica em `target/site/jacoco/index.html`.
+
+Opcionalmente, inicie o SonarQube local:
+
+```powershell
+docker compose --profile quality up -d sonarqube
+```
+
+Em seguida, acesse `http://localhost:9000` e execute a análise com um token criado na plataforma:
+
+```powershell
+.\mvnw.cmd sonar:sonar -Dsonar.host.url=http://localhost:9000 -Dsonar.token=<SEU_TOKEN>
+```
+
+## Estrutura do projeto
 
 ```text
 src/main/java/com/kap/mechanics_api
-├── config          # Configuracoes da aplicacao e seguranca
-├── controller      # Endpoints REST
-├── documentation   # Contratos auxiliares para Swagger/OpenAPI
-├── domain          # Entidades JPA
-├── dto             # Objetos de entrada e saida da API
-├── enums           # Enumeracoes de dominio
-├── exception       # Excecoes de negocio
-├── infra           # Tratamento global de erros
-├── mapper          # Conversao entre entidades e DTOs
-├── repository      # Repositorios Spring Data JPA
-├── security        # Servicos de autenticacao e JWT
-└── service         # Casos de uso e regras de aplicacao
+├── controller     # Endpoints REST
+├── service        # Regras de negócio
+├── domain         # Entidades do domínio
+├── repository     # Persistência
+├── dto            # Contratos de entrada e saída
+├── security       # Autenticação JWT
+└── config         # Segurança e OpenAPI
 ```
 
-Essa organizacao facilita manutencao, testes e evolucao do dominio sem acoplar regras de negocio diretamente aos controllers.
-
-## Banco de Dados
-
-O banco de dados utilizado e o PostgreSQL.
-
-A escolha foi feita por se tratar de um banco relacional robusto, adequado para sistemas transacionais e para um dominio com relacoes importantes entre clientes, veiculos, servicos, pecas, usuarios e registros operacionais da oficina. O PostgreSQL oferece integridade referencial, constraints, indices, tipos enumerados e suporte consistente a transacoes ACID.
-
-As migrations ficam em:
-
-```text
-src/main/resources/db/migration
-```
-
-Ao iniciar a aplicacao, o Flyway aplica automaticamente as migrations disponiveis no banco configurado.
-
-## Requisitos
-
-- JDK 21
-- Docker
-- Docker Compose
-- Maven Wrapper incluido no projeto
-
-Confirme a versao do Java:
-
-```bash
-java -version
-```
-
-O projeto deve ser executado com Java 21.
-
-## Configuracao
-
-As configuracoes padrao da aplicacao estao em:
-
-```text
-src/main/resources/application.properties
-```
-
-Valores principais:
-
-```properties
-server.port=8080
-spring.datasource.url=jdbc:postgresql://localhost:5432/oficina_db
-spring.datasource.username=oficina_user
-spring.datasource.password=oficina_pass
-jwt.secret=${JWT_SECRET:chave-local-mvp-123456789012345678901234567890}
-```
-
-Para informar um segredo JWT proprio:
-
-```bash
-export JWT_SECRET="sua-chave-secreta"
-```
-
-## Executando o Projeto
-
-Suba o PostgreSQL com Docker Compose:
-
-```bash
-docker compose up -d
-```
-
-Execute a aplicacao:
-
-```bash
-./mvnw spring-boot:run
-```
-
-Caso o wrapper nao tenha permissao de execucao:
-
-```bash
-chmod +x mvnw
-./mvnw spring-boot:run
-```
-
-Ou execute diretamente com Bash:
-
-```bash
-bash mvnw spring-boot:run
-```
-
-A API estara disponivel em:
-
-```text
-http://localhost:8080
-```
-
-## Ambiente Docker
-
-O `compose.yaml` provisiona o banco PostgreSQL usado pela aplicacao em ambiente local.
-
-| Servico | Valor |
-| --- | --- |
-| Container | `oficina-db` |
-| Imagem | `postgres:16` |
-| Database | `oficina_db` |
-| Usuario | `oficina_user` |
-| Senha | `oficina_pass` |
-| Porta | `5432` |
-
-Comandos uteis:
-
-```bash
-docker compose up -d
-docker compose ps
-docker compose logs -f db
-docker compose down
-```
-
-## Swagger/OpenAPI
-
-Com a aplicacao em execucao, acesse a documentacao interativa:
-
-```text
-http://localhost:8080/swagger-ui/index.html
-```
-
-Contrato OpenAPI em JSON:
-
-```text
-http://localhost:8080/v3/api-docs
-```
-
-## Autenticacao
-
-O endpoint de login retorna um token JWT para uso nas rotas protegidas.
-
-```http
-POST /api/auth/login
-```
-
-Exemplo:
-
-```bash
-curl -X POST http://localhost:8080/api/auth/login \
-  -H "Content-Type: application/json" \
-  -d '{
-    "login": "admin",
-    "senha": "admin"
-  }'
-```
-
-Resposta:
-
-```json
-{
-  "token": "eyJ..."
-}
-```
-
-Use o token no header `Authorization`:
-
-```bash
-curl http://localhost:8080/api/cliente \
-  -H "Authorization: Bearer SEU_TOKEN"
-```
-
-## Perfis de Acesso
-
-| Role | Permissoes |
-| --- | --- |
-| `ADMIN` | Acesso administrativo amplo, incluindo usuarios |
-| `ATENDENTE` | Acesso a clientes e veiculos |
-| `ESTOQUISTA` | Acesso a servicos, pecas e insumos |
-
-## Endpoints
-
-### Autenticacao
-
-| Metodo | Rota | Descricao |
-| --- | --- | --- |
-| POST | `/api/auth/login` | Autentica usuario e retorna JWT |
-
-### Usuarios
-
-| Metodo | Rota | Descricao | Role |
-| --- | --- | --- | --- |
-| POST | `/api/usuario` | Cria usuario | `ADMIN` |
-| GET | `/api/usuario` | Lista usuarios | `ADMIN` |
-| GET | `/api/usuario/{id}` | Busca usuario por ID | `ADMIN` |
-| PUT | `/api/usuario/{id}` | Atualiza usuario | `ADMIN` |
-| DELETE | `/api/usuario/{id}` | Remove usuario | `ADMIN` |
-
-### Clientes
-
-| Metodo | Rota | Descricao | Roles |
-| --- | --- | --- | --- |
-| POST | `/api/cliente` | Cria cliente | `ADMIN`, `ATENDENTE` |
-| GET | `/api/cliente` | Lista clientes | `ADMIN`, `ATENDENTE` |
-| GET | `/api/cliente/{id}` | Busca cliente por ID | `ADMIN`, `ATENDENTE` |
-| PUT | `/api/cliente/{id}` | Atualiza cliente | `ADMIN`, `ATENDENTE` |
-| DELETE | `/api/cliente/{id}` | Remove cliente | `ADMIN`, `ATENDENTE` |
-
-### Veiculos
-
-| Metodo | Rota | Descricao | Roles |
-| --- | --- | --- | --- |
-| POST | `/api/veiculo` | Cria veiculo | `ADMIN`, `ATENDENTE` |
-| GET | `/api/veiculo` | Lista veiculos | `ADMIN`, `ATENDENTE` |
-| GET | `/api/veiculo/{id}` | Busca veiculo por ID | `ADMIN`, `ATENDENTE` |
-| PUT | `/api/veiculo/{id}` | Atualiza veiculo | `ADMIN`, `ATENDENTE` |
-| DELETE | `/api/veiculo/{id}` | Remove veiculo | `ADMIN`, `ATENDENTE` |
-
-### Servicos
-
-| Metodo | Rota | Descricao | Roles |
-| --- | --- | --- | --- |
-| POST | `/api/servico` | Cria servico | `ADMIN`, `ESTOQUISTA` |
-| GET | `/api/servico` | Lista servicos | `ADMIN`, `ESTOQUISTA` |
-| GET | `/api/servico/{id}` | Busca servico por ID | `ADMIN`, `ESTOQUISTA` |
-| PATCH | `/api/servico/{id}` | Atualiza servico | `ADMIN`, `ESTOQUISTA` |
-| DELETE | `/api/servico/{id}` | Remove servico | `ADMIN`, `ESTOQUISTA` |
-
-### Pecas
-
-| Metodo | Rota | Descricao | Roles |
-| --- | --- | --- | --- |
-| POST | `/api/peca` | Cria peca | `ADMIN`, `ESTOQUISTA` |
-| GET | `/api/peca` | Lista pecas | `ADMIN`, `ESTOQUISTA` |
-| GET | `/api/peca/{id}` | Busca peca por ID | `ADMIN`, `ESTOQUISTA` |
-| PATCH | `/api/peca/{id}` | Atualiza peca | `ADMIN`, `ESTOQUISTA` |
-| DELETE | `/api/peca/{id}` | Remove peca | `ADMIN`, `ESTOQUISTA` |
-
-### Insumos
-
-| Metodo | Rota | Descricao | Roles |
-| --- | --- | --- | --- |
-| POST | `/api/insumos` | Cria insumo | `ADMIN`, `ESTOQUISTA` |
-| GET | `/api/insumos` | Lista insumos | `ADMIN`, `ESTOQUISTA` |
-| GET | `/api/insumos/{id}` | Busca insumo por ID | `ADMIN`, `ESTOQUISTA` |
-| PATCH | `/api/insumos/{id}` | Atualiza insumo | `ADMIN`, `ESTOQUISTA` |
-| DELETE | `/api/insumos/{id}` | Remove insumo | `ADMIN`, `ESTOQUISTA` |
-
-## Exemplos de Uso
-
-### Criar cliente
-
-```bash
-curl -X POST http://localhost:8080/api/cliente \
-  -H "Authorization: Bearer SEU_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "nome": "Maria Silva",
-    "cpfCnpj": "12345678901",
-    "telefone": "11999999999",
-    "email": "maria@email.com"
-  }'
-```
-
-### Criar veiculo
-
-```bash
-curl -X POST http://localhost:8080/api/veiculo \
-  -H "Authorization: Bearer SEU_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "placa": "ABC1D23",
-    "marca": "Toyota",
-    "modelo": "Corolla",
-    "ano": 2020
-  }'
-```
-
-### Criar servico
-
-```bash
-curl -X POST http://localhost:8080/api/servico \
-  -H "Authorization: Bearer SEU_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "nome": "Troca de oleo",
-    "descricao": "Substituicao do oleo do motor",
-    "valorMaoObra": 80.00,
-    "tempoEstimadoMin": 30,
-    "ativo": true
-  }'
-```
-
-### Criar peca
-
-```bash
-curl -X POST http://localhost:8080/api/peca \
-  -H "Authorization: Bearer SEU_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "nome": "Filtro de oleo",
-    "descricao": "Filtro compativel com motor 1.6",
-    "valorUnitario": 35.90,
-    "quantidadeAtual": 20,
-    "quantidadeMinima": 5,
-    "ativo": true
-  }'
-```
-
-### Criar insumo
-
-```bash
-curl -X POST http://localhost:8080/api/insumos \
-  -H "Authorization: Bearer SEU_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "nome": "Oleo 5W30",
-    "descricao": "Oleo sintetico para motor",
-    "valorUnitario": 42.50,
-    "quantidadeAtual": 30,
-    "quantidadeMinima": 8,
-    "ativo": true
-  }'
-```
-
-## Testes
-
-Execute a suite automatizada com:
-
-```bash
-./mvnw test
-```
-
-Para ambientes com mais de uma versao de Java instalada:
-
-```bash
-JAVA_HOME=/caminho/para/jdk-21 ./mvnw test
-```
-
-## Estrutura do Repositorio
-
-```text
-.
-├── compose.yaml
-├── pom.xml
-├── README.md
-├── src
-│   ├── main
-│   │   ├── java/com/kap/mechanics_api
-│   │   └── resources
-│   │       ├── application.properties
-│   │       └── db/migration
-│   └── test
-│       └── java/com/kap/mechanics_api
-```
-
-## Documentacao da API
-
-A forma recomendada de explorar os contratos REST e executar chamadas manuais e pela interface Swagger:
-
-```text
-http://localhost:8080/swagger-ui/index.html
-```
+As migrations do banco estão em `src/main/resources/db/migration`. Os documentos complementares dos fluxos de ordem de serviço e estoque estão na raiz do repositório.
