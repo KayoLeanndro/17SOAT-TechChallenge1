@@ -9,6 +9,10 @@ import com.kap.mechanics_api.repository.ClienteRepository;
 import com.kap.mechanics_api.service.ClienteService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.NullAndEmptySource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -211,6 +215,67 @@ public class ClienteServiceTest {
         //assertion
         assertEquals("Nenhum campo foi informado para atualização", exception.getMessage());
         verifyNoInteractions(clienteRepository);
+    }
+
+    @ParameterizedTest
+    @CsvSource({
+            "123.456.789-00, 12345678900",
+            "12.345.678/0001-90, 12345678000190"
+    })
+    void deveBuscarClientePorCpfOuCnpjRemovendoFormatacao(String documento, String documentoLimpo) {
+        Cliente cliente = new Cliente(
+                "João Silva",
+                documentoLimpo,
+                "51999999999",
+                "joao@email.com",
+                LocalDateTime.now()
+        );
+        cliente.setId(1);
+
+        ListagemClienteResponseDTO response = new ListagemClienteResponseDTO(
+                1,
+                "João Silva",
+                documentoLimpo,
+                "51999999999",
+                "joao@email.com"
+        );
+
+        when(clienteRepository.findByCpfCnpj(documentoLimpo)).thenReturn(Optional.of(cliente));
+        when(clienteMapper.entityToListagemDto(cliente)).thenReturn(response);
+
+        ListagemClienteResponseDTO resultado = clienteService.buscarPorDocumento(documento);
+
+        assertEquals(response, resultado);
+        verify(clienteRepository).findByCpfCnpj(documentoLimpo);
+        verify(clienteMapper).entityToListagemDto(cliente);
+    }
+
+    @ParameterizedTest
+    @NullAndEmptySource
+    @ValueSource(strings = {"123", "123456789012", "123.456.789-0A"})
+    void deveRejeitarDocumentoInvalido(String documento) {
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> clienteService.buscarPorDocumento(documento)
+        );
+
+        verifyNoInteractions(clienteRepository, clienteMapper);
+    }
+
+    @Test
+    void deveLancarExcecaoQuandoClienteNaoForEncontradoPorDocumento() {
+        String documento = "123.456.789-00";
+
+        when(clienteRepository.findByCpfCnpj("12345678900")).thenReturn(Optional.empty());
+
+        ClienteNaoEncontradoException exception = assertThrows(
+                ClienteNaoEncontradoException.class,
+                () -> clienteService.buscarPorDocumento(documento)
+        );
+
+        assertEquals("Cliente nao encontrado com o documento " + documento, exception.getMessage());
+        verify(clienteRepository).findByCpfCnpj("12345678900");
+        verifyNoInteractions(clienteMapper);
     }
 
 }

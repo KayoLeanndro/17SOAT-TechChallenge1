@@ -1,5 +1,6 @@
 package com.kap.mechanics_api.controller;
 
+import com.kap.mechanics_api.documentation.OrdemServicoControllerDoc;
 import com.kap.mechanics_api.dto.ordemservico.AtualizacaoStatusOrdemServicoRequestDTO;
 import com.kap.mechanics_api.service.OrdemServicoService;
 import jakarta.validation.Valid;
@@ -16,7 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/ordem-servico")
 @PreAuthorize("hasAnyRole('ADMIN', 'ATENDENTE')")
-public class OrdemServicoController {
+public class OrdemServicoController implements OrdemServicoControllerDoc {
 
     private final OrdemServicoService ordemServicoService;
 
@@ -25,6 +26,7 @@ public class OrdemServicoController {
     }
 
     @PostMapping("/{orcamentoId}")
+    @Override
     public ResponseEntity<Void> gerarOrdemServico(
             @PathVariable Integer orcamentoId,
             Authentication authentication) {
@@ -33,6 +35,7 @@ public class OrdemServicoController {
     }
 
     @PatchMapping("/{id}/status")
+    @Override
     public ResponseEntity<Void> transicionarStatus(
             @PathVariable Integer id,
             @Valid @RequestBody AtualizacaoStatusOrdemServicoRequestDTO dto) {

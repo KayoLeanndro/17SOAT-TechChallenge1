@@ -82,5 +82,34 @@ public class ClienteService {
         Cliente clienteAlterado = clienteRepository.save(cliente);
         return clienteMapper.entityToAtualizacaoDto(clienteAlterado);
     }
+
+    public ListagemClienteResponseDTO buscarPorDocumento(String documento) {
+
+        if (documento == null || documento.isBlank()) {
+            throw new IllegalArgumentException("O CPF ou CNPJ deve ser informado");
+        }
+
+        String documentoLimpo = documento
+                .trim()
+                .replaceAll("\\D", "");
+
+        if (!documento.matches("[\\d.\\-/\\s]+")) {
+            throw new IllegalArgumentException("O documento contém caracteres inválidos");
+        }
+
+        if (documentoLimpo.length() != 11 && documentoLimpo.length() != 14) {
+            throw new IllegalArgumentException(
+                    "O documento deve possuir 11 dígitos para CPF ou 14 para CNPJ"
+            );
+        }
+
+        Cliente cliente = clienteRepository
+                .findByCpfCnpj(documentoLimpo)
+                .orElseThrow(() ->
+                        new ClienteNaoEncontradoException(documento)
+                );
+
+        return clienteMapper.entityToListagemDto(cliente);
+    }
     
 }
