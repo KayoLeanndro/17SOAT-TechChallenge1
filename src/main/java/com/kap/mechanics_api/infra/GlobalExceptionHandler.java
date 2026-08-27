@@ -15,13 +15,6 @@ import java.util.stream.Collectors;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    @ExceptionHandler(ClienteNaoEncontradoException.class)
-    public ProblemDetail lancarExcecaoClienteNaoEncontrado(ClienteNaoEncontradoException ex) {
-        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, ex.getMessage());
-        problemDetail.setTitle("Cliente não encontrado");
-        return problemDetail;
-    }
-
     @ExceptionHandler(VeiculoNaoEncontradoException.class)
     public ProblemDetail lancarExcecaoVeiculoNaoEncontrado(VeiculoNaoEncontradoException ex){
         ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, ex.getMessage());
