@@ -140,11 +140,86 @@ Opcionalmente, inicie o SonarQube local:
 docker compose --profile quality up -d sonarqube
 ```
 
-Em seguida, acesse `http://localhost:9000` e execute a análise com um token criado na plataforma:
+Em seguida, acesse `http://localhost:9000`. No primeiro acesso, entre com `admin` / `admin` e altere a senha solicitada.
+
+Antes da primeira análise, crie manualmente um projeto no SonarQube com a chave:
+
+```text
+com.kap:mechanics-api
+```
+
+Em **Project settings > Permissions**, conceda ao usuário que executará a análise a permissão **Execute Analysis**. Depois, gere um token em **My Account > Security** e execute:
 
 ```powershell
-.\mvnw.cmd sonar:sonar -Dsonar.host.url=http://localhost:9000 -Dsonar.token=<SEU_TOKEN>
+.\mvnw.cmd sonar:sonar "-Dsonar.host.url=http://localhost:9000" "-Dsonar.token=SEU_NOVO_TOKEN"
 ```
+
+Substitua `SEU_NOVO_TOKEN` pelo token criado nessa instância local do SonarQube. Não use colchetes, links Markdown ou barras (`\\`) no comando. Se o projeto tiver sido criado com outra chave, informe-a explicitamente:
+
+```powershell
+.\mvnw.cmd sonar:sonar "-Dsonar.host.url=http://localhost:9000" "-Dsonar.projectKey=SUA_CHAVE_DO_PROJETO" "-Dsonar.token=SEU_NOVO_TOKEN"
+```
+
+> Se ocorrer o erro de autorização, confirme se a chave do projeto é `com.kap:mechanics-api` e se o token pertence a um usuário com a permissão **Execute Analysis**. Tokens expostos devem ser revogados e substituídos imediatamente.
+
+## Análise de segurança com OWASP ZAP
+
+O projeto também pode ser analisado com o [OWASP ZAP](https://www.zaproxy.org/), uma ferramenta de teste dinâmico de segurança (DAST). Enquanto o SonarQube analisa o código-fonte, o ZAP verifica a API em execução e gera um relatório visual com alertas, risco, evidência e recomendações.
+
+Com o Docker Desktop em execução, inicie a API localmente. Caso o banco ainda não esteja ativo, inicie-o antes:
+
+```powershell
+docker compose up -d db
+.\mvnw.cmd spring-boot:run
+```
+
+Em outro terminal, na raiz do projeto, execute a análise segura baseada na especificação OpenAPI disponível em `http://localhost:8080/v3/api-docs`:
+
+```powershell
+docker run --rm -v "${PWD}:/zap/wrk/:rw" -t ghcr.io/zaproxy/zaproxy:stable zap-api-scan.py -t http://host.docker.internal:8080/v3/api-docs -f openapi -S -r zap-api-report.html -I
+```
+
+O relatório será gerado como `zap-api-report.html` na raiz do projeto. Abra-o no navegador para visualizar os achados de segurança.
+
+### Análise autenticada com JWT
+
+A análise anterior cobre principalmente endpoints públicos. Para incluir as rotas protegidas, obtenha um JWT de um usuário local com perfil `ADMIN` e passe-o ao ZAP no header `Authorization: Bearer`.
+
+Em outro terminal PowerShell, com a API ainda em execução, gere o token. Substitua os valores de exemplo pelas credenciais locais e não os adicione ao repositório:
+
+```powershell
+$body = @{ login = "SEU_LOGIN_ADMIN"; senha = "SUA_SENHA_ADMIN" } | ConvertTo-Json
+
+$token = (
+  Invoke-RestMethod `
+    -Method Post `
+    -Uri "http://localhost:8080/api/auth/login" `
+    -ContentType "application/json" `
+    -Body $body
+).token
+
+$token.Length
+```
+
+Se o último comando retornar um número maior que zero, execute a análise autenticada:
+
+```powershell
+docker run --rm `
+  -e "ZAP_AUTH_HEADER_VALUE=Bearer $token" `
+  -e "ZAP_AUTH_HEADER_SITE=host.docker.internal" `
+  -v "${PWD}:/zap/wrk/:rw" `
+  -t ghcr.io/zaproxy/zaproxy:stable `
+  zap-api-scan.py `
+  -t http://host.docker.internal:8080/v3/api-docs `
+  -f openapi `
+  -S `
+  -r zap-api-report-authenticated.html `
+  -I
+```
+
+O relatório autenticado será gerado como `zap-api-report-authenticated.html` na raiz do projeto. A presença do JWT permite que o ZAP acesse endpoints compatíveis com o perfil usado; respostas `4xx` ainda podem ocorrer quando uma rota exigir IDs ou dados de negócio específicos.
+
+> O parâmetro `-S` executa apenas a análise segura, sem ataques ativos. Para varredura ativa, remova esse parâmetro **somente em ambiente local ou de homologação autorizado**, pois esse modo pode enviar requisições que alteram dados.
 
 ## Estrutura do projeto
 
