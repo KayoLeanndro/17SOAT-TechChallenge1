@@ -25,13 +25,6 @@ public class ServicoItem {
     public ServicoItem() {
     }
 
-    public ServicoItem(Servico servico, ItemEstoque itemEstoque, Integer quantidadePadrao) {
-        this.servico = servico;
-        this.itemEstoque = itemEstoque;
-        this.id = new ServicoItemId(servico.getId(), itemEstoque.getId());
-        this.quantidadePadrao = quantidadePadrao;
-    }
-
     public ServicoItemId getId() {
         return id;
     }

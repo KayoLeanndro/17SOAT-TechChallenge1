@@ -17,7 +17,7 @@ public class ClienteVeiculoIdTest {
         ClienteVeiculoId or = new ClienteVeiculoId(1,1);
         or.setClienteId(1);
         or.setVeiculoId(1);
-        ClienteVeiculoId or2 = new ClienteVeiculoId(1,1);
+        ClienteVeiculoId or2 = new ClienteVeiculoId();
         or2.setClienteId(1);
         or2.setVeiculoId(1);
 

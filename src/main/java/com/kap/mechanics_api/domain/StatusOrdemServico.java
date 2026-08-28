@@ -31,12 +31,4 @@ public class StatusOrdemServico {
 
     public StatusOrdemServico(){}
 
-    public StatusOrdemServico(String nome) {
-        this.nome = nome;
-    }
-
-    public StatusOrdemServico(Integer id, String nome) {
-        this.id = id;
-        this.nome = nome;
-    }
 }
