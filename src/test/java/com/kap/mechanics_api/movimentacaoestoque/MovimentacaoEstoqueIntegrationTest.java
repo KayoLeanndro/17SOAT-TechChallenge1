@@ -1,5 +1,6 @@
 package com.kap.mechanics_api.movimentacaoestoque;
 
+import com.kap.mechanics_api.repository.*;
 import tools.jackson.databind.json.JsonMapper;
 import com.kap.mechanics_api.domain.ItemEstoque;
 import com.kap.mechanics_api.domain.MovimentacaoEstoque;
@@ -15,14 +16,6 @@ import com.kap.mechanics_api.enums.TipoItemEstoque;
 import com.kap.mechanics_api.enums.TipoMovimentacaoEstoque;
 import com.kap.mechanics_api.enums.StatusOrcamento;
 import com.kap.mechanics_api.enums.TipoUsuario;
-import com.kap.mechanics_api.repository.ClienteRepository;
-import com.kap.mechanics_api.repository.ItemEstoqueRepository;
-import com.kap.mechanics_api.repository.MovimentacaoEstoqueRepository;
-import com.kap.mechanics_api.repository.OrcamentoRepository;
-import com.kap.mechanics_api.repository.OrdemServicoRepository;
-import com.kap.mechanics_api.repository.StatusOrdemServicoRepository;
-import com.kap.mechanics_api.repository.VeiculoRepository;
-import com.kap.mechanics_api.repository.UsuarioRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -80,6 +73,9 @@ class MovimentacaoEstoqueIntegrationTest {
     @Autowired
     private MovimentacaoEstoqueRepository movimentacaoEstoqueRepository;
 
+    @Autowired
+    private OrcamentoServicoRepository orcamentoServicoRepository;
+
     private Integer itemId;
     private Integer usuarioId;
     private Integer ordemServicoId;
@@ -88,6 +84,7 @@ class MovimentacaoEstoqueIntegrationTest {
     void setup() {
         movimentacaoEstoqueRepository.deleteAll();
         ordemServicoRepository.deleteAll();
+        orcamentoServicoRepository.deleteAll();
         orcamentoRepository.deleteAll();
         clienteRepository.deleteAll();
         veiculoRepository.deleteAll();

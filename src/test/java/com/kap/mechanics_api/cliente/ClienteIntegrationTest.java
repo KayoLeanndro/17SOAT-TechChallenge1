@@ -3,7 +3,8 @@ package com.kap.mechanics_api.cliente;
 import com.kap.mechanics_api.domain.Cliente;
 import com.kap.mechanics_api.dto.cliente.AtualizacaoClienteRequestDTO;
 import com.kap.mechanics_api.dto.cliente.CriacaoClienteRequestDTO;
-import com.kap.mechanics_api.repository.ClienteRepository;
+import com.kap.mechanics_api.repository.*;
+import com.kap.mechanics_api.service.OrcamentoService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -48,9 +49,42 @@ class ClienteIntegrationTest {
     @Autowired
     private ClienteRepository clienteRepository;
 
+    @Autowired
+    private OrcamentoRepository orcamentoRepository;
+
+    @Autowired
+    private OrcamentoServicoRepository orcamentoServicoRepository;
+
+    @Autowired
+    private OrdemServicoRepository ordemServicoRepository;
+
+    @Autowired
+    private ItemEstoqueRepository itemEstoqueRepository;
+
+    @Autowired
+    private UsuarioRepository usuarioRepository;
+
+    @Autowired
+    private VeiculoRepository veiculoRepository;
+
+    @Autowired
+    private StatusOrdemServicoRepository statusOrdemServicoRepository;
+
+    @Autowired
+    private MovimentacaoEstoqueRepository movimentacaoEstoqueRepository;
+
     @BeforeEach
     void limparDadosBaseAposTestes() {
+        movimentacaoEstoqueRepository.deleteAll();
+        ordemServicoRepository.deleteAll();
+        orcamentoServicoRepository.deleteAll();
+        orcamentoRepository.deleteAll();
         clienteRepository.deleteAll();
+        veiculoRepository.deleteAll();
+        itemEstoqueRepository.deleteAll();
+        statusOrdemServicoRepository.deleteAll();
+        usuarioRepository.deleteAll();
+
     }
 
     private RequestPostProcessor definirRole(String role) {
