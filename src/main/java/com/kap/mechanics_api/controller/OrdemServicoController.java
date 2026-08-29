@@ -55,4 +55,9 @@ public class OrdemServicoController implements OrdemServicoControllerDoc {
             @RequestParam(required = false) String cpfCnpj) {
         return ResponseEntity.ok(ordemServicoService.listarPorCliente(clienteId, cpfCnpj));
     }
+
+    @GetMapping("/listar")
+    public ResponseEntity<List<ListagemOrdemServicoResponseDTO>> listarTodas(){
+        return ResponseEntity.ok(ordemServicoService.listar());
+    }
 }

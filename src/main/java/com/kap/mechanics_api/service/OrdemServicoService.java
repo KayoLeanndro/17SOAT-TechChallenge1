@@ -13,6 +13,7 @@ import com.kap.mechanics_api.exception.ClienteNaoEncontradoException;
 import com.kap.mechanics_api.exception.OrdemServicoJaExisteException;
 import com.kap.mechanics_api.exception.OrdemServicoNaoEncontradaException;
 import com.kap.mechanics_api.exception.UsuarioNaoEncontradoException;
+import com.kap.mechanics_api.mapper.OrdemServicoMapper;
 import com.kap.mechanics_api.repository.ClienteRepository;
 import com.kap.mechanics_api.repository.OrcamentoRepository;
 import com.kap.mechanics_api.repository.OrdemServicoRepository;
@@ -33,19 +34,22 @@ public class OrdemServicoService {
     private final TransicaoStatusOrdemServico transicaoStatusOrdemServico;
     private final UsuarioRepository usuarioRepository;
     private final ClienteRepository clienteRepository;
+    private final OrdemServicoMapper ordemServicoMapper;
 
     public OrdemServicoService(OrdemServicoRepository ordemServicoRepository,
                                StatusOrdemServicoRepository statusOrdemServicoRepository,
                                OrcamentoRepository orcamentoRepository,
                                TransicaoStatusOrdemServico transicaoStatusOrdemServico,
                                UsuarioRepository usuarioRepository,
-                               ClienteRepository clienteRepository) {
+                               ClienteRepository clienteRepository,
+                               OrdemServicoMapper ordemServicoMapper) {
         this.ordemServicoRepository = ordemServicoRepository;
         this.statusOrdemServicoRepository = statusOrdemServicoRepository;
         this.orcamentoRepository = orcamentoRepository;
         this.transicaoStatusOrdemServico = transicaoStatusOrdemServico;
         this.usuarioRepository = usuarioRepository;
         this.clienteRepository = clienteRepository;
+        this.ordemServicoMapper = ordemServicoMapper;
     }
 
     @Transactional
@@ -169,5 +173,9 @@ public class OrdemServicoService {
         return clienteRepository.findByCpfCnpj(documento)
                 .orElseThrow(() -> new ClienteNaoEncontradoException(cpfCnpj))
                 .getId();
+    }
+
+    public List<ListagemOrdemServicoResponseDTO> listar() {
+        return ordemServicoMapper.toListagemResponseDtoList(ordemServicoRepository.findAll());
     }
 }
