@@ -1,13 +1,16 @@
 package com.kap.mechanics_api.service;
 
+import com.kap.mechanics_api.domain.HistoricoStatusOs;
 import com.kap.mechanics_api.domain.OrdemServico;
 import com.kap.mechanics_api.domain.StatusOrdemServico;
 import com.kap.mechanics_api.enums.StatusOrdemServicoEnum;
 import com.kap.mechanics_api.exception.TransicaoStatusInvalidaException;
+import com.kap.mechanics_api.repository.HistoricoStatusOsRepository;
 import com.kap.mechanics_api.repository.StatusOrdemServicoRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Component;
 
+import java.time.LocalDateTime;
 import java.util.Set;
 
 @Component
@@ -15,11 +18,14 @@ public class TransicaoStatusOrdemServico {
 
     private final StatusOrdemServicoRepository statusRepository;
     private final MovimentacaoEstoqueService movimentacaoEstoqueService;
+    private final HistoricoStatusOsRepository historicoStatusOsRepository;
 
     public TransicaoStatusOrdemServico(StatusOrdemServicoRepository repository,
-                                       MovimentacaoEstoqueService movimentacaoEstoqueService){
+                                       MovimentacaoEstoqueService movimentacaoEstoqueService,
+                                       HistoricoStatusOsRepository historicoStatusOsRepository) {
         this.statusRepository = repository;
         this.movimentacaoEstoqueService = movimentacaoEstoqueService;
+        this.historicoStatusOsRepository = historicoStatusOsRepository;
     }
 
     @Transactional
@@ -35,11 +41,33 @@ public class TransicaoStatusOrdemServico {
         StatusOrdemServico status = statusRepository.findByNome(novoStatus.name())
                 .orElseThrow(() -> new IllegalStateException("Status não cadastrado: " + novoStatus));
 
-        os.setStatusOrdemServico(status);
+        alterarStatus(os, status);
 
         if (novoStatus == StatusOrdemServicoEnum.EM_EXECUCAO) {
             movimentacaoEstoqueService.baixarItensDaOrdemServico(os);
         }
+    }
+
+    @Transactional
+    public void finalizarPorOrcamento(OrdemServico os) {
+        StatusOrdemServico statusFinalizada = statusRepository
+                .findByNome(StatusOrdemServicoEnum.FINALIZADA.name())
+                .orElseThrow(() -> new IllegalStateException("Status FINALIZADA não cadastrado"));
+
+        alterarStatus(os, statusFinalizada);
+    }
+
+    private void alterarStatus(OrdemServico os, StatusOrdemServico statusDestino) {
+        LocalDateTime agora = LocalDateTime.now();
+        HistoricoStatusOs historicoAtual = historicoStatusOsRepository
+                .findByOrdemServico_IdAndDataHoraFimIsNull(os.getId())
+                .orElseThrow(() -> new IllegalStateException("OS sem histórico de status aberto"));
+
+        historicoAtual.setDataHoraFim(agora);
+        historicoStatusOsRepository.saveAndFlush(historicoAtual);
+
+        os.setStatusOrdemServico(statusDestino);
+        historicoStatusOsRepository.save(new HistoricoStatusOs(os, statusDestino, agora));
     }
 
     private Set<StatusOrdemServicoEnum> transicoesValidas(String statusAtual) {

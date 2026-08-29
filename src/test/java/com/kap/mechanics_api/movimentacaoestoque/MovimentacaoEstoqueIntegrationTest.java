@@ -76,6 +76,9 @@ class MovimentacaoEstoqueIntegrationTest {
     @Autowired
     private OrcamentoServicoRepository orcamentoServicoRepository;
 
+    @Autowired
+    private HistoricoStatusOsRepository historicoStatusOsRepository;
+
     private Integer itemId;
     private Integer usuarioId;
     private Integer ordemServicoId;
@@ -83,6 +86,7 @@ class MovimentacaoEstoqueIntegrationTest {
     @BeforeEach
     void setup() {
         movimentacaoEstoqueRepository.deleteAll();
+        historicoStatusOsRepository.deleteAll();
         ordemServicoRepository.deleteAll();
         orcamentoServicoRepository.deleteAll();
         orcamentoRepository.deleteAll();

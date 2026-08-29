@@ -73,9 +73,13 @@ class ClienteIntegrationTest {
     @Autowired
     private MovimentacaoEstoqueRepository movimentacaoEstoqueRepository;
 
+    @Autowired
+    private HistoricoStatusOsRepository historicoStatusOsRepository;
+
     @BeforeEach
     void limparDadosBaseAposTestes() {
         movimentacaoEstoqueRepository.deleteAll();
+        historicoStatusOsRepository.deleteAll();
         ordemServicoRepository.deleteAll();
         orcamentoServicoRepository.deleteAll();
         orcamentoRepository.deleteAll();

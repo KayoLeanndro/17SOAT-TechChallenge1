@@ -1,6 +1,7 @@
 package com.kap.mechanics_api.ordemservico;
 
 import com.kap.mechanics_api.domain.Orcamento;
+import com.kap.mechanics_api.domain.HistoricoStatusOs;
 import com.kap.mechanics_api.domain.OrdemServico;
 import com.kap.mechanics_api.domain.StatusOrdemServico;
 import com.kap.mechanics_api.domain.Usuario;
@@ -16,6 +17,7 @@ import com.kap.mechanics_api.enums.StatusOrdemServicoEnum;
 import com.kap.mechanics_api.exception.OrcamentoNaoAprovadoException;
 import com.kap.mechanics_api.exception.OrdemServicoJaExisteException;
 import com.kap.mechanics_api.repository.OrdemServicoRepository;
+import com.kap.mechanics_api.repository.HistoricoStatusOsRepository;
 import com.kap.mechanics_api.repository.StatusOrdemServicoRepository;
 import com.kap.mechanics_api.repository.UsuarioRepository;
 import com.kap.mechanics_api.service.OrdemServicoService;
@@ -54,6 +56,9 @@ class OrdemServicoServiceTest {
 
     @Mock
     private UsuarioRepository usuarioRepository;
+
+    @Mock
+    private HistoricoStatusOsRepository historicoStatusOsRepository;
 
     @InjectMocks
     private OrdemServicoService ordemServicoService;
@@ -99,6 +104,13 @@ class OrdemServicoServiceTest {
         verify(ordemServicoRepository).save(captor.capture());
         assertThat(captor.getValue().getStatusOrdemServico().getNome())
                 .isEqualTo(StatusOrdemServicoEnum.AGUARDANDO_APROVACAO.name());
+
+        ArgumentCaptor<HistoricoStatusOs> historicoCaptor = ArgumentCaptor.forClass(HistoricoStatusOs.class);
+        verify(historicoStatusOsRepository).save(historicoCaptor.capture());
+        assertThat(historicoCaptor.getValue().getOrdemServico()).isEqualTo(resultado);
+        assertThat(historicoCaptor.getValue().getStatus()).isEqualTo(statusRecebida);
+        assertThat(historicoCaptor.getValue().getDataHoraInicio()).isEqualTo(resultado.getDataAbertura());
+        assertThat(historicoCaptor.getValue().getDataHoraFim()).isNull();
     }
 
     @Test
@@ -146,15 +158,15 @@ class OrdemServicoServiceTest {
         OrdemServico ordemServico = new OrdemServico();
         StatusOrdemServico finalizada = new StatusOrdemServico();
         finalizada.setNome(StatusOrdemServicoEnum.FINALIZADA.name());
+        ordemServico.setStatusOrdemServico(finalizada);
 
         when(ordemServicoRepository.findByOrcamento_Id(orcamentoId)).thenReturn(Optional.of(ordemServico));
-        when(statusOrdemServicoRepository.findByNome(StatusOrdemServicoEnum.FINALIZADA.name()))
-                .thenReturn(Optional.of(finalizada));
         when(ordemServicoRepository.save(ordemServico)).thenReturn(ordemServico);
 
         OrdemServico resultado = ordemServicoService.finalizarPorOrcamento(orcamentoId);
 
         assertThat(resultado.getStatusOrdemServico()).isEqualTo(finalizada);
+        verify(transicaoStatusOrdemServico).finalizarPorOrcamento(ordemServico);
         verify(ordemServicoRepository).save(ordemServico);
     }
 

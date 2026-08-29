@@ -1,8 +1,11 @@
 package com.kap.mechanics_api.ordemservico;
 
 import com.kap.mechanics_api.domain.Cliente;
+import com.kap.mechanics_api.domain.HistoricoStatusOs;
 import com.kap.mechanics_api.domain.Orcamento;
+import com.kap.mechanics_api.domain.OrcamentoServico;
 import com.kap.mechanics_api.domain.OrdemServico;
+import com.kap.mechanics_api.domain.Servico;
 import com.kap.mechanics_api.domain.StatusOrdemServico;
 import com.kap.mechanics_api.domain.Usuario;
 import com.kap.mechanics_api.domain.Veiculo;
@@ -11,10 +14,12 @@ import com.kap.mechanics_api.enums.StatusOrcamento;
 import com.kap.mechanics_api.enums.StatusOrdemServicoEnum;
 import com.kap.mechanics_api.enums.TipoUsuario;
 import com.kap.mechanics_api.repository.ClienteRepository;
+import com.kap.mechanics_api.repository.HistoricoStatusOsRepository;
 import com.kap.mechanics_api.repository.MovimentacaoEstoqueRepository;
 import com.kap.mechanics_api.repository.OrcamentoRepository;
 import com.kap.mechanics_api.repository.OrcamentoServicoRepository;
 import com.kap.mechanics_api.repository.OrdemServicoRepository;
+import com.kap.mechanics_api.repository.ServicoRepository;
 import com.kap.mechanics_api.repository.StatusOrdemServicoRepository;
 import com.kap.mechanics_api.repository.UsuarioRepository;
 import com.kap.mechanics_api.repository.VeiculoRepository;
@@ -31,11 +36,13 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.RequestPostProcessor;
 import tools.jackson.databind.json.JsonMapper;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
@@ -80,12 +87,20 @@ class OrdemServicoIntegrationTest {
     @Autowired
     private UsuarioRepository usuarioRepository;
 
+    @Autowired
+    private HistoricoStatusOsRepository historicoStatusOsRepository;
+
+    @Autowired
+    private ServicoRepository servicoRepository;
+
     @BeforeEach
     void limparDadosBaseAntesDoTeste() {
         movimentacaoEstoqueRepository.deleteAll();
+        historicoStatusOsRepository.deleteAll();
         ordemServicoRepository.deleteAll();
         orcamentoServicoRepository.deleteAll();
         orcamentoRepository.deleteAll();
+        servicoRepository.deleteAll();
         clienteRepository.deleteAll();
         veiculoRepository.deleteAll();
         statusOrdemServicoRepository.deleteAll();
@@ -100,6 +115,10 @@ class OrdemServicoIntegrationTest {
 
     private RequestPostProcessor atendente() {
         return definirRole("ATENDENTE");
+    }
+
+    private RequestPostProcessor admin() {
+        return definirRole("ADMIN");
     }
 
     private void seedStatusOrdemServico() {
@@ -150,8 +169,12 @@ class OrdemServicoIntegrationTest {
         ordemServico.setOrcamento(orcamento);
         ordemServico.setUsuarioAtendente(usuario);
         ordemServico.setStatusOrdemServico(buscarStatus(statusAtual));
-        ordemServico.setDataAbertura(LocalDateTime.now());
-        return ordemServicoRepository.save(ordemServico);
+        LocalDateTime dataAbertura = LocalDateTime.now();
+        ordemServico.setDataAbertura(dataAbertura);
+        OrdemServico ordemServicoSalva = ordemServicoRepository.save(ordemServico);
+        historicoStatusOsRepository.save(new HistoricoStatusOs(
+                ordemServicoSalva, ordemServicoSalva.getStatusOrdemServico(), dataAbertura));
+        return ordemServicoSalva;
     }
 
     @Test
@@ -170,6 +193,14 @@ class OrdemServicoIntegrationTest {
         assertThat(gerada.getStatusOrdemServico().getNome())
                 .isEqualTo(StatusOrdemServicoEnum.AGUARDANDO_APROVACAO.name());
         assertThat(gerada.getUsuarioAtendente().getId()).isEqualTo(usuario.getId());
+
+        var historico = historicoStatusOsRepository
+                .findByOrdemServico_IdOrderByDataHoraInicioAsc(gerada.getId());
+        assertThat(historico).hasSize(1);
+        assertThat(historico.getFirst().getStatus().getNome())
+                .isEqualTo(StatusOrdemServicoEnum.AGUARDANDO_APROVACAO.name());
+        assertThat(historico.getFirst().getDataHoraInicio()).isEqualTo(gerada.getDataAbertura());
+        assertThat(historico.getFirst().getDataHoraFim()).isNull();
     }
 
     @Test
@@ -234,6 +265,81 @@ class OrdemServicoIntegrationTest {
         assertThat(ordemServicoRepository.findById(ordemServico.getId()).orElseThrow()
                 .getStatusOrdemServico().getNome())
                 .isEqualTo(StatusOrdemServicoEnum.EM_DIAGNOSTICO.name());
+
+        var historico = historicoStatusOsRepository
+                .findByOrdemServico_IdOrderByDataHoraInicioAsc(ordemServico.getId());
+        assertThat(historico).hasSize(2);
+        assertThat(historico.get(0).getDataHoraFim()).isEqualTo(historico.get(1).getDataHoraInicio());
+        assertThat(historico.get(1).getStatus().getNome())
+                .isEqualTo(StatusOrdemServicoEnum.EM_DIAGNOSTICO.name());
+        assertThat(historico.get(1).getDataHoraFim()).isNull();
+    }
+
+    @Test
+    @DisplayName("deve consultar o histórico de status pelo ID da OS")
+    void deveConsultarHistoricoStatusPorOrdemServico() throws Exception {
+        seedStatusOrdemServico();
+        Usuario usuario = persistirUsuario();
+        Orcamento orcamento = persistirOrcamento(StatusOrcamento.APROVADO);
+        OrdemServico ordemServico = persistirOrdemServico(
+                orcamento, usuario, StatusOrdemServicoEnum.AGUARDANDO_APROVACAO);
+
+        AtualizacaoStatusOrdemServicoRequestDTO request =
+                new AtualizacaoStatusOrdemServicoRequestDTO(StatusOrdemServicoEnum.EM_DIAGNOSTICO);
+        mockMvc.perform(patch(ENDPOINT + "/" + ordemServico.getId() + "/status")
+                        .with(atendente())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isNoContent());
+
+        mockMvc.perform(get(ENDPOINT + "/" + ordemServico.getId() + "/historico-status")
+                        .with(atendente()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(2))
+                .andExpect(jsonPath("$[0].status")
+                        .value(StatusOrdemServicoEnum.AGUARDANDO_APROVACAO.name()))
+                .andExpect(jsonPath("$[0].dataHoraFim").isNotEmpty())
+                .andExpect(jsonPath("$[1].status")
+                        .value(StatusOrdemServicoEnum.EM_DIAGNOSTICO.name()))
+                .andExpect(jsonPath("$[1].dataHoraFim").isEmpty());
+    }
+
+    @Test
+    @DisplayName("deve calcular o tempo médio da OS para o serviço informado")
+    void deveCalcularTempoMedioExecucaoPorServico() throws Exception {
+        seedStatusOrdemServico();
+        Usuario usuario = persistirUsuario();
+        Orcamento orcamento = persistirOrcamento(StatusOrcamento.APROVADO);
+        Servico trocaOleo = servicoRepository.save(new Servico(
+                "Troca de óleo", "Troca", new BigDecimal("100.00"), 60, true));
+        Servico alinhamento = servicoRepository.save(new Servico(
+                "Alinhamento", "Alinhamento", new BigDecimal("80.00"), 30, true));
+        orcamentoServicoRepository.save(
+                new OrcamentoServico(orcamento, trocaOleo, new BigDecimal("100.00")));
+        orcamentoServicoRepository.save(
+                new OrcamentoServico(orcamento, alinhamento, new BigDecimal("80.00")));
+        OrdemServico ordemServico =
+                persistirOrdemServico(orcamento, usuario, StatusOrdemServicoEnum.FINALIZADA);
+
+        LocalDateTime inicio = LocalDateTime.of(2026, 8, 29, 10, 0);
+        HistoricoStatusOs execucao = new HistoricoStatusOs(
+                ordemServico, buscarStatus(StatusOrdemServicoEnum.EM_EXECUCAO), inicio);
+        execucao.setDataHoraFim(inicio.plusMinutes(90));
+        historicoStatusOsRepository.save(execucao);
+
+        mockMvc.perform(get("/api/indicadores/tempo-medio-execucao/por-servico/{servicoId}",
+                                trocaOleo.getId())
+                        .with(admin()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.servicoId").value(trocaOleo.getId()))
+                .andExpect(jsonPath("$.servicoNome").value("Troca de óleo"))
+                .andExpect(jsonPath("$.tempoMedioMinutos").value(90.00))
+                .andExpect(jsonPath("$.quantidadeOsConsideradas").value(1));
+
+        mockMvc.perform(get("/api/indicadores/tempo-medio-execucao/por-servico/{servicoId}",
+                                alinhamento.getId())
+                        .with(atendente()))
+                .andExpect(status().isForbidden());
     }
 
     @Test

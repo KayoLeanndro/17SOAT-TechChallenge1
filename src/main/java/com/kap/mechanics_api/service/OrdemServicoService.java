@@ -1,5 +1,6 @@
 package com.kap.mechanics_api.service;
 
+import com.kap.mechanics_api.domain.HistoricoStatusOs;
 import com.kap.mechanics_api.domain.Orcamento;
 import com.kap.mechanics_api.domain.OrdemServico;
 import com.kap.mechanics_api.domain.StatusOrdemServico;
@@ -12,6 +13,7 @@ import com.kap.mechanics_api.exception.OrdemServicoJaExisteException;
 import com.kap.mechanics_api.exception.OrdemServicoNaoEncontradaException;
 import com.kap.mechanics_api.exception.UsuarioNaoEncontradoException;
 import com.kap.mechanics_api.repository.OrcamentoRepository;
+import com.kap.mechanics_api.repository.HistoricoStatusOsRepository;
 import com.kap.mechanics_api.repository.OrdemServicoRepository;
 import com.kap.mechanics_api.repository.StatusOrdemServicoRepository;
 import com.kap.mechanics_api.repository.UsuarioRepository;
@@ -28,17 +30,20 @@ public class OrdemServicoService {
     private final OrcamentoRepository orcamentoRepository;
     private final TransicaoStatusOrdemServico transicaoStatusOrdemServico;
     private final UsuarioRepository usuarioRepository;
+    private final HistoricoStatusOsRepository historicoStatusOsRepository;
 
     public OrdemServicoService(OrdemServicoRepository ordemServicoRepository,
                                StatusOrdemServicoRepository statusOrdemServicoRepository,
                                OrcamentoRepository orcamentoRepository,
                                TransicaoStatusOrdemServico transicaoStatusOrdemServico,
-                               UsuarioRepository usuarioRepository) {
+                               UsuarioRepository usuarioRepository,
+                               HistoricoStatusOsRepository historicoStatusOsRepository) {
         this.ordemServicoRepository = ordemServicoRepository;
         this.statusOrdemServicoRepository = statusOrdemServicoRepository;
         this.orcamentoRepository = orcamentoRepository;
         this.transicaoStatusOrdemServico = transicaoStatusOrdemServico;
         this.usuarioRepository = usuarioRepository;
+        this.historicoStatusOsRepository = historicoStatusOsRepository;
     }
 
     @Transactional
@@ -74,11 +79,7 @@ public class OrdemServicoService {
     public OrdemServico finalizarPorOrcamento(Integer orcamentoId) {
         OrdemServico ordemServico = ordemServicoRepository.findByOrcamento_Id(orcamentoId)
                 .orElseThrow(() -> new OrdemServicoNaoEncontradaException(orcamentoId));
-        StatusOrdemServico statusFinalizado = statusOrdemServicoRepository
-                .findByNome(StatusOrdemServicoEnum.FINALIZADA.name())
-                .orElseThrow(() -> new IllegalStateException("Status FINALIZADA não cadastrado"));
-
-        ordemServico.setStatusOrdemServico(statusFinalizado);
+        transicaoStatusOrdemServico.finalizarPorOrcamento(ordemServico);
         return ordemServicoRepository.save(ordemServico);
     }
 
@@ -102,9 +103,13 @@ public class OrdemServicoService {
         ordemServico.setOrcamento(orcamento);
         ordemServico.setUsuarioAtendente(usuario);
         ordemServico.setStatusOrdemServico(statusInicial);
-        ordemServico.setDataAbertura(LocalDateTime.now());
+        LocalDateTime dataAbertura = LocalDateTime.now();
+        ordemServico.setDataAbertura(dataAbertura);
 
-        return ordemServicoRepository.save(ordemServico);
+        OrdemServico ordemServicoSalva = ordemServicoRepository.save(ordemServico);
+        historicoStatusOsRepository.save(
+                new HistoricoStatusOs(ordemServicoSalva, statusInicial, dataAbertura));
+        return ordemServicoSalva;
     }
 
     private Orcamento buscarOrcamento(Integer orcamentoId) {
