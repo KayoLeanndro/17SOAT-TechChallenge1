@@ -15,11 +15,14 @@ public class TransicaoStatusOrdemServico {
 
     private final StatusOrdemServicoRepository statusRepository;
     private final MovimentacaoEstoqueService movimentacaoEstoqueService;
+    private final OrdemServicoItemService ordemServicoItemService;
 
     public TransicaoStatusOrdemServico(StatusOrdemServicoRepository repository,
-                                       MovimentacaoEstoqueService movimentacaoEstoqueService){
+                                       MovimentacaoEstoqueService movimentacaoEstoqueService,
+                                       OrdemServicoItemService ordemServicoItemService){
         this.statusRepository = repository;
         this.movimentacaoEstoqueService = movimentacaoEstoqueService;
+        this.ordemServicoItemService = ordemServicoItemService;
     }
 
     @Transactional
@@ -38,6 +41,9 @@ public class TransicaoStatusOrdemServico {
         os.setStatusOrdemServico(status);
 
         if (novoStatus == StatusOrdemServicoEnum.EM_EXECUCAO) {
+            if (ordemServicoItemService != null) {
+                ordemServicoItemService.copiarDoOrcamento(os);
+            }
             movimentacaoEstoqueService.baixarItensDaOrdemServico(os);
         }
     }
