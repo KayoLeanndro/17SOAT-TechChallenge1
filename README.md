@@ -163,4 +163,4 @@ src/main/java/com/kap/mechanics_api
 └── config         # Segurança e OpenAPI
 ```
 
-As migrations do banco estão em `src/main/resources/db/migration`. A implementação do histórico de status está descrita em [`HISTORICO_STATUS_OS.md`](HISTORICO_STATUS_OS.md).
+As migrations do banco estão em `src/main/resources/db/migration`.
