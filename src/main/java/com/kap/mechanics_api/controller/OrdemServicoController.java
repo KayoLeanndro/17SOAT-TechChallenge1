@@ -3,6 +3,7 @@ package com.kap.mechanics_api.controller;
 import com.kap.mechanics_api.documentation.OrdemServicoControllerDoc;
 import com.kap.mechanics_api.dto.ordemservico.AtualizacaoStatusOrdemServicoRequestDTO;
 import com.kap.mechanics_api.dto.ordemservico.ListagemOrdemServicoResponseDTO;
+import com.kap.mechanics_api.dto.ordemservico.InclusaoOrdemServicoItemRequestDTO;
 import com.kap.mechanics_api.service.OrdemServicoService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
@@ -18,6 +19,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
+import com.kap.mechanics_api.dto.ordemservico.ConsultaOrdemServicoItensResponseDTO;
 
 @RestController
 @RequestMapping("/api/ordem-servico")
@@ -25,9 +27,22 @@ import java.util.List;
 public class OrdemServicoController implements OrdemServicoControllerDoc {
 
     private final OrdemServicoService ordemServicoService;
+    private final com.kap.mechanics_api.service.OrdemServicoItemService ordemServicoItemService;
 
-    public OrdemServicoController(OrdemServicoService ordemServicoService) {
+    public OrdemServicoController(OrdemServicoService ordemServicoService, com.kap.mechanics_api.service.OrdemServicoItemService ordemServicoItemService) {
         this.ordemServicoService = ordemServicoService;
+        this.ordemServicoItemService = ordemServicoItemService;
+    }
+
+    @PostMapping("/{id}/itens")
+    public ResponseEntity<Void> incluirItem(@PathVariable Integer id, @Valid @RequestBody InclusaoOrdemServicoItemRequestDTO dto) {
+        ordemServicoItemService.incluir(id, dto);
+        return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/{id}/itens")
+    public ResponseEntity<ConsultaOrdemServicoItensResponseDTO> consultarItens(@PathVariable Integer id) {
+        return ResponseEntity.ok(ordemServicoItemService.consultar(id));
     }
 
     @PostMapping("/{orcamentoId}")
