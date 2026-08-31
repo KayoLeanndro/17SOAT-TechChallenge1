@@ -16,7 +16,9 @@ import com.kap.mechanics_api.enums.StatusOrdemServicoEnum;
 import com.kap.mechanics_api.enums.TipoItemEstoque;
 import com.kap.mechanics_api.enums.TipoUsuario;
 import com.kap.mechanics_api.repository.ClienteRepository;
+import com.kap.mechanics_api.repository.HistoricoStatusOsRepository;
 import com.kap.mechanics_api.repository.ItemEstoqueRepository;
+import com.kap.mechanics_api.repository.MovimentacaoEstoqueRepository;
 import com.kap.mechanics_api.repository.OrcamentoRepository;
 import com.kap.mechanics_api.repository.OrcamentoServicoRepository;
 import com.kap.mechanics_api.repository.OrdemServicoRepository;
@@ -94,8 +96,16 @@ class OrcamentoIntegrationTest {
     @Autowired
     private UsuarioRepository usuarioRepository;
 
+    @Autowired
+    private HistoricoStatusOsRepository historicoStatusOsRepository;
+
+    @Autowired
+    private MovimentacaoEstoqueRepository movimentacaoEstoqueRepository;
+
     @BeforeEach
     void limparDadosBaseAntesDoTeste() {
+        movimentacaoEstoqueRepository.deleteAll();
+        historicoStatusOsRepository.deleteAll();
         ordemServicoRepository.deleteAll();
         orcamentoServicoRepository.deleteAll();
         orcamentoRepository.deleteAll();

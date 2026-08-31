@@ -1,6 +1,7 @@
 package com.kap.mechanics_api.ordemservico;
 
 import com.kap.mechanics_api.domain.Cliente;
+import com.kap.mechanics_api.domain.HistoricoStatusOs;
 import com.kap.mechanics_api.domain.ItemEstoque;
 import com.kap.mechanics_api.domain.MovimentacaoEstoque;
 import com.kap.mechanics_api.domain.Orcamento;
@@ -17,8 +18,10 @@ import com.kap.mechanics_api.enums.StatusOrdemServicoEnum;
 import com.kap.mechanics_api.enums.TipoItemEstoque;
 import com.kap.mechanics_api.enums.TipoMovimentacaoEstoque;
 import com.kap.mechanics_api.enums.TipoUsuario;
+import com.kap.mechanics_api.exception.EstoqueInsuficienteException;
 import com.kap.mechanics_api.exception.TransicaoStatusInvalidaException;
 import com.kap.mechanics_api.repository.ClienteRepository;
+import com.kap.mechanics_api.repository.HistoricoStatusOsRepository;
 import com.kap.mechanics_api.repository.ItemEstoqueRepository;
 import com.kap.mechanics_api.repository.MovimentacaoEstoqueRepository;
 import com.kap.mechanics_api.repository.OrcamentoRepository;
@@ -88,9 +91,13 @@ class TransicaoStatusOrdemServicoIntegrationTest {
     @Autowired
     private UsuarioRepository usuarioRepository;
 
+    @Autowired
+    private HistoricoStatusOsRepository historicoStatusOsRepository;
+
     @BeforeEach
     void limparDadosBaseAntesDoTeste() {
         movimentacaoEstoqueRepository.deleteAll();
+        historicoStatusOsRepository.deleteAll();
         ordemServicoRepository.deleteAll();
         orcamentoServicoRepository.deleteAll();
         orcamentoRepository.deleteAll();
@@ -152,8 +159,12 @@ class TransicaoStatusOrdemServicoIntegrationTest {
         ordemServico.setOrcamento(orcamento);
         ordemServico.setUsuarioAtendente(persistirUsuario());
         ordemServico.setStatusOrdemServico(status(statusAtual));
-        ordemServico.setDataAbertura(LocalDateTime.now());
-        return ordemServicoRepository.save(ordemServico);
+        LocalDateTime dataAbertura = LocalDateTime.now();
+        ordemServico.setDataAbertura(dataAbertura);
+        OrdemServico ordemServicoSalva = ordemServicoRepository.save(ordemServico);
+        historicoStatusOsRepository.save(new HistoricoStatusOs(
+                ordemServicoSalva, ordemServicoSalva.getStatusOrdemServico(), dataAbertura));
+        return ordemServicoSalva;
     }
 
     @Test
@@ -267,5 +278,45 @@ class TransicaoStatusOrdemServicoIntegrationTest {
         assertThat(saida.getQuantidade()).isEqualTo(3);
         assertThat(saida.getItemEstoque().getId()).isEqualTo(item.getId());
         assertThat(saida.getOrdemServico().getId()).isEqualTo(ordemServico.getId());
+    }
+
+    @Test
+    @DisplayName("deve desfazer status e histórico quando a baixa de estoque falhar")
+    void deveDesfazerTransicaoQuandoEstoqueForInsuficiente() {
+        Orcamento orcamento = persistirOrcamento();
+        Servico servico = servicoRepository.save(
+                new Servico("Troca de pastilhas", "Freios", new BigDecimal("120.00"), 90, true));
+        ItemEstoque item = itemEstoqueRepository.save(new ItemEstoque(
+                "Pastilha de freio", "Peca", TipoItemEstoque.PECA,
+                new BigDecimal("45.00"), 2, 1, true));
+
+        ServicoItem servicoItem = new ServicoItem();
+        servicoItem.setId(new ServicoItemId(servico.getId(), item.getId()));
+        servicoItem.setServico(servico);
+        servicoItem.setItemEstoque(item);
+        servicoItem.setQuantidadePadrao(3);
+        servicoItemRepository.save(servicoItem);
+        orcamentoServicoRepository.save(
+                new OrcamentoServico(orcamento, servico, new BigDecimal("255.00")));
+        OrdemServico ordemServico =
+                persistirOrdemServico(orcamento, StatusOrdemServicoEnum.EM_DIAGNOSTICO);
+
+        assertThatThrownBy(() -> transicaoStatusOrdemServico.transicionar(
+                ordemServico, StatusOrdemServicoEnum.EM_EXECUCAO))
+                .isInstanceOf(EstoqueInsuficienteException.class);
+
+        OrdemServico recarregada = ordemServicoRepository.findById(ordemServico.getId()).orElseThrow();
+        assertThat(recarregada.getStatusOrdemServico().getNome())
+                .isEqualTo(StatusOrdemServicoEnum.EM_DIAGNOSTICO.name());
+        assertThat(itemEstoqueRepository.findById(item.getId()).orElseThrow().getQuantidadeAtual())
+                .isEqualTo(2);
+        assertThat(movimentacaoEstoqueRepository.count()).isZero();
+
+        var historico = historicoStatusOsRepository
+                .findByOrdemServico_IdOrderByDataHoraInicioAsc(ordemServico.getId());
+        assertThat(historico).hasSize(1);
+        assertThat(historico.getFirst().getStatus().getNome())
+                .isEqualTo(StatusOrdemServicoEnum.EM_DIAGNOSTICO.name());
+        assertThat(historico.getFirst().getDataHoraFim()).isNull();
     }
 }

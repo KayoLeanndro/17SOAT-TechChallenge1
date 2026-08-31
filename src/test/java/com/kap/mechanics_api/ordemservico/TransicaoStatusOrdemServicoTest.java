@@ -1,9 +1,11 @@
 package com.kap.mechanics_api.ordemservico;
 
+import com.kap.mechanics_api.domain.HistoricoStatusOs;
 import com.kap.mechanics_api.domain.OrdemServico;
 import com.kap.mechanics_api.domain.StatusOrdemServico;
 import com.kap.mechanics_api.enums.StatusOrdemServicoEnum;
 import com.kap.mechanics_api.exception.TransicaoStatusInvalidaException;
+import com.kap.mechanics_api.repository.HistoricoStatusOsRepository;
 import com.kap.mechanics_api.repository.StatusOrdemServicoRepository;
 import com.kap.mechanics_api.service.TransicaoStatusOrdemServico;
 import com.kap.mechanics_api.service.MovimentacaoEstoqueService;
@@ -33,6 +35,9 @@ public class TransicaoStatusOrdemServicoTest {
     @Mock
     private MovimentacaoEstoqueService movimentacaoEstoqueService;
 
+    @Mock
+    private HistoricoStatusOsRepository historicoStatusOsRepository;
+
     @InjectMocks
     private TransicaoStatusOrdemServico transicaoStatusOrdemServico;
 
@@ -48,6 +53,15 @@ public class TransicaoStatusOrdemServicoTest {
     @BeforeEach
     void setUp() {
         ordemServico = new OrdemServico();
+        ordemServico.setId(10);
+    }
+
+    private HistoricoStatusOs prepararHistoricoAberto() {
+        HistoricoStatusOs historico = new HistoricoStatusOs(
+                ordemServico, ordemServico.getStatusOrdemServico(), java.time.LocalDateTime.now());
+        when(historicoStatusOsRepository.findByOrdemServico_IdAndDataHoraFimIsNull(10))
+                .thenReturn(Optional.of(historico));
+        return historico;
     }
 
     @Test
@@ -57,10 +71,13 @@ public class TransicaoStatusOrdemServicoTest {
         StatusOrdemServico statusDestino = statusOrdemServico(StatusOrdemServicoEnum.EM_DIAGNOSTICO.name());
         when(statusOrdemServicoRepository.findByNome(StatusOrdemServicoEnum.EM_DIAGNOSTICO.name()))
                 .thenReturn(Optional.of(statusDestino));
+        HistoricoStatusOs historicoAtual = prepararHistoricoAberto();
 
         transicaoStatusOrdemServico.transicionar(ordemServico, StatusOrdemServicoEnum.EM_DIAGNOSTICO);
 
         assertThat(ordemServico.getStatusOrdemServico()).isEqualTo(statusDestino);
+        assertThat(historicoAtual.getDataHoraFim()).isNotNull();
+        verify(historicoStatusOsRepository).saveAndFlush(historicoAtual);
     }
 
     @ParameterizedTest
@@ -76,6 +93,7 @@ public class TransicaoStatusOrdemServicoTest {
         StatusOrdemServicoEnum destino = StatusOrdemServicoEnum.valueOf(statusDestino);
         when(statusOrdemServicoRepository.findByNome(statusDestino))
                 .thenReturn(Optional.of(statusOrdemServico(statusDestino)));
+        prepararHistoricoAberto();
 
         transicaoStatusOrdemServico.transicionar(ordemServico, destino);
 
@@ -132,6 +150,39 @@ public class TransicaoStatusOrdemServicoTest {
                 ordemServico, StatusOrdemServicoEnum.EM_DIAGNOSTICO))
                 .isInstanceOf(IllegalStateException.class)
                 .hasMessageContaining("EM_DIAGNOSTICO");
+    }
+
+    @Test
+    void deveFalharQuandoOrdemServicoNaoPossuirHistoricoAberto() {
+        StatusOrdemServico statusAtual = statusOrdemServico(StatusOrdemServicoEnum.RECEBIDA.name());
+        ordemServico.setStatusOrdemServico(statusAtual);
+        when(statusOrdemServicoRepository.findByNome(StatusOrdemServicoEnum.EM_DIAGNOSTICO.name()))
+                .thenReturn(Optional.of(statusOrdemServico(StatusOrdemServicoEnum.EM_DIAGNOSTICO.name())));
+        when(historicoStatusOsRepository.findByOrdemServico_IdAndDataHoraFimIsNull(10))
+                .thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> transicaoStatusOrdemServico.transicionar(
+                ordemServico, StatusOrdemServicoEnum.EM_DIAGNOSTICO))
+                .isInstanceOf(IllegalStateException.class)
+                .hasMessage("OS sem histórico de status aberto");
+
+        assertThat(ordemServico.getStatusOrdemServico()).isEqualTo(statusAtual);
+    }
+
+    @Test
+    void deveFinalizarPorRejeicaoDeOrcamentoRegistrandoHistorico() {
+        ordemServico.setStatusOrdemServico(
+                statusOrdemServico(StatusOrdemServicoEnum.AGUARDANDO_APROVACAO.name()));
+        StatusOrdemServico statusFinalizada =
+                statusOrdemServico(StatusOrdemServicoEnum.FINALIZADA.name());
+        when(statusOrdemServicoRepository.findByNome(StatusOrdemServicoEnum.FINALIZADA.name()))
+                .thenReturn(Optional.of(statusFinalizada));
+        prepararHistoricoAberto();
+
+        transicaoStatusOrdemServico.finalizarPorOrcamento(ordemServico);
+
+        assertThat(ordemServico.getStatusOrdemServico()).isEqualTo(statusFinalizada);
+        verify(historicoStatusOsRepository).saveAndFlush(org.mockito.ArgumentMatchers.any());
     }
 
 }

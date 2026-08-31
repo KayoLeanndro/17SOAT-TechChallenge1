@@ -16,6 +16,8 @@ Este projeto foi desenvolvido para o **Tech Challenge — Fase 1** da FIAP. A so
 - Criação de ordens de serviço a partir de orçamentos aprovados.
 - Congelamento dos itens aprovados na O.S. e baixa transacional do estoque ao iniciar a execução.
 - Acompanhamento dos status da OS: `RECEBIDA`, `EM_DIAGNOSTICO`, `AGUARDANDO_APROVACAO`, `EM_EXECUCAO`, `FINALIZADA` e `ENTREGUE`.
+- Persistência e consulta do histórico de status das ordens de serviço.
+- Indicador de tempo médio de execução das OS por serviço.
 - Autenticação JWT e controle de acesso por perfil: `ADMIN`, `ATENDENTE` e `ESTOQUISTA`.
 - Documentação interativa via Swagger/OpenAPI.
 
@@ -119,6 +121,8 @@ As rotas de autenticação e documentação são públicas; as demais exigem JWT
 | Movimentações de estoque | `/api/movimentacao-estoque` |
 | Orçamentos | `/api/orcamento` |
 | Ordens de serviço | `/api/ordem-servico` |
+| Histórico de status da OS | `GET /api/ordem-servico/{ordemServicoId}/historico-status` |
+| Indicadores | `GET /api/indicadores/tempo-medio-execucao/por-servico/{servicoId}` |
 
 ### Itens do orçamento e da O.S.
 
@@ -178,4 +182,4 @@ src/main/java/com/kap/mechanics_api
 └── config         # Segurança e OpenAPI
 ```
 
-As migrations do banco estão em `src/main/resources/db/migration`. Os documentos complementares dos fluxos de ordem de serviço e estoque estão na raiz do repositório.
+As migrations do banco estão em `src/main/resources/db/migration`.
