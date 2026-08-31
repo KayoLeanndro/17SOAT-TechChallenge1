@@ -19,14 +19,18 @@ public class TransicaoStatusOrdemServico {
     private final StatusOrdemServicoRepository statusRepository;
     private final MovimentacaoEstoqueService movimentacaoEstoqueService;
     private final HistoricoStatusOsRepository historicoStatusOsRepository;
+    private final OrdemServicoItemService ordemServicoItemService;
 
     public TransicaoStatusOrdemServico(StatusOrdemServicoRepository repository,
                                        MovimentacaoEstoqueService movimentacaoEstoqueService,
-                                       HistoricoStatusOsRepository historicoStatusOsRepository) {
+                                       HistoricoStatusOsRepository historicoStatusOsRepository, 
+                                      OrdemServicoItemService ordemServicoItemService) {
         this.statusRepository = repository;
         this.movimentacaoEstoqueService = movimentacaoEstoqueService;
         this.historicoStatusOsRepository = historicoStatusOsRepository;
+        this.ordemServicoItemService = ordemServicoItemService;
     }
+    
 
     @Transactional
     public void transicionar(OrdemServico os, StatusOrdemServicoEnum novoStatus) {
@@ -44,6 +48,9 @@ public class TransicaoStatusOrdemServico {
         alterarStatus(os, status);
 
         if (novoStatus == StatusOrdemServicoEnum.EM_EXECUCAO) {
+            if (ordemServicoItemService != null) {
+                ordemServicoItemService.copiarDoOrcamento(os);
+            }
             movimentacaoEstoqueService.baixarItensDaOrdemServico(os);
         }
     }

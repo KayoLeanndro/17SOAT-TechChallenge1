@@ -24,6 +24,7 @@ import com.kap.mechanics_api.repository.OrcamentoServicoRepository;
 import com.kap.mechanics_api.repository.OrdemServicoRepository;
 import com.kap.mechanics_api.repository.ServicoItemRepository;
 import com.kap.mechanics_api.repository.UsuarioRepository;
+import com.kap.mechanics_api.repository.OrdemServicoItemRepository;
 import com.kap.mechanics_api.enums.StatusOrdemServicoEnum;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
@@ -42,19 +43,22 @@ public class MovimentacaoEstoqueService {
     private final OrdemServicoRepository ordemServicoRepository;
     private final OrcamentoServicoRepository orcamentoServicoRepository;
     private final ServicoItemRepository servicoItemRepository;
+    private final OrdemServicoItemRepository ordemServicoItemRepository;
 
     public MovimentacaoEstoqueService(MovimentacaoEstoqueRepository movimentacaoEstoqueRepository,
                                       ItemEstoqueRepository itemEstoqueRepository,
                                       UsuarioRepository usuarioRepository,
                                       OrdemServicoRepository ordemServicoRepository,
                                       OrcamentoServicoRepository orcamentoServicoRepository,
-                                      ServicoItemRepository servicoItemRepository) {
+                                      ServicoItemRepository servicoItemRepository,
+                                      OrdemServicoItemRepository ordemServicoItemRepository) {
         this.movimentacaoEstoqueRepository = movimentacaoEstoqueRepository;
         this.itemEstoqueRepository = itemEstoqueRepository;
         this.usuarioRepository = usuarioRepository;
         this.ordemServicoRepository = ordemServicoRepository;
         this.orcamentoServicoRepository = orcamentoServicoRepository;
         this.servicoItemRepository = servicoItemRepository;
+        this.ordemServicoItemRepository = ordemServicoItemRepository;
     }
 
     @Transactional
@@ -83,6 +87,17 @@ public class MovimentacaoEstoqueService {
     public void baixarItensDaOrdemServico(OrdemServico ordemServico) {
         validarOrdemServicoEmExecucao(ordemServico);
 
+        List<com.kap.mechanics_api.domain.OrdemServicoItem> itensDaOrdem = ordemServicoItemRepository == null
+                ? List.of() : ordemServicoItemRepository.findByOrdemServico_Id(ordemServico.getId());
+        if (!itensDaOrdem.isEmpty()) {
+            for (com.kap.mechanics_api.domain.OrdemServicoItem item : itensDaOrdem) {
+                if (item.getItemEstoque() != null) {
+                    baixarItemParaOrdemServico(ordemServico, item.getItemEstoque().getId(), item.getQuantidade());
+                }
+            }
+            return;
+        }
+
         Map<Integer, Integer> quantidadesPorItem = new HashMap<>();
         List<OrcamentoServico> servicosOrcados = orcamentoServicoRepository
                 .findByOrcamento_Id(ordemServico.getOrcamento().getId());
@@ -104,6 +119,13 @@ public class MovimentacaoEstoqueService {
             ItemEstoque item = buscarItemParaMovimentacao(entry.getKey());
             registrarSaida(item, entry.getValue(), ordemServico.getUsuarioAtendente(), ordemServico);
         }
+    }
+
+    @Transactional
+    public void baixarItemParaOrdemServico(OrdemServico ordemServico, Integer itemEstoqueId, Integer quantidade) {
+        validarOrdemServicoEmExecucao(ordemServico);
+        ItemEstoque item = buscarItemParaMovimentacao(itemEstoqueId);
+        registrarSaida(item, quantidade, ordemServico.getUsuarioAtendente(), ordemServico);
     }
 
     private MovimentacaoEstoque registrarEntrada(ItemEstoque item, Integer quantidade, Usuario usuario) {

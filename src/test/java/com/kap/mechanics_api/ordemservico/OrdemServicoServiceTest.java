@@ -12,10 +12,12 @@ import com.kap.mechanics_api.domain.Usuario;
 //import com.kap.mechanics_api.mapper.OrdemServicoMapper;
 //import com.kap.mechanics_api.repository.OrcamentoRepository;
 //import com.kap.mechanics_api.repository.OrdemServicoRepository;
+import com.kap.mechanics_api.dto.ordemservico.ListagemOrdemServicoResponseDTO;
 import com.kap.mechanics_api.enums.StatusOrcamento;
 import com.kap.mechanics_api.enums.StatusOrdemServicoEnum;
 import com.kap.mechanics_api.exception.OrcamentoNaoAprovadoException;
 import com.kap.mechanics_api.exception.OrdemServicoJaExisteException;
+import com.kap.mechanics_api.mapper.OrdemServicoMapper;
 import com.kap.mechanics_api.repository.OrdemServicoRepository;
 import com.kap.mechanics_api.repository.HistoricoStatusOsRepository;
 import com.kap.mechanics_api.repository.StatusOrdemServicoRepository;
@@ -24,6 +26,7 @@ import com.kap.mechanics_api.service.OrdemServicoService;
 import com.kap.mechanics_api.service.TransicaoStatusOrdemServico;
 import com.kap.mechanics_api.service.UsuarioService;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -31,6 +34,8 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
@@ -59,6 +64,9 @@ class OrdemServicoServiceTest {
 
     @Mock
     private HistoricoStatusOsRepository historicoStatusOsRepository;
+
+    @Mock
+    private OrdemServicoMapper ordemServicoMapper;
 
     @InjectMocks
     private OrdemServicoService ordemServicoService;
@@ -231,6 +239,43 @@ class OrdemServicoServiceTest {
         verify(transicaoStatusOrdemServico)
                 .transicionar(ordemServico, StatusOrdemServicoEnum.EM_DIAGNOSTICO);
         verify(ordemServicoRepository).save(ordemServico);
+    }
+
+    @Test
+    @DisplayName("deve listar todas as ordens de servico convertendo o resultado do repositorio pelo mapper")
+    void deveListarTodasAsOrdensServico() {
+        OrdemServico primeira = new OrdemServico();
+        primeira.setId(1);
+        OrdemServico segunda = new OrdemServico();
+        segunda.setId(2);
+        List<OrdemServico> ordens = List.of(primeira, segunda);
+        List<ListagemOrdemServicoResponseDTO> esperado = List.of(
+                new ListagemOrdemServicoResponseDTO(1, 10, "AGUARDANDO_APROVACAO",
+                        LocalDateTime.of(2026, 8, 20, 9, 0), null),
+                new ListagemOrdemServicoResponseDTO(2, 20, "FINALIZADA",
+                        LocalDateTime.of(2026, 8, 21, 14, 0),
+                        LocalDateTime.of(2026, 8, 25, 17, 30)));
+
+        when(ordemServicoRepository.findAll()).thenReturn(ordens);
+        when(ordemServicoMapper.toListagemResponseDtoList(ordens)).thenReturn(esperado);
+
+        List<ListagemOrdemServicoResponseDTO> resultado = ordemServicoService.listar();
+
+        assertThat(resultado).isEqualTo(esperado);
+        verify(ordemServicoRepository).findAll();
+        verify(ordemServicoMapper).toListagemResponseDtoList(ordens);
+    }
+
+    @Test
+    @DisplayName("deve retornar lista vazia quando nao houver nenhuma ordem de servico cadastrada")
+    void deveRetornarListaVaziaQuandoNaoHouverOrdensServico() {
+        when(ordemServicoRepository.findAll()).thenReturn(List.of());
+        when(ordemServicoMapper.toListagemResponseDtoList(List.of())).thenReturn(List.of());
+
+        List<ListagemOrdemServicoResponseDTO> resultado = ordemServicoService.listar();
+
+        assertThat(resultado).isEqualTo(List.of());
+        verify(ordemServicoRepository).findAll();
     }
 
 }

@@ -6,6 +6,7 @@ import com.kap.mechanics_api.enums.StatusOrcamento;
 import com.kap.mechanics_api.exception.OrcamentoNaoEncontradoException;
 import com.kap.mechanics_api.exception.StatusOrcamentoInvalidoException;
 import com.kap.mechanics_api.enums.TipoItemEstoque;
+import com.kap.mechanics_api.repository.OrcamentoItemRepository;
 import com.kap.mechanics_api.repository.OrcamentoRepository;
 import com.kap.mechanics_api.repository.OrcamentoServicoRepository;
 import com.kap.mechanics_api.repository.ServicoItemRepository;
@@ -51,6 +52,9 @@ class OrcamentoServiceTest {
 
     @Mock
     private OrcamentoServicoRepository orcamentoServicoRepository;
+
+    @Mock
+    private OrcamentoItemRepository orcamentoItemRepository;
 
     @Mock
     private OrdemServicoService ordemServicoService;

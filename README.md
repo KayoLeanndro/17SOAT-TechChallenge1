@@ -12,7 +12,9 @@ Este projeto foi desenvolvido para o **Tech Challenge — Fase 1** da FIAP. A so
 - Cadastro de serviços e itens de estoque (peças e insumos).
 - Registro e consulta de movimentações de estoque.
 - Geração e aprovação de orçamentos.
+- Inclusão de serviços e itens de estoque no orçamento, com valores congelados.
 - Criação de ordens de serviço a partir de orçamentos aprovados.
+- Congelamento dos itens aprovados na O.S. e baixa transacional do estoque ao iniciar a execução.
 - Acompanhamento dos status da OS: `RECEBIDA`, `EM_DIAGNOSTICO`, `AGUARDANDO_APROVACAO`, `EM_EXECUCAO`, `FINALIZADA` e `ENTREGUE`.
 - Persistência e consulta do histórico de status das ordens de serviço.
 - Indicador de tempo médio de execução das OS por serviço.
@@ -121,6 +123,23 @@ As rotas de autenticação e documentação são públicas; as demais exigem JWT
 | Ordens de serviço | `/api/ordem-servico` |
 | Histórico de status da OS | `GET /api/ordem-servico/{ordemServicoId}/historico-status` |
 | Indicadores | `GET /api/indicadores/tempo-medio-execucao/por-servico/{servicoId}` |
+
+### Itens do orçamento e da O.S.
+
+`POST /api/orcamento/{id}/itens` inclui um serviço ou item de estoque em um orçamento
+`PENDENTE`. Informe exatamente um de `servicoId` ou `itemEstoqueId`, além de
+`quantidade`. O preço é congelado e o total do orçamento é recalculado.
+
+`POST /api/ordem-servico/{id}/itens` inclui um serviço ou item adicional durante
+uma O.S. `EM_EXECUCAO`. A inclusão de um item de estoque, inclusive os componentes
+de um serviço, registra imediatamente a saída no ledger e reduz o saldo. Ao entrar
+em execução, a O.S. copia os itens aprovados do orçamento e baixa seus itens de
+estoque de uma só vez.
+
+Para consultar as linhas e o status use `GET /api/orcamento/{id}/itens` ou
+`GET /api/ordem-servico/{id}/itens`. Ambas as respostas trazem `status`, `itens`,
+quantidade, preço unitário congelado e total da linha; a resposta da OS também
+traz o vínculo `orcamentoItemId` quando a linha veio do orçamento.
 
 ## Testes e qualidade
 

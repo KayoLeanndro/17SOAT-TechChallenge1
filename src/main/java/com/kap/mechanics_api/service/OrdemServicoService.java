@@ -5,13 +5,17 @@ import com.kap.mechanics_api.domain.Orcamento;
 import com.kap.mechanics_api.domain.OrdemServico;
 import com.kap.mechanics_api.domain.StatusOrdemServico;
 import com.kap.mechanics_api.domain.Usuario;
+import com.kap.mechanics_api.dto.ordemservico.ListagemOrdemServicoResponseDTO;
 import com.kap.mechanics_api.enums.StatusOrcamento;
 import com.kap.mechanics_api.enums.StatusOrdemServicoEnum;
 import com.kap.mechanics_api.exception.OrcamentoNaoAprovadoException;
 import com.kap.mechanics_api.exception.OrcamentoNaoEncontradoException;
+import com.kap.mechanics_api.exception.ClienteNaoEncontradoException;
 import com.kap.mechanics_api.exception.OrdemServicoJaExisteException;
 import com.kap.mechanics_api.exception.OrdemServicoNaoEncontradaException;
 import com.kap.mechanics_api.exception.UsuarioNaoEncontradoException;
+import com.kap.mechanics_api.mapper.OrdemServicoMapper;
+import com.kap.mechanics_api.repository.ClienteRepository;
 import com.kap.mechanics_api.repository.OrcamentoRepository;
 import com.kap.mechanics_api.repository.HistoricoStatusOsRepository;
 import com.kap.mechanics_api.repository.OrdemServicoRepository;
@@ -21,6 +25,7 @@ import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Service
 public class OrdemServicoService {
@@ -31,6 +36,9 @@ public class OrdemServicoService {
     private final TransicaoStatusOrdemServico transicaoStatusOrdemServico;
     private final UsuarioRepository usuarioRepository;
     private final HistoricoStatusOsRepository historicoStatusOsRepository;
+    private final ClienteRepository clienteRepository;
+    private final OrdemServicoMapper ordemServicoMapper;
+
 
     public OrdemServicoService(OrdemServicoRepository ordemServicoRepository,
                                StatusOrdemServicoRepository statusOrdemServicoRepository,
@@ -38,12 +46,16 @@ public class OrdemServicoService {
                                TransicaoStatusOrdemServico transicaoStatusOrdemServico,
                                UsuarioRepository usuarioRepository,
                                HistoricoStatusOsRepository historicoStatusOsRepository) {
+                               ClienteRepository clienteRepository,
+                               OrdemServicoMapper ordemServicoMapper) {
         this.ordemServicoRepository = ordemServicoRepository;
         this.statusOrdemServicoRepository = statusOrdemServicoRepository;
         this.orcamentoRepository = orcamentoRepository;
         this.transicaoStatusOrdemServico = transicaoStatusOrdemServico;
         this.usuarioRepository = usuarioRepository;
         this.historicoStatusOsRepository = historicoStatusOsRepository;
+        this.clienteRepository = clienteRepository;
+        this.ordemServicoMapper = ordemServicoMapper;
     }
 
     @Transactional
@@ -124,5 +136,52 @@ public class OrdemServicoService {
 
         transicaoStatusOrdemServico.transicionar(ordemServico, novoStatus);
         return ordemServicoRepository.save(ordemServico);
+    }
+
+    public List<ListagemOrdemServicoResponseDTO> listarPorCliente(Integer clienteId, String cpfCnpj) {
+        Integer idCliente = obterIdCliente(clienteId, cpfCnpj);
+
+        return ordemServicoRepository.findByOrcamento_Cliente_IdOrderByDataAberturaDesc(idCliente)
+                .stream()
+                .map(ordemServico -> new ListagemOrdemServicoResponseDTO(
+                        ordemServico.getId(),
+                        ordemServico.getOrcamento().getId(),
+                        ordemServico.getStatusOrdemServico().getNome(),
+                        ordemServico.getDataAbertura(),
+                        ordemServico.getDataEntrega()))
+                .toList();
+    }
+
+    private Integer obterIdCliente(Integer clienteId, String cpfCnpj) {
+        if (clienteId != null && cpfCnpj != null && !cpfCnpj.isBlank()) {
+            throw new IllegalArgumentException("Informe apenas o ID do cliente ou CPF/CNPJ");
+        }
+
+        if (clienteId != null) {
+            return clienteRepository.findById(clienteId)
+                    .orElseThrow(() -> new ClienteNaoEncontradoException(clienteId))
+                    .getId();
+        }
+
+        if (cpfCnpj == null || cpfCnpj.isBlank()) {
+            throw new IllegalArgumentException("Informe o ID do cliente ou CPF/CNPJ");
+        }
+
+        if (!cpfCnpj.matches("[\\d.\\-/\\s]+")) {
+            throw new IllegalArgumentException("O documento contém caracteres inválidos");
+        }
+
+        String documento = cpfCnpj.trim().replaceAll("\\D", "");
+        if (documento.length() != 11 && documento.length() != 14) {
+            throw new IllegalArgumentException("O documento deve possuir 11 dígitos para CPF ou 14 para CNPJ");
+        }
+
+        return clienteRepository.findByCpfCnpj(documento)
+                .orElseThrow(() -> new ClienteNaoEncontradoException(cpfCnpj))
+                .getId();
+    }
+
+    public List<ListagemOrdemServicoResponseDTO> listar() {
+        return ordemServicoMapper.toListagemResponseDtoList(ordemServicoRepository.findAll());
     }
 }

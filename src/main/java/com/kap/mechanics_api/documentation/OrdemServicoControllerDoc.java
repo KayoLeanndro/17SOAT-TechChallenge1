@@ -1,6 +1,7 @@
 package com.kap.mechanics_api.documentation;
 
 import com.kap.mechanics_api.dto.ordemservico.AtualizacaoStatusOrdemServicoRequestDTO;
+import com.kap.mechanics_api.dto.ordemservico.ListagemOrdemServicoResponseDTO;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -9,6 +10,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
+
+import java.util.List;
 
 public interface OrdemServicoControllerDoc {
 
@@ -32,5 +36,16 @@ public interface OrdemServicoControllerDoc {
     ResponseEntity<Void> transicionarStatus(
             @PathVariable Integer id,
             @Valid @RequestBody AtualizacaoStatusOrdemServicoRequestDTO dto
+    );
+
+    @Operation(summary = "Listar ordens de serviço e seus status por cliente")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Ordens de serviço retornadas com sucesso"),
+            @ApiResponse(responseCode = "400", description = "Filtro de cliente inválido"),
+            @ApiResponse(responseCode = "404", description = "Cliente não encontrado")
+    })
+    ResponseEntity<List<ListagemOrdemServicoResponseDTO>> listarPorCliente(
+            @RequestParam(required = false) Integer clienteId,
+            @RequestParam(required = false) String cpfCnpj
     );
 }
