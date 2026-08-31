@@ -15,18 +15,7 @@ import com.kap.mechanics_api.enums.StatusOrcamento;
 import com.kap.mechanics_api.enums.StatusOrdemServicoEnum;
 import com.kap.mechanics_api.enums.TipoItemEstoque;
 import com.kap.mechanics_api.enums.TipoUsuario;
-import com.kap.mechanics_api.repository.ClienteRepository;
-import com.kap.mechanics_api.repository.HistoricoStatusOsRepository;
-import com.kap.mechanics_api.repository.ItemEstoqueRepository;
-import com.kap.mechanics_api.repository.MovimentacaoEstoqueRepository;
-import com.kap.mechanics_api.repository.OrcamentoRepository;
-import com.kap.mechanics_api.repository.OrcamentoServicoRepository;
-import com.kap.mechanics_api.repository.OrdemServicoRepository;
-import com.kap.mechanics_api.repository.ServicoItemRepository;
-import com.kap.mechanics_api.repository.ServicoRepository;
-import com.kap.mechanics_api.repository.StatusOrdemServicoRepository;
-import com.kap.mechanics_api.repository.UsuarioRepository;
-import com.kap.mechanics_api.repository.VeiculoRepository;
+import com.kap.mechanics_api.repository.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -102,8 +91,14 @@ class OrcamentoIntegrationTest {
     @Autowired
     private MovimentacaoEstoqueRepository movimentacaoEstoqueRepository;
 
+
+    @Autowired
+    private OrcamentoItemRepository orcamentoItemRepository;
+
     @BeforeEach
     void limparDadosBaseAntesDoTeste() {
+        servicoItemRepository.deleteAll();
+        orcamentoItemRepository.deleteAll();
         movimentacaoEstoqueRepository.deleteAll();
         historicoStatusOsRepository.deleteAll();
         ordemServicoRepository.deleteAll();
@@ -187,6 +182,30 @@ class OrcamentoIntegrationTest {
         orcamento.setStatusOrcamento(status);
         orcamento.setDataCriacao(LocalDateTime.now());
         return orcamentoRepository.save(orcamento);
+    }
+
+    /**
+     * Gera um orçamento PENDENTE pelo fluxo real da API, o que também abre a Ordem de Serviço
+     * associada em AGUARDANDO_APROVACAO. Necessário para exercitar a atualização de status, que
+     * transiciona a OS ao aprovar/rejeitar o orçamento.
+     */
+    private Orcamento gerarOrcamentoPendenteViaApi() throws Exception {
+        persistirUsuario(LOGIN_ATENDENTE);
+        seedStatusOrdemServico();
+        Cliente cliente = persistirCliente();
+        Veiculo veiculo = persistirVeiculo();
+        Servico servico = persistirServico("Troca de oleo", "100.00");
+
+        GeracaoOrcamentoRequestDTO request =
+                new GeracaoOrcamentoRequestDTO(cliente.getId(), veiculo.getId(), List.of(servico.getId()));
+
+        mockMvc.perform(post(ENDPOINT + "/gerarOrcamento")
+                        .with(atendente())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isOk());
+
+        return orcamentoRepository.findAll().get(0);
     }
 
     @Test
@@ -281,7 +300,7 @@ class OrcamentoIntegrationTest {
     @Test
     @DisplayName("deve atualizar o status do orçamento para APROVADO e registrar a data de resposta")
     void deveAtualizarStatusDoOrcamentoParaAprovado() throws Exception {
-        Orcamento orcamento = persistirOrcamento(StatusOrcamento.PENDENTE);
+        Orcamento orcamento = gerarOrcamentoPendenteViaApi();
         AtualizacaoStatusOrcamentoRequestDTO request = new AtualizacaoStatusOrcamentoRequestDTO("APROVADO");
 
         mockMvc.perform(patch(ENDPOINT + "/" + orcamento.getId() + "/status")
@@ -299,7 +318,7 @@ class OrcamentoIntegrationTest {
     @Test
     @DisplayName("deve aceitar o status informado em caixa baixa ao atualizar o orçamento")
     void deveAceitarStatusEmCaixaBaixa() throws Exception {
-        Orcamento orcamento = persistirOrcamento(StatusOrcamento.PENDENTE);
+        Orcamento orcamento = gerarOrcamentoPendenteViaApi();
         AtualizacaoStatusOrcamentoRequestDTO request = new AtualizacaoStatusOrcamentoRequestDTO("aprovado");
 
         mockMvc.perform(patch(ENDPOINT + "/" + orcamento.getId() + "/status")

@@ -45,7 +45,7 @@ public class OrdemServicoService {
                                OrcamentoRepository orcamentoRepository,
                                TransicaoStatusOrdemServico transicaoStatusOrdemServico,
                                UsuarioRepository usuarioRepository,
-                               HistoricoStatusOsRepository historicoStatusOsRepository) {
+                               HistoricoStatusOsRepository historicoStatusOsRepository,
                                ClienteRepository clienteRepository,
                                OrdemServicoMapper ordemServicoMapper) {
         this.ordemServicoRepository = ordemServicoRepository;

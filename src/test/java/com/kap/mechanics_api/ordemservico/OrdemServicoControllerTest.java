@@ -3,6 +3,7 @@ package com.kap.mechanics_api.ordemservico;
 import com.kap.mechanics_api.controller.OrdemServicoController;
 import com.kap.mechanics_api.dto.ordemservico.ListagemOrdemServicoResponseDTO;
 import com.kap.mechanics_api.exception.ClienteNaoEncontradoException;
+import com.kap.mechanics_api.service.OrdemServicoItemService;
 import com.kap.mechanics_api.service.OrdemServicoService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -28,6 +29,9 @@ class OrdemServicoControllerTest {
 
     @Autowired private MockMvc mockMvc;
     @MockitoBean private OrdemServicoService ordemServicoService;
+
+    @MockitoBean
+    private OrdemServicoItemService ordemServicoItemService;
 
     @Test
     @WithMockUser(roles = "ADMIN")

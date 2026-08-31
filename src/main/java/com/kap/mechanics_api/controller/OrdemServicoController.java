@@ -4,6 +4,7 @@ import com.kap.mechanics_api.documentation.OrdemServicoControllerDoc;
 import com.kap.mechanics_api.dto.ordemservico.AtualizacaoStatusOrdemServicoRequestDTO;
 import com.kap.mechanics_api.dto.ordemservico.ListagemOrdemServicoResponseDTO;
 import com.kap.mechanics_api.dto.ordemservico.InclusaoOrdemServicoItemRequestDTO;
+import com.kap.mechanics_api.service.OrdemServicoItemService;
 import com.kap.mechanics_api.service.OrdemServicoService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
@@ -27,9 +28,9 @@ import com.kap.mechanics_api.dto.ordemservico.ConsultaOrdemServicoItensResponseD
 public class OrdemServicoController implements OrdemServicoControllerDoc {
 
     private final OrdemServicoService ordemServicoService;
-    private final com.kap.mechanics_api.service.OrdemServicoItemService ordemServicoItemService;
+    private final OrdemServicoItemService ordemServicoItemService;
 
-    public OrdemServicoController(OrdemServicoService ordemServicoService, com.kap.mechanics_api.service.OrdemServicoItemService ordemServicoItemService) {
+    public OrdemServicoController(OrdemServicoService ordemServicoService, OrdemServicoItemService ordemServicoItemService) {
         this.ordemServicoService = ordemServicoService;
         this.ordemServicoItemService = ordemServicoItemService;
     }
