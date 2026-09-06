@@ -1,0 +1,43 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test-and-build:
+    name: Testar e validar imagem Docker
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: atualizar codigo
+        uses: actions/checkout@v4
+
+      - name: Configurar Java e Maven
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+          cache: maven
+
+      - name: Executar testes e cobertura
+        env:
+          SPRING_PROFILES_ACTIVE: test
+        run: |
+          chmod +x mvnw
+          ./mvnw --batch-mode verify
+
+      - name: Guardar relatório JaCoCo
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: relatorio-jacoco
+          path: target/site/jacoco/
+          retention-days: 7
+
+      - name: Construir imagem Docker
+        run: docker build --tag mechanics-api:${{ github.sha }} .
