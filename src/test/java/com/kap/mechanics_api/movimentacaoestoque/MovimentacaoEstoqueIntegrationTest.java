@@ -269,7 +269,20 @@ class MovimentacaoEstoqueIntegrationTest {
     void deveListarMovimentacoesPorPeriodo() throws Exception {
         var item = itemEstoqueRepository.findById(itemId).orElseThrow();
         var usuario = usuarioRepository.findById(usuarioId).orElseThrow();
-        movimentacaoEstoqueRepository.save(new MovimentacaoEstoque(item, TipoMovimentacaoEstoque.ENTRADA, 1, usuario, null));
+
+        var movimentacao = new MovimentacaoEstoque(
+                item,
+                TipoMovimentacaoEstoque.ENTRADA,
+                1,
+                usuario,
+                null
+        );
+
+        movimentacao.setDataHora(
+                LocalDateTime.of(2026, 8, 15, 10, 0)
+        );
+
+        movimentacaoEstoqueRepository.save(movimentacao);
 
         mockMvc.perform(get("/api/movimentacao-estoque/periodo")
                         .param("inicio", "2026-08-01T00:00:00")
