@@ -59,6 +59,39 @@ Caso prefira depurar a aplicação pela IDE, inicie apenas o banco e execute a A
 
 > O `Dockerfile` gera o artefato da API em uma etapa de build e a executa em uma imagem Java reduzida. O serviço `app` do `compose.yaml` conecta-se ao PostgreSQL pelo nome do serviço `db`, formando o ambiente completo exigido pelo projeto.
 
+## Bootstrap da infraestrutura AWS com Terraform
+
+O bootstrap prepara o bucket S3 que armazenará os estados remotos do Terraform. Ele é opcional para executar a API localmente e deve ser executado uma única vez por conta AWS, pela pessoa responsável pela infraestrutura.
+
+### Pré-requisitos
+
+- Terraform `>= 1.10`;
+- AWS CLI instalada e autenticada em uma identidade com permissão para criar buckets S3;
+- região AWS `us-east-1`.
+
+> Não use credenciais da conta root. Prefira AWS IAM Identity Center (SSO), uma role temporária ou uma identidade IAM com as permissões mínimas necessárias.
+
+### Validar o bootstrap
+
+No terminal, a partir da raiz do projeto, execute:
+
+```powershell
+cd .\terraform\bootstrap
+terraform fmt
+terraform init -backend=false
+terraform validate
+```
+
+O comando `terraform init -backend=false` inicializa apenas os providers para permitir a validação da configuração. Ele não configura nem acessa o backend S3 e não deve ser usado antes de `terraform plan` ou `terraform apply`.
+
+O nome do bucket é calculado automaticamente com o ID da conta AWS:
+
+```text
+mechanics-api-tfstate-<ID_DA_CONTA_AWS>
+```
+
+As instruções para o primeiro provisionamento, configuração do backend S3 por conta e migração do state estão em [docs/terraform/terraform-bootstrap.md](docs/terraform/terraform-bootstrap.md).
+
 ### Configuração do banco
 
 Por padrão, a aplicação usa o banco criado pelo `compose.yaml`:
