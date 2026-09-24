@@ -63,3 +63,40 @@ jobs:
           role-to-assume: ${{ vars.AWS_ROLE_ARN }}
           role-session-name: github-actions-mechanics-api
           aws-region: ${{ vars.AWS_REGION }}
+
+      - name: Configurar Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_wrapper: false
+
+      - name: Inicializar Terraform
+        working-directory: terraform/environments/dev
+        run: terraform init -reconfigure -backend-config="bucket=${{ vars.TF_STATE_BUCKET }}"
+
+      - name: Validar Terraform
+        working-directory: terraform/environments/dev
+        run: terraform validate
+
+      - name: Planejar infraestrutura
+        working-directory: terraform/environments/dev
+        run: terraform plan -out=tfplan
+
+      - name: Aplicar infraestrutura
+        working-directory: terraform/environments/dev
+        run: terraform apply -auto-approve tfplan
+
+      - name: Obter URL do ECR
+        id: ecr
+        working-directory: terraform/environments/dev
+        run: echo "repository_url=$(terraform output -raw ecr_repository_url)" >> "$GITHUB_OUTPUT"
+
+      - name: Autenticar Docker no Amazon ECR
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Construir e publicar imagem
+        env:
+          IMAGE_URI: ${{ steps.ecr.outputs.repository_url }}:${{ github.sha }}
+        run: |
+          docker build --tag "$IMAGE_URI" .
+          docker push "$IMAGE_URI"
+          echo "Imagem publicada: $IMAGE_URI"
