@@ -97,8 +97,8 @@ class OrdemServicoIntegrationTest {
     void limparDadosBaseAntesDoTeste() {
         servicoItemRepository.deleteAll();
         orcamentoItemRepository.deleteAll();
-        itemEstoqueRepository.deleteAll();
         movimentacaoEstoqueRepository.deleteAll();
+        itemEstoqueRepository.deleteAll();
         historicoStatusOsRepository.deleteAll();
         ordemServicoRepository.deleteAll();
         orcamentoServicoRepository.deleteAll();
