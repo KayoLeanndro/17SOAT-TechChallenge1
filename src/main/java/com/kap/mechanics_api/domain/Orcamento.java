@@ -1,7 +1,7 @@
 package com.kap.mechanics_api.domain;
 
+import com.kap.mechanics_api.adapter.persistence.entity.ClienteJpaEntity;
 import com.kap.mechanics_api.enums.StatusOrcamento;
-import com.kap.mechanics_api.enums.TipoUsuario;
 import jakarta.persistence.*;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
@@ -19,7 +19,7 @@ public class Orcamento {
 
     @ManyToOne
     @JoinColumn(name = "cliente_id")
-    private Cliente cliente;
+    private ClienteJpaEntity clienteJpaEntity;
 
     @ManyToOne
     @JoinColumn(name = "veiculo_id")
@@ -41,9 +41,9 @@ public class Orcamento {
 
     public Orcamento(){}
 
-    public Orcamento(Integer id, Cliente cliente, Veiculo veiculo, BigDecimal valorTotal, StatusOrcamento statusOrcamento) {
+    public Orcamento(Integer id, ClienteJpaEntity clienteJpaEntity, Veiculo veiculo, BigDecimal valorTotal, StatusOrcamento statusOrcamento) {
         this.id = id;
-        this.cliente = cliente;
+        this.clienteJpaEntity = clienteJpaEntity;
         this.veiculo = veiculo;
         this.valorTotal = valorTotal;
         this.statusOrcamento = statusOrcamento;
@@ -57,12 +57,12 @@ public class Orcamento {
         this.id = id;
     }
 
-    public Cliente getCliente() {
-        return cliente;
+    public ClienteJpaEntity getCliente() {
+        return clienteJpaEntity;
     }
 
-    public void setCliente(Cliente cliente) {
-        this.cliente = cliente;
+    public void setCliente(ClienteJpaEntity clienteJpaEntity) {
+        this.clienteJpaEntity = clienteJpaEntity;
     }
 
     public Veiculo getVeiculo() {

@@ -1,9 +1,9 @@
 package com.kap.mechanics_api.veiculo;
 
-import com.kap.mechanics_api.domain.Cliente;
+import com.kap.mechanics_api.adapter.persistence.entity.ClienteJpaEntity;
 import com.kap.mechanics_api.domain.ClienteVeiculo;
 import com.kap.mechanics_api.domain.Veiculo;
-import com.kap.mechanics_api.exception.ClienteNaoEncontradoException;
+import com.kap.mechanics_api.core.cliente.usecase.ClienteNaoEncontradoException;
 import com.kap.mechanics_api.exception.NenhumCampoInformadoException;
 import com.kap.mechanics_api.exception.VeiculoNaoEncontradoException;
 import com.kap.mechanics_api.mapper.VeiculoMapper;
@@ -11,14 +11,11 @@ import com.kap.mechanics_api.repository.ClienteVeiculoRepository;
 import com.kap.mechanics_api.repository.VeiculoRepository;
 import com.kap.mechanics_api.service.ClienteService;
 import com.kap.mechanics_api.service.VeiculoService;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
 import org.mockito.junit.jupiter.MockitoExtension;
 import com.kap.mechanics_api.dto.veiculo.*;
 
@@ -71,11 +68,11 @@ public class VeiculoServiceTest {
                         2020
                 );
 
-        Cliente cliente = new Cliente();
-        cliente.setId(1);
+        ClienteJpaEntity clienteJpaEntity = new ClienteJpaEntity();
+        clienteJpaEntity.setId(1);
 
         ClienteVeiculo clienteVeiculo =
-                new ClienteVeiculo(veiculo, cliente);
+                new ClienteVeiculo(veiculo, clienteJpaEntity);
 
         CriacaoVeiculoResponseDTO respostaEsperada =
                 new CriacaoVeiculoResponseDTO(
@@ -93,7 +90,7 @@ public class VeiculoServiceTest {
                 .thenReturn(veiculo);
 
         when(clienteService.pesquisarPorId(1))
-                .thenReturn(cliente);
+                .thenReturn(clienteJpaEntity);
 
         when(clienteVeiculoRepository.save(any(ClienteVeiculo.class)))
                 .thenReturn(clienteVeiculo);
@@ -221,8 +218,8 @@ public class VeiculoServiceTest {
                         2020
                 );
 
-        Cliente cliente = new Cliente();
-        cliente.setId(1);
+        ClienteJpaEntity clienteJpaEntity = new ClienteJpaEntity();
+        clienteJpaEntity.setId(1);
 
         AtualizacaoVeiculoRequestDTO dto =
                 new AtualizacaoVeiculoRequestDTO(
@@ -250,7 +247,7 @@ public class VeiculoServiceTest {
                 .thenReturn(veiculo);
 
         when(clienteService.pesquisarPorId(1))
-                .thenReturn(cliente);
+                .thenReturn(clienteJpaEntity);
 
         when(clienteVeiculoRepository.save(any(ClienteVeiculo.class)))
                 .thenAnswer(invocation -> invocation.getArgument(0));
@@ -365,8 +362,8 @@ public class VeiculoServiceTest {
                         2020
                 );
 
-        Cliente cliente = new Cliente();
-        cliente.setId(1);
+        ClienteJpaEntity clienteJpaEntity = new ClienteJpaEntity();
+        clienteJpaEntity.setId(1);
 
         when(veiculoMapper.toEntity(dto))
                 .thenReturn(veiculo);
@@ -375,7 +372,7 @@ public class VeiculoServiceTest {
                 .thenReturn(veiculo);
 
         when(clienteService.pesquisarPorId(1))
-                .thenReturn(cliente);
+                .thenReturn(clienteJpaEntity);
 
         when(veiculoMapper.toResponseDto(veiculo))
                 .thenReturn(
@@ -401,7 +398,7 @@ public class VeiculoServiceTest {
         ClienteVeiculo vinculo = captor.getValue();
 
         assertEquals(veiculo, vinculo.getVeiculo());
-        assertEquals(cliente, vinculo.getCliente());
+        assertEquals(clienteJpaEntity, vinculo.getCliente());
     }
 
     @Test

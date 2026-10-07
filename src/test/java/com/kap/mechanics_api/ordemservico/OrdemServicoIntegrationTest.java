@@ -1,11 +1,9 @@
 package com.kap.mechanics_api.ordemservico;
 
-import com.kap.mechanics_api.domain.Cliente;
+import com.kap.mechanics_api.adapter.persistence.entity.ClienteJpaEntity;
 import com.kap.mechanics_api.domain.HistoricoStatusOs;
 import com.kap.mechanics_api.domain.Orcamento;
-import com.kap.mechanics_api.domain.OrcamentoServico;
 import com.kap.mechanics_api.domain.OrdemServico;
-import com.kap.mechanics_api.domain.Servico;
 import com.kap.mechanics_api.domain.StatusOrdemServico;
 import com.kap.mechanics_api.domain.Usuario;
 import com.kap.mechanics_api.domain.Veiculo;
@@ -27,7 +25,6 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.RequestPostProcessor;
 import tools.jackson.databind.json.JsonMapper;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -148,8 +145,8 @@ class OrdemServicoIntegrationTest {
     }
 
     private Orcamento persistirOrcamento(StatusOrcamento statusOrcamento) {
-        Cliente cliente = clienteRepository.save(
-                new Cliente("João Silva", "12345678900", "51999999999", "joao@email.com", LocalDateTime.now()));
+        ClienteJpaEntity clienteJpaEntity = clienteRepository.save(
+                new ClienteJpaEntity("João Silva", "12345678900", "51999999999", "joao@email.com", LocalDateTime.now()));
 
         Veiculo veiculo = new Veiculo();
         veiculo.setPlaca("ABC1234");
@@ -160,7 +157,7 @@ class OrdemServicoIntegrationTest {
         veiculo = veiculoRepository.save(veiculo);
 
         Orcamento orcamento = new Orcamento();
-        orcamento.setCliente(cliente);
+        orcamento.setCliente(clienteJpaEntity);
         orcamento.setVeiculo(veiculo);
         orcamento.setValorTotal(new java.math.BigDecimal("100.00"));
         orcamento.setStatusOrcamento(statusOrcamento);

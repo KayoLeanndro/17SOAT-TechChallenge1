@@ -1,6 +1,6 @@
 package com.kap.mechanics_api.service;
 
-import com.kap.mechanics_api.domain.Cliente;
+import com.kap.mechanics_api.adapter.persistence.entity.ClienteJpaEntity;
 import com.kap.mechanics_api.domain.Orcamento;
 import com.kap.mechanics_api.domain.OrcamentoItem;
 import com.kap.mechanics_api.domain.OrcamentoServico;
@@ -14,7 +14,6 @@ import com.kap.mechanics_api.exception.OrcamentoNaoEncontradoException;
 import com.kap.mechanics_api.exception.StatusOrcamentoInvalidoException;
 
 import com.kap.mechanics_api.exception.OrcamentoJaRespondidoException;
-import com.kap.mechanics_api.exception.OrcamentoNaoEncontradoException;
 
 import com.kap.mechanics_api.repository.OrcamentoItemRepository;
 import com.kap.mechanics_api.repository.OrcamentoRepository;
@@ -61,11 +60,11 @@ public class OrcamentoService {
 
     @Transactional
     public void gerarOrcamento(GeracaoOrcamentoRequestDTO dto, String usuarioLogin) {
-        Cliente cliente = clienteService.pesquisarPorId(dto.clienteId());
+        ClienteJpaEntity clienteJpaEntity = clienteService.pesquisarPorId(dto.clienteId());
         Veiculo veiculo = veiculoService.pesquisarPorId(dto.veiculoId());
 
         Orcamento orcamento = new Orcamento();
-        orcamento.setCliente(cliente);
+        orcamento.setCliente(clienteJpaEntity);
         orcamento.setVeiculo(veiculo);
         orcamento.setDataCriacao(LocalDateTime.now());
         orcamento.setStatusOrcamento(StatusOrcamento.PENDENTE);

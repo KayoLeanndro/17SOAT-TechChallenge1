@@ -1,11 +1,11 @@
 package com.kap.mechanics_api.ordemservico;
 
-import com.kap.mechanics_api.domain.Cliente;
+import com.kap.mechanics_api.adapter.persistence.entity.ClienteJpaEntity;
 import com.kap.mechanics_api.domain.Orcamento;
 import com.kap.mechanics_api.domain.OrdemServico;
 import com.kap.mechanics_api.domain.StatusOrdemServico;
 import com.kap.mechanics_api.dto.ordemservico.ListagemOrdemServicoResponseDTO;
-import com.kap.mechanics_api.exception.ClienteNaoEncontradoException;
+import com.kap.mechanics_api.core.cliente.usecase.ClienteNaoEncontradoException;
 import com.kap.mechanics_api.repository.ClienteRepository;
 import com.kap.mechanics_api.repository.OrcamentoRepository;
 import com.kap.mechanics_api.repository.OrdemServicoRepository;
@@ -43,9 +43,9 @@ class OrdemServicoConsultaServiceTest {
 
     @Test
     void deveListarOrdensServicoPorIdDoCliente() {
-        Cliente cliente = cliente(7, "12345678900");
+        ClienteJpaEntity clienteJpaEntity = cliente(7, "12345678900");
         OrdemServico ordemServico = ordemServico(9, 11, "EM_EXECUCAO");
-        when(clienteRepository.findById(7)).thenReturn(Optional.of(cliente));
+        when(clienteRepository.findById(7)).thenReturn(Optional.of(clienteJpaEntity));
         when(ordemServicoRepository.findByOrcamento_Cliente_IdOrderByDataAberturaDesc(7))
                 .thenReturn(List.of(ordemServico));
 
@@ -59,8 +59,8 @@ class OrdemServicoConsultaServiceTest {
 
     @Test
     void deveListarOrdensServicoPorCpfFormatado() {
-        Cliente cliente = cliente(7, "12345678900");
-        when(clienteRepository.findByCpfCnpj("12345678900")).thenReturn(Optional.of(cliente));
+        ClienteJpaEntity clienteJpaEntity = cliente(7, "12345678900");
+        when(clienteRepository.findByCpfCnpj("12345678900")).thenReturn(Optional.of(clienteJpaEntity));
         when(ordemServicoRepository.findByOrcamento_Cliente_IdOrderByDataAberturaDesc(7)).thenReturn(List.of());
 
         List<ListagemOrdemServicoResponseDTO> resultado = ordemServicoService.listarPorCliente(null, "123.456.789-00");
@@ -72,8 +72,8 @@ class OrdemServicoConsultaServiceTest {
 
     @Test
     void deveListarOrdensServicoPorCnpj() {
-        Cliente cliente = cliente(8, "12345678000190");
-        when(clienteRepository.findByCpfCnpj("12345678000190")).thenReturn(Optional.of(cliente));
+        ClienteJpaEntity clienteJpaEntity = cliente(8, "12345678000190");
+        when(clienteRepository.findByCpfCnpj("12345678000190")).thenReturn(Optional.of(clienteJpaEntity));
         when(ordemServicoRepository.findByOrcamento_Cliente_IdOrderByDataAberturaDesc(8)).thenReturn(List.of());
 
         ordemServicoService.listarPorCliente(null, "12.345.678/0001-90");
@@ -125,11 +125,11 @@ class OrdemServicoConsultaServiceTest {
                 .hasMessage("O documento deve possuir 11 dígitos para CPF ou 14 para CNPJ");
     }
 
-    private Cliente cliente(Integer id, String cpfCnpj) {
-        Cliente cliente = new Cliente();
-        cliente.setId(id);
-        cliente.setCpfCnpj(cpfCnpj);
-        return cliente;
+    private ClienteJpaEntity cliente(Integer id, String cpfCnpj) {
+        ClienteJpaEntity clienteJpaEntity = new ClienteJpaEntity();
+        clienteJpaEntity.setId(id);
+        clienteJpaEntity.setCpfCnpj(cpfCnpj);
+        return clienteJpaEntity;
     }
 
     private OrdemServico ordemServico(Integer id, Integer orcamentoId, String status) {

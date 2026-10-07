@@ -1,13 +1,11 @@
 package com.kap.mechanics_api.cliente;
 
-import com.kap.mechanics_api.domain.Cliente;
+import com.kap.mechanics_api.adapter.persistence.entity.ClienteJpaEntity;
 import com.kap.mechanics_api.dto.cliente.AtualizacaoClienteRequestDTO;
 import com.kap.mechanics_api.dto.cliente.CriacaoClienteRequestDTO;
 import com.kap.mechanics_api.repository.*;
-import com.kap.mechanics_api.service.OrcamentoService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -109,8 +107,8 @@ class ClienteIntegrationTest {
         return definirRole("ADMIN");
     }
 
-    private Cliente persistirCliente(String nome, String documento, String telefone, String email) {
-        return clienteRepository.save(new Cliente(nome, documento, telefone, email, LocalDateTime.now()));
+    private ClienteJpaEntity persistirCliente(String nome, String documento, String telefone, String email) {
+        return clienteRepository.save(new ClienteJpaEntity(nome, documento, telefone, email, LocalDateTime.now()));
     }
 
     @Test
@@ -131,9 +129,9 @@ class ClienteIntegrationTest {
                 .andExpect(jsonPath("$.telefone").value("51999999999"))
                 .andExpect(jsonPath("$.email").value("joao@email.com"));
 
-        List<Cliente> persistidos = clienteRepository.findAll();
+        List<ClienteJpaEntity> persistidos = clienteRepository.findAll();
         assertThat(persistidos).hasSize(1);
-        Cliente salvo = persistidos.get(0);
+        ClienteJpaEntity salvo = persistidos.get(0);
         assertThat(salvo.getId()).isNotNull();
         assertThat(salvo.getNome()).isEqualTo("João Silva");
         assertThat(salvo.getCpfCnpj()).isEqualTo("12345678900");
@@ -185,7 +183,7 @@ class ClienteIntegrationTest {
     @Test
     @DisplayName("deve retornar 200 com o cliente quando o id existente")
     void deveBuscarPorIdExistente() throws Exception {
-        Cliente salvo = persistirCliente("João Silva", "12345678900", "51999999999", "joao@email.com");
+        ClienteJpaEntity salvo = persistirCliente("João Silva", "12345678900", "51999999999", "joao@email.com");
 
         mockMvc.perform(get(ENDPOINT + "/" + salvo.getId()).with(admin()))
                 .andExpect(status().isOk())
@@ -211,7 +209,7 @@ class ClienteIntegrationTest {
     @Test
     @DisplayName("deve atualizar o cliente existente e realizar a mudança no banco")
     void deveAtualizarCliente() throws Exception {
-        Cliente salvo = persistirCliente("João Silva", "12345678900", "51999999999", "joao@email.com");
+        ClienteJpaEntity salvo = persistirCliente("João Silva", "12345678900", "51999999999", "joao@email.com");
 
         AtualizacaoClienteRequestDTO request =
                 new AtualizacaoClienteRequestDTO("João Silva Junior", "12345678900", "51988887777", "joaojr@email.com");
@@ -226,7 +224,7 @@ class ClienteIntegrationTest {
                 .andExpect(jsonPath("$.telefone").value("51988887777"))
                 .andExpect(jsonPath("$.email").value("joaojr@email.com"));
 
-        Cliente atualizado = clienteRepository.findById(salvo.getId()).orElseThrow();
+        ClienteJpaEntity atualizado = clienteRepository.findById(salvo.getId()).orElseThrow();
         assertThat(atualizado.getNome()).isEqualTo("João Silva Junior");
         assertThat(atualizado.getTelefone()).isEqualTo("51988887777");
         assertThat(atualizado.getEmail()).isEqualTo("joaojr@email.com");
@@ -249,7 +247,7 @@ class ClienteIntegrationTest {
     @Test
     @DisplayName("deve retornar 400 quando nenhum campo válido é informado")
     void deveRetornar400ParaRequisicaoSemCamposObrigatorios() throws Exception {
-        Cliente salvo = persistirCliente("João Silva", "12345678900", "51999999999", "joao@email.com");
+        ClienteJpaEntity salvo = persistirCliente("João Silva", "12345678900", "51999999999", "joao@email.com");
 
         AtualizacaoClienteRequestDTO vazio =
                 new AtualizacaoClienteRequestDTO(null, null, null, null);
@@ -260,14 +258,14 @@ class ClienteIntegrationTest {
                         .content(objectMapper.writeValueAsString(vazio)))
                 .andExpect(status().isBadRequest());
 
-        Cliente inalterado = clienteRepository.findById(salvo.getId()).orElseThrow();
+        ClienteJpaEntity inalterado = clienteRepository.findById(salvo.getId()).orElseThrow();
         assertThat(inalterado.getNome()).isEqualTo("João Silva");
     }
 
     @Test
     @DisplayName("deve remover o cliente existente e retornar 204")
     void deveDeletarClienteExistente() throws Exception {
-        Cliente salvo = persistirCliente("João Silva", "12345678900", "51999999999", "joao@email.com");
+        ClienteJpaEntity salvo = persistirCliente("João Silva", "12345678900", "51999999999", "joao@email.com");
 
         mockMvc.perform(delete(ENDPOINT + "/" + salvo.getId()).with(admin()))
                 .andExpect(status().isNoContent());

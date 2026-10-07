@@ -1,6 +1,6 @@
 package com.kap.mechanics_api.orcamento;
 
-import com.kap.mechanics_api.domain.Cliente;
+import com.kap.mechanics_api.adapter.persistence.entity.ClienteJpaEntity;
 import com.kap.mechanics_api.domain.ItemEstoque;
 import com.kap.mechanics_api.domain.Orcamento;
 import com.kap.mechanics_api.domain.Servico;
@@ -141,9 +141,9 @@ class OrcamentoIntegrationTest {
         return usuarioRepository.save(usuario);
     }
 
-    private Cliente persistirCliente() {
-        Cliente cliente = new Cliente("João Silva", "12345678900", "51999999999", "joao@email.com", LocalDateTime.now());
-        return clienteRepository.save(cliente);
+    private ClienteJpaEntity persistirCliente() {
+        ClienteJpaEntity clienteJpaEntity = new ClienteJpaEntity("João Silva", "12345678900", "51999999999", "joao@email.com", LocalDateTime.now());
+        return clienteRepository.save(clienteJpaEntity);
     }
 
     private Veiculo persistirVeiculo() {
@@ -192,12 +192,12 @@ class OrcamentoIntegrationTest {
     private Orcamento gerarOrcamentoPendenteViaApi() throws Exception {
         persistirUsuario(LOGIN_ATENDENTE);
         seedStatusOrdemServico();
-        Cliente cliente = persistirCliente();
+        ClienteJpaEntity clienteJpaEntity = persistirCliente();
         Veiculo veiculo = persistirVeiculo();
         Servico servico = persistirServico("Troca de oleo", "100.00");
 
         GeracaoOrcamentoRequestDTO request =
-                new GeracaoOrcamentoRequestDTO(cliente.getId(), veiculo.getId(), List.of(servico.getId()));
+                new GeracaoOrcamentoRequestDTO(clienteJpaEntity.getId(), veiculo.getId(), List.of(servico.getId()));
 
         mockMvc.perform(post(ENDPOINT + "/gerarOrcamento")
                         .with(atendente())
@@ -213,12 +213,12 @@ class OrcamentoIntegrationTest {
     void deveGerarOrcamentoPendenteEAbrirOrdemServico() throws Exception {
         persistirUsuario(LOGIN_ATENDENTE);
         seedStatusOrdemServico();
-        Cliente cliente = persistirCliente();
+        ClienteJpaEntity clienteJpaEntity = persistirCliente();
         Veiculo veiculo = persistirVeiculo();
         Servico servico = persistirServico("Troca de oleo", "150.00");
 
         GeracaoOrcamentoRequestDTO request =
-                new GeracaoOrcamentoRequestDTO(cliente.getId(), veiculo.getId(), List.of(servico.getId()));
+                new GeracaoOrcamentoRequestDTO(clienteJpaEntity.getId(), veiculo.getId(), List.of(servico.getId()));
 
         mockMvc.perform(post(ENDPOINT + "/gerarOrcamento")
                         .with(atendente())
@@ -246,14 +246,14 @@ class OrcamentoIntegrationTest {
     void deveSomarMaoDeObraEItensDeMultiplosServicos() throws Exception {
         persistirUsuario(LOGIN_ATENDENTE);
         seedStatusOrdemServico();
-        Cliente cliente = persistirCliente();
+        ClienteJpaEntity clienteJpaEntity = persistirCliente();
         Veiculo veiculo = persistirVeiculo();
         Servico servicoA = persistirServico("Alinhamento", "100.00");
         Servico servicoB = persistirServico("Balanceamento", "80.00");
         vincularItemAoServico(servicoB, "10.00", 2);
 
         GeracaoOrcamentoRequestDTO request = new GeracaoOrcamentoRequestDTO(
-                cliente.getId(), veiculo.getId(), List.of(servicoA.getId(), servicoB.getId()));
+                clienteJpaEntity.getId(), veiculo.getId(), List.of(servicoA.getId(), servicoB.getId()));
 
         mockMvc.perform(post(ENDPOINT + "/gerarOrcamento")
                         .with(atendente())
