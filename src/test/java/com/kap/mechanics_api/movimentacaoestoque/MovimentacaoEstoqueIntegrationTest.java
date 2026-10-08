@@ -7,7 +7,7 @@ import com.kap.mechanics_api.domain.MovimentacaoEstoque;
 import com.kap.mechanics_api.domain.Orcamento;
 import com.kap.mechanics_api.domain.OrdemServico;
 import com.kap.mechanics_api.domain.StatusOrdemServico;
-import com.kap.mechanics_api.domain.Cliente;
+import com.kap.mechanics_api.adapter.persistence.entity.ClienteJpaEntity;
 import com.kap.mechanics_api.domain.Veiculo;
 import com.kap.mechanics_api.domain.Usuario;
 import com.kap.mechanics_api.dto.movimentacaoestoque.RegistroEntradaMovimentacaoEstoqueRequestDTO;
@@ -125,12 +125,13 @@ class MovimentacaoEstoqueIntegrationTest {
         item = itemEstoqueRepository.save(item);
         itemId = item.getId();
 
-        Cliente cliente = new Cliente();
-        cliente.setNome("Cliente");
-        cliente.setCpfCnpj("12345678900");
-        cliente.setTelefone("51999999999");
-        cliente.setEmail("cliente@email.com");
-        cliente = clienteRepository.save(cliente);
+        ClienteJpaEntity clienteJpaEntity = new ClienteJpaEntity();
+        clienteJpaEntity.setNome("Cliente");
+        clienteJpaEntity.setCpfCnpj("12345678900");
+        clienteJpaEntity.setTelefone("51999999999");
+        clienteJpaEntity.setEmail("cliente@email.com");
+        clienteJpaEntity.setDataCriacao(LocalDateTime.now());
+        clienteJpaEntity = clienteRepository.save(clienteJpaEntity);
 
         Veiculo veiculo = new Veiculo();
         veiculo.setPlaca("ABC1234");
@@ -141,7 +142,7 @@ class MovimentacaoEstoqueIntegrationTest {
         veiculo = veiculoRepository.save(veiculo);
 
         Orcamento orcamento = new Orcamento();
-        orcamento.setCliente(cliente);
+        orcamento.setCliente(clienteJpaEntity);
         orcamento.setVeiculo(veiculo);
         orcamento.setValorTotal(new BigDecimal("100.00"));
         orcamento.setStatusOrcamento(StatusOrcamento.APROVADO);

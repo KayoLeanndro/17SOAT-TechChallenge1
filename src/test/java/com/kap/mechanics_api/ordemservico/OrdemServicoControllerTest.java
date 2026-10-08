@@ -2,7 +2,7 @@ package com.kap.mechanics_api.ordemservico;
 
 import com.kap.mechanics_api.controller.OrdemServicoController;
 import com.kap.mechanics_api.dto.ordemservico.ListagemOrdemServicoResponseDTO;
-import com.kap.mechanics_api.exception.ClienteNaoEncontradoException;
+import com.kap.mechanics_api.core.cliente.usecase.ClienteNaoEncontradoException;
 import com.kap.mechanics_api.service.OrdemServicoItemService;
 import com.kap.mechanics_api.service.OrdemServicoService;
 import org.junit.jupiter.api.DisplayName;

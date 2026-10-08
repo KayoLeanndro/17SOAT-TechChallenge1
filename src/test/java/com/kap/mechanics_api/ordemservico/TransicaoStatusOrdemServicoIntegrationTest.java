@@ -1,6 +1,6 @@
 package com.kap.mechanics_api.ordemservico;
 
-import com.kap.mechanics_api.domain.Cliente;
+import com.kap.mechanics_api.adapter.persistence.entity.ClienteJpaEntity;
 import com.kap.mechanics_api.domain.HistoricoStatusOs;
 import com.kap.mechanics_api.domain.ItemEstoque;
 import com.kap.mechanics_api.domain.MovimentacaoEstoque;
@@ -134,8 +134,8 @@ class TransicaoStatusOrdemServicoIntegrationTest {
     }
 
     private Orcamento persistirOrcamento() {
-        Cliente cliente = clienteRepository.save(
-                new Cliente("João Silva", "12345678900", "51999999999", "joao@email.com", LocalDateTime.now()));
+        ClienteJpaEntity clienteJpaEntity = clienteRepository.save(
+                new ClienteJpaEntity("João Silva", "12345678900", "51999999999", "joao@email.com", LocalDateTime.now()));
 
         Veiculo veiculo = new Veiculo();
         veiculo.setPlaca("ABC1234");
@@ -146,7 +146,7 @@ class TransicaoStatusOrdemServicoIntegrationTest {
         veiculo = veiculoRepository.save(veiculo);
 
         Orcamento orcamento = new Orcamento();
-        orcamento.setCliente(cliente);
+        orcamento.setCliente(clienteJpaEntity);
         orcamento.setVeiculo(veiculo);
         orcamento.setValorTotal(new BigDecimal("100.00"));
         orcamento.setStatusOrcamento(StatusOrcamento.APROVADO);
