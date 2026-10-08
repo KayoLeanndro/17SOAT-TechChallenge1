@@ -1,4 +1,4 @@
-package com.kap.mechanics_api.domain;
+package com.kap.mechanics_api.adapter.persistence.entity;
 
 import java.time.LocalDateTime;
 
@@ -7,12 +7,11 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 
 @Entity
 @Table(name = "cliente")
-public class Cliente {
+public class ClienteJpaEntity {
 	
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -32,11 +31,6 @@ public class Cliente {
 
     @Column(name = "data_criacao", nullable = false, updatable = false)
     private LocalDateTime dataCriacao;
-
-    @PrePersist
-    private void prePersist() {
-        dataCriacao = LocalDateTime.now();
-    }
 
 	public Integer getId() {
 		return id;
@@ -86,9 +80,9 @@ public class Cliente {
 		this.dataCriacao = dataCriacao;
 	}
 
-	public Cliente(){}
+	public ClienteJpaEntity(){}
 
-	public Cliente(String nome, String cpfCnpj, String telefone, String email, LocalDateTime dataCriacao) {
+	public ClienteJpaEntity(String nome, String cpfCnpj, String telefone, String email, LocalDateTime dataCriacao) {
 		super();
 		this.nome = nome;
 		this.cpfCnpj = cpfCnpj;

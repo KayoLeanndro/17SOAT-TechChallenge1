@@ -10,7 +10,7 @@ import com.kap.mechanics_api.enums.StatusOrcamento;
 import com.kap.mechanics_api.enums.StatusOrdemServicoEnum;
 import com.kap.mechanics_api.exception.OrcamentoNaoAprovadoException;
 import com.kap.mechanics_api.exception.OrcamentoNaoEncontradoException;
-import com.kap.mechanics_api.exception.ClienteNaoEncontradoException;
+import com.kap.mechanics_api.core.cliente.usecase.ClienteNaoEncontradoException;
 import com.kap.mechanics_api.exception.OrdemServicoJaExisteException;
 import com.kap.mechanics_api.exception.OrdemServicoNaoEncontradaException;
 import com.kap.mechanics_api.exception.UsuarioNaoEncontradoException;

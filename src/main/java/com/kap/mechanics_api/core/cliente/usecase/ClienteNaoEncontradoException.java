@@ -1,4 +1,4 @@
-package com.kap.mechanics_api.exception;
+package com.kap.mechanics_api.core.cliente.usecase;
 
 public class ClienteNaoEncontradoException extends RuntimeException {
 	

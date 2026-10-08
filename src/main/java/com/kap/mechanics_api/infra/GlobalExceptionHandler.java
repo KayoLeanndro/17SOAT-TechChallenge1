@@ -1,5 +1,6 @@
 package com.kap.mechanics_api.infra;
 
+import com.kap.mechanics_api.core.cliente.usecase.ClienteNaoEncontradoException;
 import com.kap.mechanics_api.exception.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;

@@ -1,7 +1,7 @@
 package com.kap.mechanics_api.service;
 
 
-import com.kap.mechanics_api.domain.Cliente;
+import com.kap.mechanics_api.adapter.persistence.entity.ClienteJpaEntity;
 import com.kap.mechanics_api.domain.ClienteVeiculo;
 import com.kap.mechanics_api.domain.Veiculo;
 import com.kap.mechanics_api.dto.veiculo.*;
@@ -59,10 +59,10 @@ public class VeiculoService {
             Veiculo veiculo
     ) {
 
-        Cliente cliente = clienteService.pesquisarPorId(idCliente);
+        ClienteJpaEntity clienteJpaEntity = clienteService.pesquisarPorId(idCliente);
 
         ClienteVeiculo clienteVeiculo =
-                new ClienteVeiculo(veiculo, cliente);
+                new ClienteVeiculo(veiculo, clienteJpaEntity);
 
         return clienteVeiculoRepository.save(clienteVeiculo);
     }

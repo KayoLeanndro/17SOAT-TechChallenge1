@@ -1,5 +1,6 @@
 package com.kap.mechanics_api.orcamento;
 
+import com.kap.mechanics_api.adapter.persistence.entity.ClienteJpaEntity;
 import com.kap.mechanics_api.domain.*;
 import com.kap.mechanics_api.dto.orcamento.GeracaoOrcamentoRequestDTO;
 import com.kap.mechanics_api.enums.StatusOrcamento;
@@ -62,13 +63,13 @@ class OrcamentoServiceTest {
     @InjectMocks
     private OrcamentoService orcamentoService;
 
-    private Cliente cliente;
+    private ClienteJpaEntity clienteJpaEntity;
     private Veiculo veiculo;
 
     @BeforeEach
     void setUp() {
-        cliente = new Cliente();
-        cliente.setId(1);
+        clienteJpaEntity = new ClienteJpaEntity();
+        clienteJpaEntity.setId(1);
 
         veiculo = new Veiculo();
         veiculo.setId(1);
@@ -77,9 +78,9 @@ class OrcamentoServiceTest {
     @Test
     void deveGerarOrcamentoComUmServicoSemItens() {
         Servico servico = servico(10, new BigDecimal("150.00"));
-        GeracaoOrcamentoRequestDTO dto = new GeracaoOrcamentoRequestDTO(cliente.getId(), veiculo.getId(), List.of(10));
+        GeracaoOrcamentoRequestDTO dto = new GeracaoOrcamentoRequestDTO(clienteJpaEntity.getId(), veiculo.getId(), List.of(10));
 
-        when(clienteService.pesquisarPorId(dto.clienteId())).thenReturn(cliente);
+        when(clienteService.pesquisarPorId(dto.clienteId())).thenReturn(clienteJpaEntity);
         when(veiculoService.pesquisarPorId(dto.veiculoId())).thenReturn(veiculo);
         when(servicoService.pesquisarPorId(10)).thenReturn(servico);
         when(servicoItemRepository.findByServico_Id(10)).thenReturn(List.of());
@@ -113,9 +114,9 @@ class OrcamentoServiceTest {
         servicoItem.setItemEstoque(itemEstoque);
         servicoItem.setQuantidadePadrao(2);
 
-        GeracaoOrcamentoRequestDTO dto = new GeracaoOrcamentoRequestDTO(cliente.getId(), veiculo.getId(), List.of(20));
+        GeracaoOrcamentoRequestDTO dto = new GeracaoOrcamentoRequestDTO(clienteJpaEntity.getId(), veiculo.getId(), List.of(20));
 
-        when(clienteService.pesquisarPorId(dto.clienteId())).thenReturn(cliente);
+        when(clienteService.pesquisarPorId(dto.clienteId())).thenReturn(clienteJpaEntity);
         when(veiculoService.pesquisarPorId(dto.veiculoId())).thenReturn(veiculo);
         when(servicoService.pesquisarPorId(20)).thenReturn(servico);
         when(servicoItemRepository.findByServico_Id(20)).thenReturn(List.of(servicoItem));
@@ -141,9 +142,9 @@ class OrcamentoServiceTest {
         Servico servicoA = servico(1, new BigDecimal("100.00"));
         Servico servicoB = servico(2, new BigDecimal("50.00"));
 
-        GeracaoOrcamentoRequestDTO dto = new GeracaoOrcamentoRequestDTO(cliente.getId(), veiculo.getId(), List.of(1, 2));
+        GeracaoOrcamentoRequestDTO dto = new GeracaoOrcamentoRequestDTO(clienteJpaEntity.getId(), veiculo.getId(), List.of(1, 2));
 
-        when(clienteService.pesquisarPorId(dto.clienteId())).thenReturn(cliente);
+        when(clienteService.pesquisarPorId(dto.clienteId())).thenReturn(clienteJpaEntity);
         when(veiculoService.pesquisarPorId(dto.veiculoId())).thenReturn(veiculo);
         when(servicoService.pesquisarPorId(1)).thenReturn(servicoA);
         when(servicoService.pesquisarPorId(2)).thenReturn(servicoB);
