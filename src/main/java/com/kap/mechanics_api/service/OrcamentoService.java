@@ -6,7 +6,7 @@ import com.kap.mechanics_api.domain.OrcamentoItem;
 import com.kap.mechanics_api.domain.OrcamentoServico;
 import com.kap.mechanics_api.domain.Servico;
 import com.kap.mechanics_api.domain.ServicoItem;
-import com.kap.mechanics_api.domain.Veiculo;
+import com.kap.mechanics_api.adapter.persistence.entity.VeiculoJpaEntity;
 import com.kap.mechanics_api.dto.orcamento.GeracaoOrcamentoRequestDTO;
 import com.kap.mechanics_api.enums.StatusOrcamento;
 
@@ -61,7 +61,7 @@ public class OrcamentoService {
     @Transactional
     public void gerarOrcamento(GeracaoOrcamentoRequestDTO dto, String usuarioLogin) {
         ClienteJpaEntity clienteJpaEntity = clienteService.pesquisarPorId(dto.clienteId());
-        Veiculo veiculo = veiculoService.pesquisarPorId(dto.veiculoId());
+        VeiculoJpaEntity veiculo = veiculoService.pesquisarPorId(dto.veiculoId());
 
         Orcamento orcamento = new Orcamento();
         orcamento.setCliente(clienteJpaEntity);

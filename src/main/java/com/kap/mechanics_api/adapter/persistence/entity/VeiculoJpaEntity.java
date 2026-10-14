@@ -1,4 +1,4 @@
-package com.kap.mechanics_api.domain;
+package com.kap.mechanics_api.adapter.persistence.entity;
 
 import jakarta.persistence.*;
 
@@ -6,7 +6,7 @@ import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "veiculo")
-public class Veiculo {
+public class VeiculoJpaEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -27,11 +27,11 @@ public class Veiculo {
     @Column(name = "data_criacao", nullable = false)
     private LocalDateTime dataCriacao;
 
-    public Veiculo(){
+    public VeiculoJpaEntity(){
         super();
     }
 
-    public Veiculo(Integer id, String placa, String marca, String modelo, Integer ano) {
+    public VeiculoJpaEntity(Integer id, String placa, String marca, String modelo, Integer ano) {
         this.id = id;
         this.placa = placa;
         this.marca = marca;

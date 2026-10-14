@@ -8,7 +8,7 @@ import com.kap.mechanics_api.domain.Orcamento;
 import com.kap.mechanics_api.domain.OrdemServico;
 import com.kap.mechanics_api.domain.StatusOrdemServico;
 import com.kap.mechanics_api.adapter.persistence.entity.ClienteJpaEntity;
-import com.kap.mechanics_api.domain.Veiculo;
+import com.kap.mechanics_api.adapter.persistence.entity.VeiculoJpaEntity;
 import com.kap.mechanics_api.domain.Usuario;
 import com.kap.mechanics_api.dto.movimentacaoestoque.RegistroEntradaMovimentacaoEstoqueRequestDTO;
 import com.kap.mechanics_api.dto.movimentacaoestoque.RegistroSaidaMovimentacaoEstoqueRequestDTO;
@@ -133,7 +133,7 @@ class MovimentacaoEstoqueIntegrationTest {
         clienteJpaEntity.setDataCriacao(LocalDateTime.now());
         clienteJpaEntity = clienteRepository.save(clienteJpaEntity);
 
-        Veiculo veiculo = new Veiculo();
+        VeiculoJpaEntity veiculo = new VeiculoJpaEntity();
         veiculo.setPlaca("ABC1234");
         veiculo.setMarca("Honda");
         veiculo.setModelo("Civic");

@@ -1,4 +1,4 @@
-package com.kap.mechanics_api.mapper;
+package com.kap.mechanics_api.adapter.web;
 
 import java.util.List;
 
@@ -11,7 +11,7 @@ import com.kap.mechanics_api.dto.cliente.CriacaoClienteResponseDTO;
 import com.kap.mechanics_api.dto.cliente.ListagemClienteResponseDTO;
 
 @Mapper(componentModel = "spring")
-public interface ClienteMapper {
+public interface ClienteWebMapper {
 
     @Mapping(source = "cpfCnpj.documento", target = "cpfCnpj")
     CriacaoClienteResponseDTO paraCriacaoDto(Cliente cliente);

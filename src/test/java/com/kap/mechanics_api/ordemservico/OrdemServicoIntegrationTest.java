@@ -6,7 +6,7 @@ import com.kap.mechanics_api.domain.Orcamento;
 import com.kap.mechanics_api.domain.OrdemServico;
 import com.kap.mechanics_api.domain.StatusOrdemServico;
 import com.kap.mechanics_api.domain.Usuario;
-import com.kap.mechanics_api.domain.Veiculo;
+import com.kap.mechanics_api.adapter.persistence.entity.VeiculoJpaEntity;
 import com.kap.mechanics_api.dto.ordemservico.AtualizacaoStatusOrdemServicoRequestDTO;
 import com.kap.mechanics_api.enums.StatusOrcamento;
 import com.kap.mechanics_api.enums.StatusOrdemServicoEnum;
@@ -148,7 +148,7 @@ class OrdemServicoIntegrationTest {
         ClienteJpaEntity clienteJpaEntity = clienteRepository.save(
                 new ClienteJpaEntity("João Silva", "12345678900", "51999999999", "joao@email.com", LocalDateTime.now()));
 
-        Veiculo veiculo = new Veiculo();
+        VeiculoJpaEntity veiculo = new VeiculoJpaEntity();
         veiculo.setPlaca("ABC1234");
         veiculo.setMarca("Honda");
         veiculo.setModelo("Civic");

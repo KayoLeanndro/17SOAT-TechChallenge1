@@ -8,7 +8,7 @@ import com.kap.mechanics_api.domain.ServicoItem;
 import com.kap.mechanics_api.domain.ServicoItemId;
 import com.kap.mechanics_api.domain.StatusOrdemServico;
 import com.kap.mechanics_api.domain.Usuario;
-import com.kap.mechanics_api.domain.Veiculo;
+import com.kap.mechanics_api.adapter.persistence.entity.VeiculoJpaEntity;
 import com.kap.mechanics_api.dto.orcamento.AtualizacaoStatusOrcamentoRequestDTO;
 import com.kap.mechanics_api.dto.orcamento.GeracaoOrcamentoRequestDTO;
 import com.kap.mechanics_api.enums.StatusOrcamento;
@@ -146,8 +146,8 @@ class OrcamentoIntegrationTest {
         return clienteRepository.save(clienteJpaEntity);
     }
 
-    private Veiculo persistirVeiculo() {
-        Veiculo veiculo = new Veiculo();
+    private VeiculoJpaEntity persistirVeiculo() {
+        VeiculoJpaEntity veiculo = new VeiculoJpaEntity();
         veiculo.setPlaca("ABC1234");
         veiculo.setMarca("Honda");
         veiculo.setModelo("Civic");
@@ -193,7 +193,7 @@ class OrcamentoIntegrationTest {
         persistirUsuario(LOGIN_ATENDENTE);
         seedStatusOrdemServico();
         ClienteJpaEntity clienteJpaEntity = persistirCliente();
-        Veiculo veiculo = persistirVeiculo();
+        VeiculoJpaEntity veiculo = persistirVeiculo();
         Servico servico = persistirServico("Troca de oleo", "100.00");
 
         GeracaoOrcamentoRequestDTO request =
@@ -214,7 +214,7 @@ class OrcamentoIntegrationTest {
         persistirUsuario(LOGIN_ATENDENTE);
         seedStatusOrdemServico();
         ClienteJpaEntity clienteJpaEntity = persistirCliente();
-        Veiculo veiculo = persistirVeiculo();
+        VeiculoJpaEntity veiculo = persistirVeiculo();
         Servico servico = persistirServico("Troca de oleo", "150.00");
 
         GeracaoOrcamentoRequestDTO request =
@@ -247,7 +247,7 @@ class OrcamentoIntegrationTest {
         persistirUsuario(LOGIN_ATENDENTE);
         seedStatusOrdemServico();
         ClienteJpaEntity clienteJpaEntity = persistirCliente();
-        Veiculo veiculo = persistirVeiculo();
+        VeiculoJpaEntity veiculo = persistirVeiculo();
         Servico servicoA = persistirServico("Alinhamento", "100.00");
         Servico servicoB = persistirServico("Balanceamento", "80.00");
         vincularItemAoServico(servicoB, "10.00", 2);

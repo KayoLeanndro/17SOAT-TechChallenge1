@@ -13,7 +13,7 @@ import com.kap.mechanics_api.core.cliente.usecase.ExcluirClienteUseCase;
 import com.kap.mechanics_api.core.cliente.usecase.ListarClienteUseCase;
 import com.kap.mechanics_api.documentation.ClienteControllerDoc;
 import com.kap.mechanics_api.exception.NenhumCampoInformadoException;
-import com.kap.mechanics_api.mapper.ClienteMapper;
+import com.kap.mechanics_api.adapter.web.ClienteWebMapper;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.StringUtils;
@@ -44,7 +44,7 @@ public class ClienteController implements ClienteControllerDoc {
     private final BuscarClientePorDocumentoUseCase buscarClientePorDocumentoUseCase;
     private final AtualizarClienteUseCase atualizarClienteUseCase;
     private final ExcluirClienteUseCase excluirClienteUseCase;
-    private final ClienteMapper clienteMapper;
+    private final ClienteWebMapper clienteMapper;
 
     public ClienteController(CadastrarClienteUseCase cadastrarClienteUseCase,
                              ListarClienteUseCase listarClienteUseCase,
@@ -52,7 +52,7 @@ public class ClienteController implements ClienteControllerDoc {
                              BuscarClientePorDocumentoUseCase buscarClientePorDocumentoUseCase,
                              AtualizarClienteUseCase atualizarClienteUseCase,
                              ExcluirClienteUseCase excluirClienteUseCase,
-                             ClienteMapper clienteMapper) {
+                             ClienteWebMapper clienteMapper) {
         this.cadastrarClienteUseCase = cadastrarClienteUseCase;
         this.listarClienteUseCase = listarClienteUseCase;
         this.buscarClientePorIdUseCase = buscarClientePorIdUseCase;

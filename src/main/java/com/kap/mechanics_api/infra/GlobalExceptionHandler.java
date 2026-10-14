@@ -1,6 +1,7 @@
 package com.kap.mechanics_api.infra;
 
 import com.kap.mechanics_api.core.cliente.usecase.ClienteNaoEncontradoException;
+import com.kap.mechanics_api.core.veiculo.usecase.VeiculoNaoEncontradoException;
 import com.kap.mechanics_api.exception.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
@@ -165,10 +166,18 @@ public class GlobalExceptionHandler {
         return problemDetail;
     }
 
-    @ExceptionHandler({OrcamentoJaRespondidoException.class, IllegalArgumentException.class})
+    @ExceptionHandler(OrcamentoJaRespondidoException.class)
     public ProblemDetail lancarExcecaoRespostaOrcamentoInvalida(RuntimeException ex) {
         ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, ex.getMessage());
         problemDetail.setTitle("Resposta de orçamento inválida");
+        return problemDetail;
+    }
+
+    // Invariantes dos objetos de domínio (Cliente, Veiculo, CpfCnpj...) violadas
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ProblemDetail lancarExcecaoArgumentoInvalido(IllegalArgumentException ex) {
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, ex.getMessage());
+        problemDetail.setTitle("Dados inválidos");
         return problemDetail;
     }
 

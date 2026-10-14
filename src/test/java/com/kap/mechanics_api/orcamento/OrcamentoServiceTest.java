@@ -2,6 +2,7 @@ package com.kap.mechanics_api.orcamento;
 
 import com.kap.mechanics_api.adapter.persistence.entity.ClienteJpaEntity;
 import com.kap.mechanics_api.domain.*;
+import com.kap.mechanics_api.adapter.persistence.entity.VeiculoJpaEntity;
 import com.kap.mechanics_api.dto.orcamento.GeracaoOrcamentoRequestDTO;
 import com.kap.mechanics_api.enums.StatusOrcamento;
 import com.kap.mechanics_api.exception.OrcamentoNaoEncontradoException;
@@ -64,14 +65,14 @@ class OrcamentoServiceTest {
     private OrcamentoService orcamentoService;
 
     private ClienteJpaEntity clienteJpaEntity;
-    private Veiculo veiculo;
+    private VeiculoJpaEntity veiculo;
 
     @BeforeEach
     void setUp() {
         clienteJpaEntity = new ClienteJpaEntity();
         clienteJpaEntity.setId(1);
 
-        veiculo = new Veiculo();
+        veiculo = new VeiculoJpaEntity();
         veiculo.setId(1);
     }
 

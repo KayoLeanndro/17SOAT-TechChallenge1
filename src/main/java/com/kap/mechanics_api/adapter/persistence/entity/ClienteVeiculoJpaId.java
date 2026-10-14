@@ -1,26 +1,26 @@
-package com.kap.mechanics_api.domain;
+package com.kap.mechanics_api.adapter.persistence.entity;
 
 import jakarta.persistence.Embeddable;
 
 import java.util.Objects;
 
 @Embeddable
-public class ClienteVeiculoId {
+public class ClienteVeiculoJpaId {
 
     private Integer clienteId;
     private Integer veiculoId;
 
-    public ClienteVeiculoId(Integer clienteId, Integer veiculoId) {
+    public ClienteVeiculoJpaId(Integer clienteId, Integer veiculoId) {
         this.clienteId = clienteId;
         this.veiculoId = veiculoId;
     }
 
-    public ClienteVeiculoId(){}
+    public ClienteVeiculoJpaId(){}
 
     @Override
     public boolean equals(Object o) {
         if (o == null || getClass() != o.getClass()) return false;
-        ClienteVeiculoId that = (ClienteVeiculoId) o;
+        ClienteVeiculoJpaId that = (ClienteVeiculoJpaId) o;
         return Objects.equals(clienteId, that.clienteId) && Objects.equals(veiculoId, that.veiculoId);
     }
 

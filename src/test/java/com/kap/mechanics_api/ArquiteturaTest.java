@@ -8,7 +8,7 @@ import com.tngtech.archunit.junit.ArchTest;
 import com.tngtech.archunit.lang.ArchRule;
 
 // Regra de Dependência da Clean Architecture: o core não pode conhecer as camadas externas.
-// Ativa apenas para o core, que hoje contém só o contexto Cliente (já migrado).
+// Ativa apenas para o core, que hoje contém os contextos Cliente e Veiculo (já migrados).
 // Regras para adapter/infra serão ligadas conforme os demais contextos forem migrados.
 @AnalyzeClasses(packages = "com.kap.mechanics_api", importOptions = ImportOption.DoNotIncludeTests.class)
 class ArquiteturaTest {

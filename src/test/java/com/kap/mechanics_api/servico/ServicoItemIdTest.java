@@ -1,6 +1,6 @@
 package com.kap.mechanics_api.servico;
 
-import com.kap.mechanics_api.domain.ClienteVeiculoId;
+import com.kap.mechanics_api.adapter.persistence.entity.ClienteVeiculoJpaId;
 import com.kap.mechanics_api.domain.ServicoItemId;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

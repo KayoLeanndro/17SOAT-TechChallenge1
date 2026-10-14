@@ -1,15 +1,14 @@
-package com.kap.mechanics_api.domain;
+package com.kap.mechanics_api.adapter.persistence.entity;
 
-import com.kap.mechanics_api.adapter.persistence.entity.ClienteJpaEntity;
 import jakarta.persistence.*;
 
 @Entity
 @Table(name = "cliente_veiculo")
-public class ClienteVeiculo {
+public class ClienteVeiculoJpaEntity {
 
 
     @EmbeddedId
-    private ClienteVeiculoId id;
+    private ClienteVeiculoJpaId id;
 
     @ManyToOne
     @MapsId("clienteId")
@@ -19,20 +18,20 @@ public class ClienteVeiculo {
     @ManyToOne
     @MapsId("veiculoId")
     @JoinColumn(name = "veiculo_id")
-    private Veiculo veiculo;
+    private VeiculoJpaEntity veiculo;
 
-    public ClienteVeiculo(){}
+    public ClienteVeiculoJpaEntity(){}
 
-    public ClienteVeiculo(Veiculo veiculo, ClienteJpaEntity clienteJpaEntity) {
+    public ClienteVeiculoJpaEntity(VeiculoJpaEntity veiculo, ClienteJpaEntity clienteJpaEntity) {
         this.veiculo = veiculo;
         this.clienteJpaEntity = clienteJpaEntity;
     }
 
-    public Veiculo getVeiculo() {
+    public VeiculoJpaEntity getVeiculo() {
         return veiculo;
     }
 
-    public void setVeiculo(Veiculo veiculo) {
+    public void setVeiculo(VeiculoJpaEntity veiculo) {
         this.veiculo = veiculo;
     }
 
@@ -44,11 +43,11 @@ public class ClienteVeiculo {
         this.clienteJpaEntity = clienteJpaEntity;
     }
 
-    public ClienteVeiculoId getId() {
+    public ClienteVeiculoJpaId getId() {
         return id;
     }
 
-    public void setId(ClienteVeiculoId id) {
+    public void setId(ClienteVeiculoJpaId id) {
         this.id = id;
     }
 }

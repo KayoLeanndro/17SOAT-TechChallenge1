@@ -12,7 +12,7 @@ import com.kap.mechanics_api.core.cliente.usecase.CadastrarClienteUseCase;
 import com.kap.mechanics_api.core.cliente.usecase.ClienteNaoEncontradoException;
 import com.kap.mechanics_api.core.cliente.usecase.ExcluirClienteUseCase;
 import com.kap.mechanics_api.core.cliente.usecase.ListarClienteUseCase;
-import com.kap.mechanics_api.mapper.ClienteMapperImpl;
+import com.kap.mechanics_api.adapter.web.ClienteWebMapperImpl;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
@@ -36,7 +36,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(ClienteController.class)
-@Import(ClienteMapperImpl.class)
+@Import(ClienteWebMapperImpl.class)
 public class ClienteControllerTest {
 
     private static final LocalDateTime DATA = LocalDateTime.of(2026, 10, 7, 10, 30);

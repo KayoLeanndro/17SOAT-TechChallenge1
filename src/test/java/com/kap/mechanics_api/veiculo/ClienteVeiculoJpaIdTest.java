@@ -1,6 +1,6 @@
-package com.kap.mechanics_api.cliente;
+package com.kap.mechanics_api.veiculo;
 
-import com.kap.mechanics_api.domain.ClienteVeiculoId;
+import com.kap.mechanics_api.adapter.persistence.entity.ClienteVeiculoJpaId;
 import com.kap.mechanics_api.domain.OrcamentoServicoId;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -10,14 +10,14 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 
 @ExtendWith(MockitoExtension.class)
-public class ClienteVeiculoIdTest {
+public class ClienteVeiculoJpaIdTest {
 
     @Test
     void deveSerIguaisQuandoTodosOsCamposForemIguais() {
-        ClienteVeiculoId or = new ClienteVeiculoId(1,1);
+        ClienteVeiculoJpaId or = new ClienteVeiculoJpaId(1,1);
         or.setClienteId(1);
         or.setVeiculoId(1);
-        ClienteVeiculoId or2 = new ClienteVeiculoId();
+        ClienteVeiculoJpaId or2 = new ClienteVeiculoJpaId();
         or2.setClienteId(1);
         or2.setVeiculoId(1);
 
@@ -29,8 +29,8 @@ public class ClienteVeiculoIdTest {
 
     @Test
     void deveSerIguaisQuandoCamposDiferirem(){
-        ClienteVeiculoId or = new ClienteVeiculoId(1,1);
-        ClienteVeiculoId or2 = new ClienteVeiculoId(2,2);
+        ClienteVeiculoJpaId or = new ClienteVeiculoJpaId(1,1);
+        ClienteVeiculoJpaId or2 = new ClienteVeiculoJpaId(2,2);
 
         assertNotEquals(or, or2);
     }
