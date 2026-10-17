@@ -2,8 +2,8 @@ package com.kap.mechanics_api.movimentacaoestoque;
 
 import com.kap.mechanics_api.repository.*;
 import tools.jackson.databind.json.JsonMapper;
-import com.kap.mechanics_api.domain.ItemEstoque;
-import com.kap.mechanics_api.domain.MovimentacaoEstoque;
+import com.kap.mechanics_api.adapter.persistence.entity.ItemEstoqueJpaEntity;
+import com.kap.mechanics_api.adapter.persistence.entity.MovimentacaoEstoqueJpaEntity;
 import com.kap.mechanics_api.domain.Orcamento;
 import com.kap.mechanics_api.domain.OrdemServico;
 import com.kap.mechanics_api.domain.StatusOrdemServico;
@@ -12,8 +12,8 @@ import com.kap.mechanics_api.adapter.persistence.entity.VeiculoJpaEntity;
 import com.kap.mechanics_api.domain.Usuario;
 import com.kap.mechanics_api.dto.movimentacaoestoque.RegistroEntradaMovimentacaoEstoqueRequestDTO;
 import com.kap.mechanics_api.dto.movimentacaoestoque.RegistroSaidaMovimentacaoEstoqueRequestDTO;
-import com.kap.mechanics_api.enums.TipoItemEstoque;
-import com.kap.mechanics_api.enums.TipoMovimentacaoEstoque;
+import com.kap.mechanics_api.core.itemestoque.domain.TipoItemEstoque;
+import com.kap.mechanics_api.core.movimentacaoestoque.domain.TipoMovimentacaoEstoque;
 import com.kap.mechanics_api.enums.StatusOrcamento;
 import com.kap.mechanics_api.enums.TipoUsuario;
 import org.junit.jupiter.api.BeforeEach;
@@ -114,7 +114,7 @@ class MovimentacaoEstoqueIntegrationTest {
         usuario = usuarioRepository.save(usuario);
         usuarioId = usuario.getId();
 
-        ItemEstoque item = new ItemEstoque();
+        ItemEstoqueJpaEntity item = new ItemEstoqueJpaEntity();
         item.setNome("Filtro de oleo");
         item.setDescricao("Filtro");
         item.setTipoItemEstoque(TipoItemEstoque.PECA);
@@ -174,7 +174,7 @@ class MovimentacaoEstoqueIntegrationTest {
                 .andExpect(jsonPath("$.tipo").value(TipoMovimentacaoEstoque.ENTRADA.name()))
                 .andExpect(jsonPath("$.saldoItemEstoque").value(17));
 
-        ItemEstoque itemAtualizado = itemEstoqueRepository.findById(itemId).orElseThrow();
+        ItemEstoqueJpaEntity itemAtualizado = itemEstoqueRepository.findById(itemId).orElseThrow();
         assertEquals(17, itemAtualizado.getQuantidadeAtual());
         assertEquals(1, movimentacaoEstoqueRepository.findAll().size());
     }
@@ -193,7 +193,7 @@ class MovimentacaoEstoqueIntegrationTest {
                 .andExpect(jsonPath("$.saldoItemEstoque").value(6))
                 .andExpect(jsonPath("$.ordemServicoId").value(ordemServicoId));
 
-        ItemEstoque itemAtualizado = itemEstoqueRepository.findById(itemId).orElseThrow();
+        ItemEstoqueJpaEntity itemAtualizado = itemEstoqueRepository.findById(itemId).orElseThrow();
         assertEquals(6, itemAtualizado.getQuantidadeAtual());
         assertEquals(1, movimentacaoEstoqueRepository.findAll().size());
     }
@@ -213,7 +213,7 @@ class MovimentacaoEstoqueIntegrationTest {
     @Test
     @WithMockUser(username = "estoque", roles = "ESTOQUISTA")
     void deveListarMovimentacoesPersistidas() throws Exception {
-        movimentacaoEstoqueRepository.save(new MovimentacaoEstoque(
+        movimentacaoEstoqueRepository.save(new MovimentacaoEstoqueJpaEntity(
                 itemEstoqueRepository.findById(itemId).orElseThrow(),
                 TipoMovimentacaoEstoque.ENTRADA,
                 1,
@@ -231,8 +231,8 @@ class MovimentacaoEstoqueIntegrationTest {
     void deveListarMovimentacoesPorItem() throws Exception {
         var item = itemEstoqueRepository.findById(itemId).orElseThrow();
         var usuario = usuarioRepository.findById(usuarioId).orElseThrow();
-        movimentacaoEstoqueRepository.save(new MovimentacaoEstoque(item, TipoMovimentacaoEstoque.ENTRADA, 1, usuario, null));
-        movimentacaoEstoqueRepository.save(new MovimentacaoEstoque(item, TipoMovimentacaoEstoque.ENTRADA, 2, usuario, null));
+        movimentacaoEstoqueRepository.save(new MovimentacaoEstoqueJpaEntity(item, TipoMovimentacaoEstoque.ENTRADA, 1, usuario, null));
+        movimentacaoEstoqueRepository.save(new MovimentacaoEstoqueJpaEntity(item, TipoMovimentacaoEstoque.ENTRADA, 2, usuario, null));
 
         mockMvc.perform(get("/api/movimentacao-estoque/item/" + itemId).with(autenticado()))
                 .andExpect(status().isOk())
@@ -244,7 +244,7 @@ class MovimentacaoEstoqueIntegrationTest {
     void deveListarMovimentacoesPorOrdemServico() throws Exception {
         var item = itemEstoqueRepository.findById(itemId).orElseThrow();
         var usuario = usuarioRepository.findById(usuarioId).orElseThrow();
-        movimentacaoEstoqueRepository.save(new MovimentacaoEstoque(item, TipoMovimentacaoEstoque.SAIDA, 1, usuario, ordemServicoRepository.findById(ordemServicoId).orElseThrow()));
+        movimentacaoEstoqueRepository.save(new MovimentacaoEstoqueJpaEntity(item, TipoMovimentacaoEstoque.SAIDA, 1, usuario, ordemServicoRepository.findById(ordemServicoId).orElseThrow()));
 
         mockMvc.perform(get("/api/movimentacao-estoque/ordem-servico/" + ordemServicoId).with(autenticado()))
                 .andExpect(status().isOk())
@@ -256,8 +256,8 @@ class MovimentacaoEstoqueIntegrationTest {
     void deveListarMovimentacoesPorTipo() throws Exception {
         var item = itemEstoqueRepository.findById(itemId).orElseThrow();
         var usuario = usuarioRepository.findById(usuarioId).orElseThrow();
-        movimentacaoEstoqueRepository.save(new MovimentacaoEstoque(item, TipoMovimentacaoEstoque.ENTRADA, 1, usuario, null));
-        movimentacaoEstoqueRepository.save(new MovimentacaoEstoque(item, TipoMovimentacaoEstoque.SAIDA, 2, usuario, ordemServicoRepository.findById(ordemServicoId).orElseThrow()));
+        movimentacaoEstoqueRepository.save(new MovimentacaoEstoqueJpaEntity(item, TipoMovimentacaoEstoque.ENTRADA, 1, usuario, null));
+        movimentacaoEstoqueRepository.save(new MovimentacaoEstoqueJpaEntity(item, TipoMovimentacaoEstoque.SAIDA, 2, usuario, ordemServicoRepository.findById(ordemServicoId).orElseThrow()));
 
         mockMvc.perform(get("/api/movimentacao-estoque/tipo/ENTRADA").with(autenticado()))
                 .andExpect(status().isOk())
@@ -271,7 +271,7 @@ class MovimentacaoEstoqueIntegrationTest {
         var item = itemEstoqueRepository.findById(itemId).orElseThrow();
         var usuario = usuarioRepository.findById(usuarioId).orElseThrow();
 
-        var movimentacao = new MovimentacaoEstoque(
+        var movimentacao = new MovimentacaoEstoqueJpaEntity(
                 item,
                 TipoMovimentacaoEstoque.ENTRADA,
                 1,

@@ -1,5 +1,9 @@
 package com.kap.mechanics_api.service;
 
+import com.kap.mechanics_api.adapter.persistence.entity.ItemEstoqueJpaEntity;
+import com.kap.mechanics_api.adapter.persistence.entity.ServicoItemJpaEntity;
+import com.kap.mechanics_api.adapter.persistence.entity.ServicoJpaEntity;
+
 import com.kap.mechanics_api.domain.*;
 import com.kap.mechanics_api.dto.orcamento.InclusaoOrcamentoItemRequestDTO;
 import com.kap.mechanics_api.enums.StatusOrcamento;
@@ -54,18 +58,18 @@ public class OrcamentoItemService {
         return new ConsultaOrcamentoItensResponseDTO(orcamentoId, orcamento.getStatusOrcamento(), orcamento.getValorTotal(), itens);
     }
 
-	private void incluirServico(Orcamento orcamento, Servico servico, int quantidade) {
+	private void incluirServico(Orcamento orcamento, ServicoJpaEntity servico, int quantidade) {
 		salvar(orcamento, servico, null, quantidade, servico.getValorMaoDeObra());
-		for (ServicoItem componente : servicoItemRepository.findByServico_Id(servico.getId()))
+		for (ServicoItemJpaEntity componente : servicoItemRepository.findByServico_Id(servico.getId()))
 			incluirItemEstoque(orcamento, componente.getItemEstoque(),
 					Math.multiplyExact(quantidade, componente.getQuantidadePadrao()));
 	}
 
-	private void incluirItemEstoque(Orcamento orcamento, ItemEstoque item, int quantidade) {
+	private void incluirItemEstoque(Orcamento orcamento, ItemEstoqueJpaEntity item, int quantidade) {
 		salvar(orcamento, null, item, quantidade, item.getValorUnitario());
 	}
 
-	private void salvar(Orcamento orcamento, Servico servico, ItemEstoque item, int quantidade,
+	private void salvar(Orcamento orcamento, ServicoJpaEntity servico, ItemEstoqueJpaEntity item, int quantidade,
 			BigDecimal valorUnitario) {
 		OrcamentoItem linha = new OrcamentoItem();
 		linha.setOrcamento(orcamento);

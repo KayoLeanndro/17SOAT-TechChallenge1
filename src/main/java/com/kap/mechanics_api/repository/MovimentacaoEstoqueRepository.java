@@ -1,23 +1,23 @@
 package com.kap.mechanics_api.repository;
 
-import com.kap.mechanics_api.domain.MovimentacaoEstoque;
-import com.kap.mechanics_api.enums.TipoMovimentacaoEstoque;
+import com.kap.mechanics_api.adapter.persistence.entity.MovimentacaoEstoqueJpaEntity;
+import com.kap.mechanics_api.core.movimentacaoestoque.domain.TipoMovimentacaoEstoque;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
-public interface MovimentacaoEstoqueRepository extends JpaRepository<MovimentacaoEstoque, Integer> {
+public interface MovimentacaoEstoqueRepository extends JpaRepository<MovimentacaoEstoqueJpaEntity, Integer> {
 
-    List<MovimentacaoEstoque> findAllByOrderByDataHoraDesc();
+    List<MovimentacaoEstoqueJpaEntity> findAllByOrderByDataHoraDesc();
 
-    List<MovimentacaoEstoque> findByItemEstoque_IdOrderByDataHoraDesc(Integer itemEstoqueId);
+    List<MovimentacaoEstoqueJpaEntity> findByItemEstoque_IdOrderByDataHoraDesc(Integer itemEstoqueId);
 
-    List<MovimentacaoEstoque> findByOrdemServico_IdOrderByDataHoraDesc(Integer ordemServicoId);
+    List<MovimentacaoEstoqueJpaEntity> findByOrdemServico_IdOrderByDataHoraDesc(Integer ordemServicoId);
 
-    List<MovimentacaoEstoque> findByTipoOrderByDataHoraDesc(TipoMovimentacaoEstoque tipo);
+    List<MovimentacaoEstoqueJpaEntity> findByTipoOrderByDataHoraDesc(TipoMovimentacaoEstoque tipo);
 
-    List<MovimentacaoEstoque> findByDataHoraBetweenOrderByDataHoraDesc(LocalDateTime inicio, LocalDateTime fim);
+    List<MovimentacaoEstoqueJpaEntity> findByDataHoraBetweenOrderByDataHoraDesc(LocalDateTime inicio, LocalDateTime fim);
 
-    List<MovimentacaoEstoque> findByItemEstoque_IdOrderByDataHoraAscIdAsc(Integer itemEstoqueId);
+    List<MovimentacaoEstoqueJpaEntity> findByItemEstoque_IdOrderByDataHoraAscIdAsc(Integer itemEstoqueId);
 }

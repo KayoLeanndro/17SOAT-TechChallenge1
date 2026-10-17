@@ -1,5 +1,10 @@
 package com.kap.mechanics_api.orcamento;
 
+import com.kap.mechanics_api.adapter.persistence.entity.ItemEstoqueJpaEntity;
+import com.kap.mechanics_api.adapter.persistence.entity.ServicoItemJpaEntity;
+import com.kap.mechanics_api.adapter.persistence.entity.ServicoItemJpaId;
+import com.kap.mechanics_api.adapter.persistence.entity.ServicoJpaEntity;
+
 import com.kap.mechanics_api.adapter.persistence.entity.ClienteJpaEntity;
 import com.kap.mechanics_api.domain.*;
 import com.kap.mechanics_api.adapter.persistence.entity.VeiculoJpaEntity;
@@ -7,7 +12,7 @@ import com.kap.mechanics_api.dto.orcamento.GeracaoOrcamentoRequestDTO;
 import com.kap.mechanics_api.enums.StatusOrcamento;
 import com.kap.mechanics_api.exception.OrcamentoNaoEncontradoException;
 import com.kap.mechanics_api.exception.StatusOrcamentoInvalidoException;
-import com.kap.mechanics_api.enums.TipoItemEstoque;
+import com.kap.mechanics_api.core.itemestoque.domain.TipoItemEstoque;
 import com.kap.mechanics_api.repository.OrcamentoItemRepository;
 import com.kap.mechanics_api.repository.OrcamentoRepository;
 import com.kap.mechanics_api.repository.OrcamentoServicoRepository;
@@ -78,7 +83,7 @@ class OrcamentoServiceTest {
 
     @Test
     void deveGerarOrcamentoComUmServicoSemItens() {
-        Servico servico = servico(10, new BigDecimal("150.00"));
+        ServicoJpaEntity servico = servico(10, new BigDecimal("150.00"));
         GeracaoOrcamentoRequestDTO dto = new GeracaoOrcamentoRequestDTO(clienteJpaEntity.getId(), veiculo.getId(), List.of(10));
 
         when(clienteService.pesquisarPorId(dto.clienteId())).thenReturn(clienteJpaEntity);
@@ -106,11 +111,11 @@ class OrcamentoServiceTest {
 
     @Test
     void deveSomarMaoDeObraEItensDoServico() {
-        Servico servico = servico(20, new BigDecimal("100.00"));
-        ItemEstoque itemEstoque = itemEstoque(5, new BigDecimal("30.00"));
+        ServicoJpaEntity servico = servico(20, new BigDecimal("100.00"));
+        ItemEstoqueJpaEntity itemEstoque = itemEstoque(5, new BigDecimal("30.00"));
 
-        ServicoItem servicoItem = new ServicoItem();
-        servicoItem.setId(new ServicoItemId(servico.getId(), itemEstoque.getId()));
+        ServicoItemJpaEntity servicoItem = new ServicoItemJpaEntity();
+        servicoItem.setId(new ServicoItemJpaId(servico.getId(), itemEstoque.getId()));
         servicoItem.setServico(servico);
         servicoItem.setItemEstoque(itemEstoque);
         servicoItem.setQuantidadePadrao(2);
@@ -140,8 +145,8 @@ class OrcamentoServiceTest {
 
     @Test
     void deveSomarItensDeMaisDeUmServico() {
-        Servico servicoA = servico(1, new BigDecimal("100.00"));
-        Servico servicoB = servico(2, new BigDecimal("50.00"));
+        ServicoJpaEntity servicoA = servico(1, new BigDecimal("100.00"));
+        ServicoJpaEntity servicoB = servico(2, new BigDecimal("50.00"));
 
         GeracaoOrcamentoRequestDTO dto = new GeracaoOrcamentoRequestDTO(clienteJpaEntity.getId(), veiculo.getId(), List.of(1, 2));
 
@@ -198,15 +203,15 @@ class OrcamentoServiceTest {
         return orcamento;
     }
 
-    private Servico servico(Integer id, BigDecimal valorMaoDeObra) {
-        Servico servico = new Servico();
+    private ServicoJpaEntity servico(Integer id, BigDecimal valorMaoDeObra) {
+        ServicoJpaEntity servico = new ServicoJpaEntity();
         servico.setId(id);
         servico.setValorMaoDeObra(valorMaoDeObra);
         return servico;
     }
 
-    private ItemEstoque itemEstoque(Integer id, BigDecimal valorUnitario) {
-        ItemEstoque itemEstoque = new ItemEstoque();
+    private ItemEstoqueJpaEntity itemEstoque(Integer id, BigDecimal valorUnitario) {
+        ItemEstoqueJpaEntity itemEstoque = new ItemEstoqueJpaEntity();
         itemEstoque.setId(id);
         itemEstoque.setNome("Item " + id);
         itemEstoque.setDescricao("Descricao " + id);

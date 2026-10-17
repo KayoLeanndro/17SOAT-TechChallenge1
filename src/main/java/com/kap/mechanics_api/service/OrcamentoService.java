@@ -4,8 +4,8 @@ import com.kap.mechanics_api.adapter.persistence.entity.ClienteJpaEntity;
 import com.kap.mechanics_api.domain.Orcamento;
 import com.kap.mechanics_api.domain.OrcamentoItem;
 import com.kap.mechanics_api.domain.OrcamentoServico;
-import com.kap.mechanics_api.domain.Servico;
-import com.kap.mechanics_api.domain.ServicoItem;
+import com.kap.mechanics_api.adapter.persistence.entity.ServicoJpaEntity;
+import com.kap.mechanics_api.adapter.persistence.entity.ServicoItemJpaEntity;
 import com.kap.mechanics_api.adapter.persistence.entity.VeiculoJpaEntity;
 import com.kap.mechanics_api.dto.orcamento.GeracaoOrcamentoRequestDTO;
 import com.kap.mechanics_api.enums.StatusOrcamento;
@@ -73,8 +73,8 @@ public class OrcamentoService {
 
         BigDecimal valorTotal = BigDecimal.ZERO;
         for (Integer servicoId : dto.servicosIds()) {
-            Servico servico = servicoService.pesquisarPorId(servicoId);
-            List<ServicoItem> itensDoServico = servicoItemRepository.findByServico_Id(servico.getId());
+            ServicoJpaEntity servico = servicoService.pesquisarPorId(servicoId);
+            List<ServicoItemJpaEntity> itensDoServico = servicoItemRepository.findByServico_Id(servico.getId());
             BigDecimal valorItens = somarValorItens(itensDoServico);
             BigDecimal valorServico = servico.getValorMaoDeObra().add(valorItens);
 
@@ -115,14 +115,14 @@ public class OrcamentoService {
                 .orElseThrow(() -> new OrcamentoNaoEncontradoException("Orçamento não encontrado"));
     }
 
-    private BigDecimal somarValorItens(List<ServicoItem> itensDoServico) {
+    private BigDecimal somarValorItens(List<ServicoItemJpaEntity> itensDoServico) {
         return itensDoServico.stream()
                 .map(item -> item.getItemEstoque().getValorUnitario()
                         .multiply(BigDecimal.valueOf(item.getQuantidadePadrao())))
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 
-    private void registrarItensDoServico(Orcamento orcamento, Servico servico, List<ServicoItem> itensDoServico) {
+    private void registrarItensDoServico(Orcamento orcamento, ServicoJpaEntity servico, List<ServicoItemJpaEntity> itensDoServico) {
         OrcamentoItem linhaServico = new OrcamentoItem();
         linhaServico.setOrcamento(orcamento);
         linhaServico.setServico(servico);
@@ -130,7 +130,7 @@ public class OrcamentoService {
         linhaServico.setValorUnitarioCobrado(servico.getValorMaoDeObra());
         orcamentoItemRepository.save(linhaServico);
 
-        for (ServicoItem componente : itensDoServico) {
+        for (ServicoItemJpaEntity componente : itensDoServico) {
             OrcamentoItem linhaComponente = new OrcamentoItem();
             linhaComponente.setOrcamento(orcamento);
             linhaComponente.setItemEstoque(componente.getItemEstoque());

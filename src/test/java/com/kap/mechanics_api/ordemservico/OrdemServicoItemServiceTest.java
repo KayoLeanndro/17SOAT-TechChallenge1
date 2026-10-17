@@ -1,24 +1,24 @@
 package com.kap.mechanics_api.ordemservico;
 
-import com.kap.mechanics_api.domain.ItemEstoque;
+import com.kap.mechanics_api.adapter.persistence.entity.ItemEstoqueJpaEntity;
 import com.kap.mechanics_api.domain.Orcamento;
 import com.kap.mechanics_api.domain.OrcamentoItem;
 import com.kap.mechanics_api.domain.OrdemServico;
 import com.kap.mechanics_api.domain.OrdemServicoItem;
-import com.kap.mechanics_api.domain.Servico;
-import com.kap.mechanics_api.domain.ServicoItem;
+import com.kap.mechanics_api.adapter.persistence.entity.ServicoJpaEntity;
+import com.kap.mechanics_api.adapter.persistence.entity.ServicoItemJpaEntity;
 import com.kap.mechanics_api.domain.StatusOrdemServico;
 import com.kap.mechanics_api.dto.ordemservico.ConsultaOrdemServicoItensResponseDTO;
 import com.kap.mechanics_api.dto.ordemservico.InclusaoOrdemServicoItemRequestDTO;
-import com.kap.mechanics_api.enums.TipoItemEstoque;
-import com.kap.mechanics_api.exception.OrdemServicoNaoEncontradaException;
-import com.kap.mechanics_api.exception.OrdemServicoNaoEstaEmExecucaoException;
+import com.kap.mechanics_api.core.itemestoque.domain.TipoItemEstoque;
+import com.kap.mechanics_api.core.movimentacaoestoque.usecase.BaixarItemParaOrdemServicoUseCase;
+import com.kap.mechanics_api.core.ordemservico.usecase.OrdemServicoNaoEncontradaException;
+import com.kap.mechanics_api.core.ordemservico.usecase.OrdemServicoNaoEstaEmExecucaoException;
 import com.kap.mechanics_api.repository.OrcamentoItemRepository;
 import com.kap.mechanics_api.repository.OrdemServicoItemRepository;
 import com.kap.mechanics_api.repository.OrdemServicoRepository;
 import com.kap.mechanics_api.repository.ServicoItemRepository;
 import com.kap.mechanics_api.service.ItemEstoqueService;
-import com.kap.mechanics_api.service.MovimentacaoEstoqueService;
 import com.kap.mechanics_api.service.OrdemServicoItemService;
 import com.kap.mechanics_api.service.ServicoService;
 import org.junit.jupiter.api.Test;
@@ -49,7 +49,7 @@ class OrdemServicoItemServiceTest {
     @Mock private ServicoService servicoService;
     @Mock private ItemEstoqueService itemEstoqueService;
     @Mock private ServicoItemRepository servicoItemRepository;
-    @Mock private MovimentacaoEstoqueService movimentacaoEstoqueService;
+    @Mock private BaixarItemParaOrdemServicoUseCase baixarItemParaOrdemServicoUseCase;
 
     @InjectMocks private OrdemServicoItemService service;
 
@@ -119,21 +119,21 @@ class OrdemServicoItemServiceTest {
     @Test
     void deveIncluirItemDeEstoqueEBaixarMovimentacao() {
         OrdemServico os = ordemServico(1, "EM_EXECUCAO");
-        ItemEstoque estoque = itemEstoque(5, new BigDecimal("20.00"));
+        ItemEstoqueJpaEntity estoque = itemEstoque(5, new BigDecimal("20.00"));
         when(ordemServicoRepository.findById(1)).thenReturn(Optional.of(os));
         when(itemEstoqueService.pesquisarPorId(5)).thenReturn(estoque);
 
         service.incluir(1, new InclusaoOrdemServicoItemRequestDTO(null, 5, 4));
 
         verify(itemRepository, times(1)).save(any(OrdemServicoItem.class));
-        verify(movimentacaoEstoqueService).baixarItemParaOrdemServico(os, 5, 4);
+        verify(baixarItemParaOrdemServicoUseCase).executar(1, 5, 4);
     }
 
     @Test
     void deveIncluirServicoEExplodirComponentesDeEstoque() {
         OrdemServico os = ordemServico(1, "EM_EXECUCAO");
-        Servico servico = servico(10, new BigDecimal("150.00"));
-        ItemEstoque componente = itemEstoque(7, new BigDecimal("12.00"));
+        ServicoJpaEntity servico = servico(10, new BigDecimal("150.00"));
+        ItemEstoqueJpaEntity componente = itemEstoque(7, new BigDecimal("12.00"));
         when(ordemServicoRepository.findById(1)).thenReturn(Optional.of(os));
         when(servicoService.pesquisarPorId(10)).thenReturn(servico);
         when(servicoItemRepository.findByServico_Id(10)).thenReturn(List.of(servicoItem(servico, componente, 3)));
@@ -143,7 +143,7 @@ class OrdemServicoItemServiceTest {
         // 1 linha do serviço + 1 linha do componente de estoque
         verify(itemRepository, times(2)).save(any(OrdemServicoItem.class));
         // quantidade do componente = 2 (OS) * 3 (padrão)
-        verify(movimentacaoEstoqueService).baixarItemParaOrdemServico(os, 7, 6);
+        verify(baixarItemParaOrdemServicoUseCase).executar(1, 7, 6);
     }
 
     // ----- consultar -----
@@ -187,7 +187,7 @@ class OrdemServicoItemServiceTest {
 
         service.baixarItensEstoque(os);
 
-        verify(movimentacaoEstoqueService, times(1)).baixarItemParaOrdemServico(os, 5, 3);
+        verify(baixarItemParaOrdemServicoUseCase, times(1)).executar(1, 5, 3);
     }
 
     // ----- fábricas -----
@@ -204,16 +204,16 @@ class OrdemServicoItemServiceTest {
         return os;
     }
 
-    private Servico servico(Integer id, BigDecimal valorMaoDeObra) {
-        Servico servico = new Servico();
+    private ServicoJpaEntity servico(Integer id, BigDecimal valorMaoDeObra) {
+        ServicoJpaEntity servico = new ServicoJpaEntity();
         servico.setId(id);
         servico.setNome("Servico " + id);
         servico.setValorMaoDeObra(valorMaoDeObra);
         return servico;
     }
 
-    private ItemEstoque itemEstoque(Integer id, BigDecimal valorUnitario) {
-        ItemEstoque item = new ItemEstoque();
+    private ItemEstoqueJpaEntity itemEstoque(Integer id, BigDecimal valorUnitario) {
+        ItemEstoqueJpaEntity item = new ItemEstoqueJpaEntity();
         item.setId(id);
         item.setNome("Item " + id);
         item.setTipoItemEstoque(TipoItemEstoque.PECA);
@@ -222,15 +222,15 @@ class OrdemServicoItemServiceTest {
         return item;
     }
 
-    private ServicoItem servicoItem(Servico servico, ItemEstoque item, Integer quantidadePadrao) {
-        ServicoItem servicoItem = new ServicoItem();
+    private ServicoItemJpaEntity servicoItem(ServicoJpaEntity servico, ItemEstoqueJpaEntity item, Integer quantidadePadrao) {
+        ServicoItemJpaEntity servicoItem = new ServicoItemJpaEntity();
         servicoItem.setServico(servico);
         servicoItem.setItemEstoque(item);
         servicoItem.setQuantidadePadrao(quantidadePadrao);
         return servicoItem;
     }
 
-    private OrcamentoItem orcamentoItem(Servico servico, ItemEstoque item, Integer quantidade, BigDecimal valor) {
+    private OrcamentoItem orcamentoItem(ServicoJpaEntity servico, ItemEstoqueJpaEntity item, Integer quantidade, BigDecimal valor) {
         OrcamentoItem linha = new OrcamentoItem();
         linha.setServico(servico);
         linha.setItemEstoque(item);
@@ -239,7 +239,7 @@ class OrdemServicoItemServiceTest {
         return linha;
     }
 
-    private OrdemServicoItem ordemServicoItem(Integer id, Servico servico, ItemEstoque item, String nome,
+    private OrdemServicoItem ordemServicoItem(Integer id, ServicoJpaEntity servico, ItemEstoqueJpaEntity item, String nome,
                                               Integer quantidade, BigDecimal valor) {
         OrdemServicoItem linha = new OrdemServicoItem();
         linha.setId(id);

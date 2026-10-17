@@ -3,7 +3,7 @@ package com.kap.mechanics_api.ordemservico;
 import com.kap.mechanics_api.domain.HistoricoStatusOs;
 import com.kap.mechanics_api.domain.OrdemServico;
 import com.kap.mechanics_api.domain.StatusOrdemServico;
-import com.kap.mechanics_api.exception.OrdemServicoNaoEncontradaException;
+import com.kap.mechanics_api.core.ordemservico.usecase.OrdemServicoNaoEncontradaException;
 import com.kap.mechanics_api.repository.HistoricoStatusOsRepository;
 import com.kap.mechanics_api.repository.OrdemServicoRepository;
 import com.kap.mechanics_api.service.HistoricoStatusOsService;

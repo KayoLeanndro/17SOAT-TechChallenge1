@@ -1,5 +1,7 @@
 package com.kap.mechanics_api.domain;
 
+import com.kap.mechanics_api.adapter.persistence.entity.ServicoJpaEntity;
+
 import jakarta.persistence.*;
 
 import java.math.BigDecimal;
@@ -19,14 +21,14 @@ public class OrcamentoServico {
     @ManyToOne
     @MapsId("servicoId")
     @JoinColumn(name = "servico_id")
-    private Servico servico;
+    private ServicoJpaEntity servico;
 
     @Column(name = "valor_cobrado")
     private BigDecimal valorCobrado;
 
     public OrcamentoServico(){}
 
-    public OrcamentoServico(Orcamento orcamento, Servico servico, BigDecimal valorCobrado) {
+    public OrcamentoServico(Orcamento orcamento, ServicoJpaEntity servico, BigDecimal valorCobrado) {
         this.orcamento = orcamento;
         this.servico = servico;
         this.valorCobrado = valorCobrado;
@@ -48,11 +50,11 @@ public class OrcamentoServico {
         this.orcamento = orcamento;
     }
 
-    public Servico getServico() {
+    public ServicoJpaEntity getServico() {
         return servico;
     }
 
-    public void setServico(Servico servico) {
+    public void setServico(ServicoJpaEntity servico) {
         this.servico = servico;
     }
 

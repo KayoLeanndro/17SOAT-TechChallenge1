@@ -1,5 +1,7 @@
 package com.kap.mechanics_api.ordemservico;
 
+import com.kap.mechanics_api.adapter.persistence.entity.ServicoJpaEntity;
+
 import com.kap.mechanics_api.adapter.persistence.entity.ClienteJpaEntity;
 import com.kap.mechanics_api.domain.HistoricoStatusOs;
 import com.kap.mechanics_api.domain.Orcamento;
@@ -311,9 +313,9 @@ class OrdemServicoIntegrationTest {
 //        seedStatusOrdemServico();
 //        Usuario usuario = persistirUsuario();
 //        Orcamento orcamento = persistirOrcamento(StatusOrcamento.APROVADO);
-//        Servico trocaOleo = servicoRepository.save(new Servico(
+//        ServicoJpaEntity trocaOleo = servicoRepository.save(new ServicoJpaEntity(
 //                "Troca de óleo", "Troca", new BigDecimal("100.00"), 60, true));
-//        Servico alinhamento = servicoRepository.save(new Servico(
+//        ServicoJpaEntity alinhamento = servicoRepository.save(new ServicoJpaEntity(
 //                "Alinhamento", "Alinhamento", new BigDecimal("80.00"), 30, true));
 //        orcamentoServicoRepository.save(
 //                new OrcamentoServico(orcamento, trocaOleo, new BigDecimal("100.00")));

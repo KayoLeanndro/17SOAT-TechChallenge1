@@ -1,6 +1,6 @@
 package com.kap.mechanics_api.dto.movimentacaoestoque;
 
-import com.kap.mechanics_api.enums.TipoMovimentacaoEstoque;
+import com.kap.mechanics_api.core.movimentacaoestoque.domain.TipoMovimentacaoEstoque;
 
 import java.time.LocalDateTime;
 

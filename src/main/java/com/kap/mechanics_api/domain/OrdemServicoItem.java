@@ -1,5 +1,8 @@
 package com.kap.mechanics_api.domain;
 
+import com.kap.mechanics_api.adapter.persistence.entity.ItemEstoqueJpaEntity;
+import com.kap.mechanics_api.adapter.persistence.entity.ServicoJpaEntity;
+
 import jakarta.persistence.*;
 import java.math.BigDecimal;
 
@@ -17,10 +20,10 @@ public class OrdemServicoItem {
 	private OrcamentoItem orcamentoItem;
 	@ManyToOne
 	@JoinColumn(name = "servico_id")
-	private Servico servico;
+	private ServicoJpaEntity servico;
 	@ManyToOne
 	@JoinColumn(name = "item_estoque_id")
-	private ItemEstoque itemEstoque;
+	private ItemEstoqueJpaEntity itemEstoque;
 	@Column(nullable = false)
 	private Integer quantidade;
 	@Column(name = "valor_unitario_cobrado", nullable = false)
@@ -50,19 +53,19 @@ public class OrdemServicoItem {
 		this.orcamentoItem = value;
 	}
 
-	public Servico getServico() {
+	public ServicoJpaEntity getServico() {
 		return servico;
 	}
 
-	public void setServico(Servico value) {
+	public void setServico(ServicoJpaEntity value) {
 		this.servico = value;
 	}
 
-	public ItemEstoque getItemEstoque() {
+	public ItemEstoqueJpaEntity getItemEstoque() {
 		return itemEstoque;
 	}
 
-	public void setItemEstoque(ItemEstoque value) {
+	public void setItemEstoque(ItemEstoqueJpaEntity value) {
 		this.itemEstoque = value;
 	}
 

@@ -1,5 +1,10 @@
 package com.kap.mechanics_api.service;
 
+import com.kap.mechanics_api.adapter.persistence.entity.ItemEstoqueJpaEntity;
+import com.kap.mechanics_api.adapter.persistence.entity.ServicoItemJpaEntity;
+import com.kap.mechanics_api.adapter.persistence.entity.ServicoJpaEntity;
+
+import com.kap.mechanics_api.core.movimentacaoestoque.usecase.BaixarItemParaOrdemServicoUseCase;
 import com.kap.mechanics_api.domain.*;
 import com.kap.mechanics_api.dto.ordemservico.InclusaoOrdemServicoItemRequestDTO;
 import com.kap.mechanics_api.enums.StatusOrdemServicoEnum;
@@ -19,19 +24,19 @@ public class OrdemServicoItemService {
 	private final ServicoService servicoService;
 	private final ItemEstoqueService itemEstoqueService;
 	private final ServicoItemRepository servicoItemRepository;
-	private final MovimentacaoEstoqueService movimentacaoEstoqueService;
+	private final BaixarItemParaOrdemServicoUseCase baixarItemParaOrdemServicoUseCase;
 
 	public OrdemServicoItemService(OrdemServicoRepository ordemServicoRepository,
 			OrdemServicoItemRepository itemRepository, OrcamentoItemRepository orcamentoItemRepository,
 			ServicoService servicoService, ItemEstoqueService itemEstoqueService,
-			ServicoItemRepository servicoItemRepository, MovimentacaoEstoqueService movimentacaoEstoqueService) {
+			ServicoItemRepository servicoItemRepository, BaixarItemParaOrdemServicoUseCase baixarItemParaOrdemServicoUseCase) {
 		this.ordemServicoRepository = ordemServicoRepository;
 		this.itemRepository = itemRepository;
 		this.orcamentoItemRepository = orcamentoItemRepository;
 		this.servicoService = servicoService;
 		this.itemEstoqueService = itemEstoqueService;
 		this.servicoItemRepository = servicoItemRepository;
-		this.movimentacaoEstoqueService = movimentacaoEstoqueService;
+		this.baixarItemParaOrdemServicoUseCase = baixarItemParaOrdemServicoUseCase;
 	}
 
 	@Transactional
@@ -46,17 +51,17 @@ public class OrdemServicoItemService {
 	@Transactional
 	public void incluir(Integer ordemServicoId, InclusaoOrdemServicoItemRequestDTO dto) {
 		OrdemServico os = ordemServicoRepository.findById(ordemServicoId).orElseThrow(
-				() -> new com.kap.mechanics_api.exception.OrdemServicoNaoEncontradaException(ordemServicoId));
+				() -> new com.kap.mechanics_api.core.ordemservico.usecase.OrdemServicoNaoEncontradaException(ordemServicoId));
 		if (!StatusOrdemServicoEnum.EM_EXECUCAO.name().equals(os.getStatusOrdemServico().getNome()))
-			throw new com.kap.mechanics_api.exception.OrdemServicoNaoEstaEmExecucaoException(ordemServicoId);
+			throw new com.kap.mechanics_api.core.ordemservico.usecase.OrdemServicoNaoEstaEmExecucaoException(ordemServicoId);
 		if ((dto.servicoId() == null) == (dto.itemEstoqueId() == null))
 			throw new IllegalArgumentException("Informe exatamente um: servicoId ou itemEstoqueId.");
 		if (dto.itemEstoqueId() != null)
 			incluirEstoque(os, itemEstoqueService.pesquisarPorId(dto.itemEstoqueId()), dto.quantidade());
 		else {
-			Servico servico = servicoService.pesquisarPorId(dto.servicoId());
+			ServicoJpaEntity servico = servicoService.pesquisarPorId(dto.servicoId());
 			salvar(os, null, servico, null, dto.quantidade(), servico.getValorMaoDeObra());
-			for (ServicoItem componente : servicoItemRepository.findByServico_Id(servico.getId()))
+			for (ServicoItemJpaEntity componente : servicoItemRepository.findByServico_Id(servico.getId()))
 				incluirEstoque(os, componente.getItemEstoque(),
 						Math.multiplyExact(dto.quantidade(), componente.getQuantidadePadrao()));
 		}
@@ -65,7 +70,7 @@ public class OrdemServicoItemService {
 	@Transactional
 	public ConsultaOrdemServicoItensResponseDTO consultar(Integer ordemServicoId) {
 		OrdemServico os = ordemServicoRepository.findById(ordemServicoId).orElseThrow(
-				() -> new com.kap.mechanics_api.exception.OrdemServicoNaoEncontradaException(ordemServicoId));
+				() -> new com.kap.mechanics_api.core.ordemservico.usecase.OrdemServicoNaoEncontradaException(ordemServicoId));
 		List<ItemOrdemServicoResponseDTO> itens = itemRepository.findByOrdemServico_Id(ordemServicoId).stream()
 				.map(item -> new ItemOrdemServicoResponseDTO(item.getId(),
 						item.getOrcamentoItem() == null ? null : item.getOrcamentoItem().getId(),
@@ -85,16 +90,16 @@ public class OrdemServicoItemService {
 	public void baixarItensEstoque(OrdemServico os) {
 		for (OrdemServicoItem item : itemRepository.findByOrdemServico_Id(os.getId()))
 			if (item.getItemEstoque() != null)
-				movimentacaoEstoqueService.baixarItemParaOrdemServico(os, item.getItemEstoque().getId(),
+				baixarItemParaOrdemServicoUseCase.executar(os.getId(), item.getItemEstoque().getId(),
 						item.getQuantidade());
 	}
 
-	private void incluirEstoque(OrdemServico os, ItemEstoque estoque, int quantidade) {
+	private void incluirEstoque(OrdemServico os, ItemEstoqueJpaEntity estoque, int quantidade) {
 		salvar(os, null, null, estoque, quantidade, estoque.getValorUnitario());
-		movimentacaoEstoqueService.baixarItemParaOrdemServico(os, estoque.getId(), quantidade);
+		baixarItemParaOrdemServicoUseCase.executar(os.getId(), estoque.getId(), quantidade);
 	}
 
-	private void salvar(OrdemServico os, OrcamentoItem origem, Servico servico, ItemEstoque estoque, int quantidade,
+	private void salvar(OrdemServico os, OrcamentoItem origem, ServicoJpaEntity servico, ItemEstoqueJpaEntity estoque, int quantidade,
 			BigDecimal valor) {
 		OrdemServicoItem linha = new OrdemServicoItem();
 		linha.setOrdemServico(os);

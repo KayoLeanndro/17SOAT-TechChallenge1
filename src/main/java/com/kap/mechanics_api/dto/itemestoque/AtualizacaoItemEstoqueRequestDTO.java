@@ -1,6 +1,6 @@
 package com.kap.mechanics_api.dto.itemestoque;
 
-import com.kap.mechanics_api.enums.TipoItemEstoque;
+import com.kap.mechanics_api.core.itemestoque.domain.TipoItemEstoque;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.PositiveOrZero;

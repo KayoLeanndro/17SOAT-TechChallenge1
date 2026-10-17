@@ -1,200 +1,151 @@
 package com.kap.mechanics_api.servico;
 
-import com.kap.mechanics_api.controller.ServicoController;
-import com.kap.mechanics_api.dto.servico.*;
-import com.kap.mechanics_api.service.ServicoService;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.http.ResponseEntity;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.math.BigDecimal;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.*;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
+import org.springframework.context.annotation.Import;
+import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.web.servlet.MockMvc;
 
-@ExtendWith(MockitoExtension.class)
+import com.kap.mechanics_api.adapter.web.ServicoWebMapperImpl;
+import com.kap.mechanics_api.controller.ServicoController;
+import com.kap.mechanics_api.core.servico.domain.Servico;
+import com.kap.mechanics_api.core.servico.usecase.AtualizarServicoUseCase;
+import com.kap.mechanics_api.core.servico.usecase.BuscarServicoPorIdUseCase;
+import com.kap.mechanics_api.core.servico.usecase.CadastrarServicoUseCase;
+import com.kap.mechanics_api.core.servico.usecase.ExcluirServicoUseCase;
+import com.kap.mechanics_api.core.servico.usecase.ListarServicoUseCase;
+import com.kap.mechanics_api.core.servico.usecase.ServicoNaoEncontradoException;
+
+@WebMvcTest(ServicoController.class)
+@Import(ServicoWebMapperImpl.class)
+@WithMockUser(roles = "ADMIN")
 class ServicoControllerTest {
 
-    @Mock
-    private ServicoService servicoService;
+    private static final String ENDPOINT = "/api/servico";
 
-    @InjectMocks
-    private ServicoController servicoController;
+    @Autowired
+    private MockMvc mockMvc;
 
+    @MockitoBean
+    private CadastrarServicoUseCase cadastrarServicoUseCase;
+    @MockitoBean
+    private ListarServicoUseCase listarServicoUseCase;
+    @MockitoBean
+    private BuscarServicoPorIdUseCase buscarServicoPorIdUseCase;
+    @MockitoBean
+    private AtualizarServicoUseCase atualizarServicoUseCase;
+    @MockitoBean
+    private ExcluirServicoUseCase excluirServicoUseCase;
 
-    @Test
-    void deveCadastrarServico() {
-
-        // Arrange
-        CriacaoServicoRequestDTO request =
-                new CriacaoServicoRequestDTO(
-                        "Troca de óleo",
-                        "Troca de óleo do motor",
-                        BigDecimal.valueOf(150),
-                        60,
-                        true
-                );
-
-        ServicoResponseDTO response =
-                new ServicoResponseDTO(  "Troca de oleo",
-                         "Troca de oleo",
-                        BigDecimal.valueOf(150.00),
-                        Integer.valueOf("60"),
-                        true
-                );
-
-        when(servicoService.cadastrar(any(CriacaoServicoRequestDTO.class)))
-                .thenReturn(response);
-
-        // Act
-        ResponseEntity<ServicoResponseDTO> result =
-                servicoController.cadastrar(request);
-
-        // Assert
-        assertEquals(201, result.getStatusCode().value());
-        assertEquals(response, result.getBody());
-
-        verify(servicoService, times(1))
-                .cadastrar(request);
+    private Servico alinhamento() {
+        return Servico.reconstruir(1, "Alinhamento", "Alinhamento 3D", new BigDecimal("150.00"), 60, true);
     }
 
-
     @Test
-    void deveListarServicos() {
+    void deveCadastrarServicoERetornar201() throws Exception {
+        when(cadastrarServicoUseCase.executar("Alinhamento", "Alinhamento 3D", new BigDecimal("150.00"), 60, true))
+                .thenReturn(alinhamento());
 
-        // Arrange
-        List<ServicoResponseDTO> response = List.of(
-                new ServicoResponseDTO(
-                        "Troca de óleo",
-                        "Troca de óleo do motor",
-                        BigDecimal.valueOf(150),
-                        60,
-                        true
-                ),
-                new ServicoResponseDTO(
-                        "Alinhamento",
-                        "Alinhamento e balanceamento",
-                        BigDecimal.valueOf(200),
-                        90,
-                        true
-                )
-        );
-
-        when(servicoService.listar())
-                .thenReturn(response);
-
-        // Act
-        ResponseEntity<List<ServicoResponseDTO>> result =
-                servicoController.listar();
-
-        // Assert
-        assertEquals(200, result.getStatusCode().value());
-        assertEquals(response, result.getBody());
-
-        verify(servicoService, times(1))
-                .listar();
+        mockMvc.perform(post(ENDPOINT).contentType(MediaType.APPLICATION_JSON).content("""
+                        {"nome":"Alinhamento","descricao":"Alinhamento 3D","valorMaoDeObra":150.00,
+                         "tempoEstimadoMin":60,"ativo":true}"""))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.nome").value("Alinhamento"))
+                .andExpect(jsonPath("$.descricao").value("Alinhamento 3D"))
+                .andExpect(jsonPath("$.valorMaoDeObra").value(150.00))
+                .andExpect(jsonPath("$.tempoEstimadoMin").value(60))
+                .andExpect(jsonPath("$.ativo").value(true));
     }
 
-
     @Test
-    void deveBuscarServicoPorId() {
+    void naoDeveCadastrarQuandoRequisicaoInvalida() throws Exception {
+        mockMvc.perform(post(ENDPOINT).contentType(MediaType.APPLICATION_JSON).content("""
+                        {"nome":"","descricao":"d","valorMaoDeObra":-1,"tempoEstimadoMin":60,"ativo":true}"""))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.erros.nome").value("Informe o nome do serviço"));
 
-        // Arrange
-        Integer id = 1;
-
-        ServicoResponseDTO response =
-                new ServicoResponseDTO(
-                        "Troca de óleo",
-                        "Troca de óleo do motor",
-                        BigDecimal.valueOf(150),
-                        60,
-                        true
-                );
-
-        when(servicoService.buscarPorId(id))
-                .thenReturn(response);
-
-        // Act
-        ResponseEntity<ServicoResponseDTO> result =
-                servicoController.buscarPorId(id);
-
-        // Assert
-        assertEquals(200, result.getStatusCode().value());
-        assertEquals(response, result.getBody());
-
-        verify(servicoService, times(1))
-                .buscarPorId(id);
+        verifyNoInteractions(cadastrarServicoUseCase);
     }
 
-
     @Test
-    void deveAtualizarServico() {
+    void deveListarServicos() throws Exception {
+        when(listarServicoUseCase.executar()).thenReturn(List.of(alinhamento(), alinhamento()));
 
-        // Arrange
-        Integer id = 1;
-
-        AtualizacaoServicoRequestDTO request =
-                new AtualizacaoServicoRequestDTO(
-                        "Troca de óleo premium",
-                        "Troca completa do óleo e filtro",
-                        BigDecimal.valueOf(200),
-                        90,
-                        true
-                );
-
-        ServicoResponseDTO response =
-                new ServicoResponseDTO(
-                        "Troca de óleo premium",
-                        "Troca completa do óleo e filtro",
-                        BigDecimal.valueOf(200),
-                        90,
-                        true
-                );
-
-        when(servicoService.atualizar(
-                any(AtualizacaoServicoRequestDTO.class),
-                eq(id)
-        )).thenReturn(response);
-
-        // Act
-        ResponseEntity<ServicoResponseDTO> result =
-                servicoController.atualizar(request, id);
-
-        // Assert
-        assertEquals(200, result.getStatusCode().value());
-        assertEquals(response, result.getBody());
-
-        verify(servicoService, times(1))
-                .atualizar(request, id);
+        mockMvc.perform(get(ENDPOINT))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(2))
+                .andExpect(jsonPath("$[0].nome").value("Alinhamento"));
     }
 
+    @Test
+    void deveBuscarServicoPorId() throws Exception {
+        when(buscarServicoPorIdUseCase.executar(1)).thenReturn(alinhamento());
+
+        mockMvc.perform(get(ENDPOINT + "/1"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.tempoEstimadoMin").value(60));
+    }
 
     @Test
-    void deveDeletarServico() {
+    void deveRetornar404QuandoServicoNaoExiste() throws Exception {
+        when(buscarServicoPorIdUseCase.executar(9)).thenThrow(new ServicoNaoEncontradoException(9));
 
-        // Arrange
-        Integer id = 1;
+        mockMvc.perform(get(ENDPOINT + "/9"))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.title").value("Servico não encontrado"))
+                .andExpect(jsonPath("$.detail").value("Servico nao encontrado com o id 9"));
+    }
 
-        doNothing()
-                .when(servicoService)
-                .deletar(id);
+    @Test
+    void deveAtualizarServico() throws Exception {
+        when(atualizarServicoUseCase.executar(1, "Alinhamento premium", null, null, null, null))
+                .thenReturn(Servico.reconstruir(1, "Alinhamento premium", "d", BigDecimal.TEN, 60, true));
 
-        // Act
-        ResponseEntity<Void> result =
-                servicoController.deletar(id);
+        mockMvc.perform(patch(ENDPOINT + "/1").contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"nome\":\"Alinhamento premium\"}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.nome").value("Alinhamento premium"));
+    }
 
-        // Assert
-        assertEquals(204, result.getStatusCode().value());
-        assertNull(result.getBody());
+    @Test
+    void naoDeveAtualizarSemNenhumCampo() throws Exception {
+        mockMvc.perform(patch(ENDPOINT + "/1").contentType(MediaType.APPLICATION_JSON).content("{}"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.title").value("Nenhum campo informado"));
 
-        verify(servicoService, times(1))
-                .deletar(id);
+        verifyNoInteractions(atualizarServicoUseCase);
+    }
+
+    @Test
+    void deveRetornar400QuandoDominioRejeitaOsDados() throws Exception {
+        when(atualizarServicoUseCase.executar(any(), any(), any(), any(), any(), any()))
+                .thenThrow(new IllegalArgumentException("O valor da mão de obra não pode ser negativo"));
+
+        mockMvc.perform(patch(ENDPOINT + "/1").contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"nome\":\"x\"}"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.title").value("Dados inválidos"));
+    }
+
+    @Test
+    void deveExcluirServicoERetornar204() throws Exception {
+        mockMvc.perform(delete(ENDPOINT + "/1"))
+                .andExpect(status().isNoContent());
+
+        verify(excluirServicoUseCase).executar(1);
     }
 }
-

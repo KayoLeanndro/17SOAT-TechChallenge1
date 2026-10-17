@@ -17,8 +17,6 @@ import com.kap.mechanics_api.repository.ClienteRepository;
 
 import jakarta.persistence.EntityManager;
 
-// @Transactional no teste: cada método roda numa transação que sofre rollback no final,
-// então o banco volta ao estado anterior sem precisar limpar tabelas na mão.
 @SpringBootTest
 @ActiveProfiles("test")
 @Transactional

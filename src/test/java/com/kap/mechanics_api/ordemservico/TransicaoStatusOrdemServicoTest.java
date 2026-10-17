@@ -1,14 +1,15 @@
 package com.kap.mechanics_api.ordemservico;
 
+import com.kap.mechanics_api.core.movimentacaoestoque.usecase.BaixarItensDaOrdemServicoUseCase;
 import com.kap.mechanics_api.domain.HistoricoStatusOs;
 import com.kap.mechanics_api.domain.OrdemServico;
 import com.kap.mechanics_api.domain.StatusOrdemServico;
 import com.kap.mechanics_api.enums.StatusOrdemServicoEnum;
 import com.kap.mechanics_api.exception.TransicaoStatusInvalidaException;
 import com.kap.mechanics_api.repository.HistoricoStatusOsRepository;
+import com.kap.mechanics_api.repository.OrdemServicoRepository;
 import com.kap.mechanics_api.repository.StatusOrdemServicoRepository;
 import com.kap.mechanics_api.service.TransicaoStatusOrdemServico;
-import com.kap.mechanics_api.service.MovimentacaoEstoqueService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -33,10 +34,13 @@ public class TransicaoStatusOrdemServicoTest {
     private StatusOrdemServicoRepository statusOrdemServicoRepository;
 
     @Mock
-    private MovimentacaoEstoqueService movimentacaoEstoqueService;
+    private BaixarItensDaOrdemServicoUseCase baixarItensDaOrdemServicoUseCase;
 
     @Mock
     private HistoricoStatusOsRepository historicoStatusOsRepository;
+
+    @Mock
+    private OrdemServicoRepository ordemServicoRepository;
 
     @InjectMocks
     private TransicaoStatusOrdemServico transicaoStatusOrdemServico;
@@ -100,7 +104,8 @@ public class TransicaoStatusOrdemServicoTest {
         assertThat(ordemServico.getStatusOrdemServico().getNome()).isEqualTo(statusDestino);
 
         if (destino == StatusOrdemServicoEnum.EM_EXECUCAO) {
-            verify(movimentacaoEstoqueService).baixarItensDaOrdemServico(ordemServico);
+            verify(ordemServicoRepository).saveAndFlush(ordemServico);
+            verify(baixarItensDaOrdemServicoUseCase).executar(10);
         }
     }
 

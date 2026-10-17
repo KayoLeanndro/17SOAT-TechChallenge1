@@ -1,8 +1,15 @@
 package com.kap.mechanics_api.controller;
 
+import com.kap.mechanics_api.adapter.web.ServicoWebMapper;
+import com.kap.mechanics_api.core.servico.domain.Servico;
+import com.kap.mechanics_api.core.servico.usecase.AtualizarServicoUseCase;
+import com.kap.mechanics_api.core.servico.usecase.BuscarServicoPorIdUseCase;
+import com.kap.mechanics_api.core.servico.usecase.CadastrarServicoUseCase;
+import com.kap.mechanics_api.core.servico.usecase.ExcluirServicoUseCase;
+import com.kap.mechanics_api.core.servico.usecase.ListarServicoUseCase;
 import com.kap.mechanics_api.documentation.ServicoControllerDoc;
 import com.kap.mechanics_api.dto.servico.*;
-import com.kap.mechanics_api.service.ServicoService;
+import com.kap.mechanics_api.exception.NenhumCampoInformadoException;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -16,10 +23,25 @@ import java.util.List;
 @PreAuthorize("hasAnyRole('ADMIN', 'ESTOQUISTA')")
 public class ServicoController implements ServicoControllerDoc {
 
-    private final ServicoService servicoService;
+    private final CadastrarServicoUseCase cadastrarServicoUseCase;
+    private final ListarServicoUseCase listarServicoUseCase;
+    private final BuscarServicoPorIdUseCase buscarServicoPorIdUseCase;
+    private final AtualizarServicoUseCase atualizarServicoUseCase;
+    private final ExcluirServicoUseCase excluirServicoUseCase;
+    private final ServicoWebMapper servicoMapper;
 
-    public ServicoController(ServicoService servicoService) {
-        this.servicoService = servicoService;
+    public ServicoController(CadastrarServicoUseCase cadastrarServicoUseCase,
+                             ListarServicoUseCase listarServicoUseCase,
+                             BuscarServicoPorIdUseCase buscarServicoPorIdUseCase,
+                             AtualizarServicoUseCase atualizarServicoUseCase,
+                             ExcluirServicoUseCase excluirServicoUseCase,
+                             ServicoWebMapper servicoMapper) {
+        this.cadastrarServicoUseCase = cadastrarServicoUseCase;
+        this.listarServicoUseCase = listarServicoUseCase;
+        this.buscarServicoPorIdUseCase = buscarServicoPorIdUseCase;
+        this.atualizarServicoUseCase = atualizarServicoUseCase;
+        this.excluirServicoUseCase = excluirServicoUseCase;
+        this.servicoMapper = servicoMapper;
     }
 
     @Override
@@ -27,17 +49,18 @@ public class ServicoController implements ServicoControllerDoc {
     public ResponseEntity<ServicoResponseDTO> cadastrar(
             @Valid @RequestBody CriacaoServicoRequestDTO dto) {
 
-        ServicoResponseDTO response = servicoService.cadastrar(dto);
+        Servico servico = cadastrarServicoUseCase.executar(
+                dto.nome(), dto.descricao(), dto.valorMaoDeObra(), dto.tempoEstimadoMin(), dto.ativo());
 
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(response);
+                .body(servicoMapper.paraDto(servico));
     }
 
     @Override
     @GetMapping
     public ResponseEntity<List<ServicoResponseDTO>> listar() {
 
-        return ResponseEntity.ok(servicoService.listar());
+        return ResponseEntity.ok(servicoMapper.paraDtoLista(listarServicoUseCase.executar()));
     }
 
     @Override
@@ -45,7 +68,7 @@ public class ServicoController implements ServicoControllerDoc {
     public ResponseEntity<ServicoResponseDTO> buscarPorId(
             @PathVariable Integer id) {
 
-        return ResponseEntity.ok(servicoService.buscarPorId(id));
+        return ResponseEntity.ok(servicoMapper.paraDto(buscarServicoPorIdUseCase.executar(id)));
     }
 
     @Override
@@ -54,7 +77,14 @@ public class ServicoController implements ServicoControllerDoc {
             @Valid @RequestBody AtualizacaoServicoRequestDTO dto,
             @PathVariable Integer id) {
 
-        return ResponseEntity.ok(servicoService.atualizar(dto, id));
+        if (!dto.temAoMenosUmCampoPreenchido()) {
+            throw new NenhumCampoInformadoException(AtualizacaoServicoRequestDTO.class);
+        }
+
+        Servico servico = atualizarServicoUseCase.executar(
+                id, dto.nome(), dto.descricao(), dto.valorMaoDeObra(), dto.tempoEstimadoMin(), dto.ativo());
+
+        return ResponseEntity.ok(servicoMapper.paraDto(servico));
     }
 
     @Override
@@ -62,7 +92,7 @@ public class ServicoController implements ServicoControllerDoc {
     public ResponseEntity<Void> deletar(
             @PathVariable Integer id) {
 
-        servicoService.deletar(id);
+        excluirServicoUseCase.executar(id);
 
         return ResponseEntity.noContent().build();
     }

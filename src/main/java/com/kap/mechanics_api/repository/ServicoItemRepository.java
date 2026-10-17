@@ -1,12 +1,12 @@
 package com.kap.mechanics_api.repository;
 
-import com.kap.mechanics_api.domain.ServicoItem;
-import com.kap.mechanics_api.domain.ServicoItemId;
+import com.kap.mechanics_api.adapter.persistence.entity.ServicoItemJpaEntity;
+import com.kap.mechanics_api.adapter.persistence.entity.ServicoItemJpaId;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
 
-public interface ServicoItemRepository extends JpaRepository<ServicoItem, ServicoItemId> {
+public interface ServicoItemRepository extends JpaRepository<ServicoItemJpaEntity, ServicoItemJpaId> {
 
-    List<ServicoItem> findByServico_Id(Integer servicoId);
+    List<ServicoItemJpaEntity> findByServico_Id(Integer servicoId);
 }

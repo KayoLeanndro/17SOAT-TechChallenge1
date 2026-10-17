@@ -3,7 +3,7 @@ package com.kap.mechanics_api.documentation;
 import com.kap.mechanics_api.dto.movimentacaoestoque.MovimentacaoEstoqueResponseDTO;
 import com.kap.mechanics_api.dto.movimentacaoestoque.RegistroEntradaMovimentacaoEstoqueRequestDTO;
 import com.kap.mechanics_api.dto.movimentacaoestoque.RegistroSaidaMovimentacaoEstoqueRequestDTO;
-import com.kap.mechanics_api.enums.TipoMovimentacaoEstoque;
+import com.kap.mechanics_api.core.movimentacaoestoque.domain.TipoMovimentacaoEstoque;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;

@@ -1,6 +1,14 @@
 package com.kap.mechanics_api.infra;
 
 import com.kap.mechanics_api.core.cliente.usecase.ClienteNaoEncontradoException;
+import com.kap.mechanics_api.core.itemestoque.domain.EstoqueInsuficienteException;
+import com.kap.mechanics_api.core.itemestoque.domain.ItemEstoqueInativoException;
+import com.kap.mechanics_api.core.itemestoque.usecase.ItemEstoqueNaoEncontradoException;
+import com.kap.mechanics_api.core.movimentacaoestoque.usecase.MovimentacaoEstoqueNaoEncontradaException;
+import com.kap.mechanics_api.core.movimentacaoestoque.usecase.PeriodoMovimentacaoInvalidoException;
+import com.kap.mechanics_api.core.movimentacaoestoque.usecase.ResponsavelNaoEncontradoException;
+import com.kap.mechanics_api.core.ordemservico.usecase.OrdemServicoNaoEstaEmExecucaoException;
+import com.kap.mechanics_api.core.servico.usecase.ServicoNaoEncontradoException;
 import com.kap.mechanics_api.core.veiculo.usecase.VeiculoNaoEncontradoException;
 import com.kap.mechanics_api.exception.*;
 import org.springframework.http.HttpStatus;
@@ -10,7 +18,7 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-import com.kap.mechanics_api.exception.OrdemServicoNaoEncontradaException;
+import com.kap.mechanics_api.core.ordemservico.usecase.OrdemServicoNaoEncontradaException;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -60,8 +68,7 @@ public class GlobalExceptionHandler {
         return problemDetail;
     }
 
-    @ExceptionHandler({MovimentacaoEstoqueObrigatoriaException.class,
-            OrdemServicoNaoEstaEmExecucaoException.class, ItemEstoqueInativoException.class})
+    @ExceptionHandler({OrdemServicoNaoEstaEmExecucaoException.class, ItemEstoqueInativoException.class})
     public ProblemDetail lancarExcecaoRegraMovimentacaoEstoque(RuntimeException ex) {
         ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, ex.getMessage());
         problemDetail.setTitle("Movimentacao de estoque invalida");
@@ -113,6 +120,13 @@ public class GlobalExceptionHandler {
 
         problemDetail.setTitle("Requisição inválida");
 
+        return problemDetail;
+    }
+
+    @ExceptionHandler(ResponsavelNaoEncontradoException.class)
+    public ProblemDetail lancarExcecaoResponsavelNaoEncontrado(ResponsavelNaoEncontradoException ex){
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, ex.getMessage());
+        problemDetail.setTitle("Usuario não encontrado");
         return problemDetail;
     }
 
@@ -173,7 +187,7 @@ public class GlobalExceptionHandler {
         return problemDetail;
     }
 
-    // Invariantes dos objetos de domínio (Cliente, Veiculo, CpfCnpj...) violadas
+    // Invariantes dos objetos de domínio (Cliente, Veiculo, Servico, ItemEstoque...) violadas
     @ExceptionHandler(IllegalArgumentException.class)
     public ProblemDetail lancarExcecaoArgumentoInvalido(IllegalArgumentException ex) {
         ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, ex.getMessage());

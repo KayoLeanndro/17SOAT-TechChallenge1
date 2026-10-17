@@ -1,11 +1,13 @@
 package com.kap.mechanics_api.service;
 
+import com.kap.mechanics_api.core.movimentacaoestoque.usecase.BaixarItensDaOrdemServicoUseCase;
 import com.kap.mechanics_api.domain.HistoricoStatusOs;
 import com.kap.mechanics_api.domain.OrdemServico;
 import com.kap.mechanics_api.domain.StatusOrdemServico;
 import com.kap.mechanics_api.enums.StatusOrdemServicoEnum;
 import com.kap.mechanics_api.exception.TransicaoStatusInvalidaException;
 import com.kap.mechanics_api.repository.HistoricoStatusOsRepository;
+import com.kap.mechanics_api.repository.OrdemServicoRepository;
 import com.kap.mechanics_api.repository.StatusOrdemServicoRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Component;
@@ -17,18 +19,21 @@ import java.util.Set;
 public class TransicaoStatusOrdemServico {
 
     private final StatusOrdemServicoRepository statusRepository;
-    private final MovimentacaoEstoqueService movimentacaoEstoqueService;
+    private final BaixarItensDaOrdemServicoUseCase baixarItensDaOrdemServicoUseCase;
     private final HistoricoStatusOsRepository historicoStatusOsRepository;
     private final OrdemServicoItemService ordemServicoItemService;
+    private final OrdemServicoRepository ordemServicoRepository;
 
     public TransicaoStatusOrdemServico(StatusOrdemServicoRepository repository,
-                                       MovimentacaoEstoqueService movimentacaoEstoqueService,
+                                       BaixarItensDaOrdemServicoUseCase baixarItensDaOrdemServicoUseCase,
                                        HistoricoStatusOsRepository historicoStatusOsRepository, 
-                                      OrdemServicoItemService ordemServicoItemService) {
+                                      OrdemServicoItemService ordemServicoItemService,
+                                       OrdemServicoRepository ordemServicoRepository) {
         this.statusRepository = repository;
-        this.movimentacaoEstoqueService = movimentacaoEstoqueService;
+        this.baixarItensDaOrdemServicoUseCase = baixarItensDaOrdemServicoUseCase;
         this.historicoStatusOsRepository = historicoStatusOsRepository;
         this.ordemServicoItemService = ordemServicoItemService;
+        this.ordemServicoRepository = ordemServicoRepository;
     }
     
 
@@ -51,7 +56,9 @@ public class TransicaoStatusOrdemServico {
             if (ordemServicoItemService != null) {
                 ordemServicoItemService.copiarDoOrcamento(os);
             }
-            movimentacaoEstoqueService.baixarItensDaOrdemServico(os);
+            // o caso de uso de estoque lê a OS pelo banco, então o novo status precisa estar gravado antes
+            ordemServicoRepository.saveAndFlush(os);
+            baixarItensDaOrdemServicoUseCase.executar(os.getId());
         }
     }
 

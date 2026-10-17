@@ -2,23 +2,23 @@ package com.kap.mechanics_api.ordemservico;
 
 import com.kap.mechanics_api.adapter.persistence.entity.ClienteJpaEntity;
 import com.kap.mechanics_api.domain.HistoricoStatusOs;
-import com.kap.mechanics_api.domain.ItemEstoque;
-import com.kap.mechanics_api.domain.MovimentacaoEstoque;
+import com.kap.mechanics_api.adapter.persistence.entity.ItemEstoqueJpaEntity;
+import com.kap.mechanics_api.adapter.persistence.entity.MovimentacaoEstoqueJpaEntity;
 import com.kap.mechanics_api.domain.Orcamento;
 import com.kap.mechanics_api.domain.OrcamentoServico;
 import com.kap.mechanics_api.domain.OrdemServico;
-import com.kap.mechanics_api.domain.Servico;
-import com.kap.mechanics_api.domain.ServicoItem;
-import com.kap.mechanics_api.domain.ServicoItemId;
+import com.kap.mechanics_api.adapter.persistence.entity.ServicoJpaEntity;
+import com.kap.mechanics_api.adapter.persistence.entity.ServicoItemJpaEntity;
+import com.kap.mechanics_api.adapter.persistence.entity.ServicoItemJpaId;
 import com.kap.mechanics_api.domain.StatusOrdemServico;
 import com.kap.mechanics_api.domain.Usuario;
 import com.kap.mechanics_api.adapter.persistence.entity.VeiculoJpaEntity;
 import com.kap.mechanics_api.enums.StatusOrcamento;
 import com.kap.mechanics_api.enums.StatusOrdemServicoEnum;
-import com.kap.mechanics_api.enums.TipoItemEstoque;
-import com.kap.mechanics_api.enums.TipoMovimentacaoEstoque;
+import com.kap.mechanics_api.core.itemestoque.domain.TipoItemEstoque;
+import com.kap.mechanics_api.core.movimentacaoestoque.domain.TipoMovimentacaoEstoque;
 import com.kap.mechanics_api.enums.TipoUsuario;
-import com.kap.mechanics_api.exception.EstoqueInsuficienteException;
+import com.kap.mechanics_api.core.itemestoque.domain.EstoqueInsuficienteException;
 import com.kap.mechanics_api.exception.TransicaoStatusInvalidaException;
 import com.kap.mechanics_api.repository.ClienteRepository;
 import com.kap.mechanics_api.repository.HistoricoStatusOsRepository;
@@ -247,15 +247,15 @@ class TransicaoStatusOrdemServicoIntegrationTest {
     void deveDarBaixaNoEstoqueAoEntrarEmExecucao() {
         Orcamento orcamento = persistirOrcamento();
 
-        Servico servico = servicoRepository.save(
-                new Servico("Troca de pastilhas", "Freios", new BigDecimal("120.00"), 90, true));
+        ServicoJpaEntity servico = servicoRepository.save(
+                new ServicoJpaEntity("Troca de pastilhas", "Freios", new BigDecimal("120.00"), 90, true));
 
-        ItemEstoque item = itemEstoqueRepository.save(new ItemEstoque(
+        ItemEstoqueJpaEntity item = itemEstoqueRepository.save(new ItemEstoqueJpaEntity(
                 "Pastilha de freio", "Peca", TipoItemEstoque.PECA,
                 new BigDecimal("45.00"), 10, 1, true));
 
-        ServicoItem servicoItem = new ServicoItem();
-        servicoItem.setId(new ServicoItemId(servico.getId(), item.getId()));
+        ServicoItemJpaEntity servicoItem = new ServicoItemJpaEntity();
+        servicoItem.setId(new ServicoItemJpaId(servico.getId(), item.getId()));
         servicoItem.setServico(servico);
         servicoItem.setItemEstoque(item);
         servicoItem.setQuantidadePadrao(3);
@@ -271,9 +271,9 @@ class TransicaoStatusOrdemServicoIntegrationTest {
         assertThat(itemEstoqueRepository.findById(item.getId()).orElseThrow().getQuantidadeAtual())
                 .isEqualTo(7);
 
-        List<MovimentacaoEstoque> movimentacoes = movimentacaoEstoqueRepository.findAll();
+        List<MovimentacaoEstoqueJpaEntity> movimentacoes = movimentacaoEstoqueRepository.findAll();
         assertThat(movimentacoes).hasSize(1);
-        MovimentacaoEstoque saida = movimentacoes.get(0);
+        MovimentacaoEstoqueJpaEntity saida = movimentacoes.get(0);
         assertThat(saida.getTipo()).isEqualTo(TipoMovimentacaoEstoque.SAIDA);
         assertThat(saida.getQuantidade()).isEqualTo(3);
         assertThat(saida.getItemEstoque().getId()).isEqualTo(item.getId());
@@ -284,14 +284,14 @@ class TransicaoStatusOrdemServicoIntegrationTest {
     @DisplayName("deve desfazer status e histórico quando a baixa de estoque falhar")
     void deveDesfazerTransicaoQuandoEstoqueForInsuficiente() {
         Orcamento orcamento = persistirOrcamento();
-        Servico servico = servicoRepository.save(
-                new Servico("Troca de pastilhas", "Freios", new BigDecimal("120.00"), 90, true));
-        ItemEstoque item = itemEstoqueRepository.save(new ItemEstoque(
+        ServicoJpaEntity servico = servicoRepository.save(
+                new ServicoJpaEntity("Troca de pastilhas", "Freios", new BigDecimal("120.00"), 90, true));
+        ItemEstoqueJpaEntity item = itemEstoqueRepository.save(new ItemEstoqueJpaEntity(
                 "Pastilha de freio", "Peca", TipoItemEstoque.PECA,
                 new BigDecimal("45.00"), 2, 1, true));
 
-        ServicoItem servicoItem = new ServicoItem();
-        servicoItem.setId(new ServicoItemId(servico.getId(), item.getId()));
+        ServicoItemJpaEntity servicoItem = new ServicoItemJpaEntity();
+        servicoItem.setId(new ServicoItemJpaId(servico.getId(), item.getId()));
         servicoItem.setServico(servico);
         servicoItem.setItemEstoque(item);
         servicoItem.setQuantidadePadrao(3);

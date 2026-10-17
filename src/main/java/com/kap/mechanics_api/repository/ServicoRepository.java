@@ -1,9 +1,9 @@
 package com.kap.mechanics_api.repository;
 
-import com.kap.mechanics_api.domain.Servico;
+import com.kap.mechanics_api.adapter.persistence.entity.ServicoJpaEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface ServicoRepository extends JpaRepository<Servico, Integer> {
+public interface ServicoRepository extends JpaRepository<ServicoJpaEntity, Integer> {
 }

@@ -1,7 +1,7 @@
 package com.kap.mechanics_api.service;
 
 import com.kap.mechanics_api.dto.ordemservico.HistoricoStatusOsResponseDTO;
-import com.kap.mechanics_api.exception.OrdemServicoNaoEncontradaException;
+import com.kap.mechanics_api.core.ordemservico.usecase.OrdemServicoNaoEncontradaException;
 import com.kap.mechanics_api.repository.HistoricoStatusOsRepository;
 import com.kap.mechanics_api.repository.OrdemServicoRepository;
 import org.springframework.stereotype.Service;

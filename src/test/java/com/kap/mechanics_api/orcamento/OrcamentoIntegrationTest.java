@@ -1,11 +1,11 @@
 package com.kap.mechanics_api.orcamento;
 
 import com.kap.mechanics_api.adapter.persistence.entity.ClienteJpaEntity;
-import com.kap.mechanics_api.domain.ItemEstoque;
+import com.kap.mechanics_api.adapter.persistence.entity.ItemEstoqueJpaEntity;
 import com.kap.mechanics_api.domain.Orcamento;
-import com.kap.mechanics_api.domain.Servico;
-import com.kap.mechanics_api.domain.ServicoItem;
-import com.kap.mechanics_api.domain.ServicoItemId;
+import com.kap.mechanics_api.adapter.persistence.entity.ServicoJpaEntity;
+import com.kap.mechanics_api.adapter.persistence.entity.ServicoItemJpaEntity;
+import com.kap.mechanics_api.adapter.persistence.entity.ServicoItemJpaId;
 import com.kap.mechanics_api.domain.StatusOrdemServico;
 import com.kap.mechanics_api.domain.Usuario;
 import com.kap.mechanics_api.adapter.persistence.entity.VeiculoJpaEntity;
@@ -13,7 +13,7 @@ import com.kap.mechanics_api.dto.orcamento.AtualizacaoStatusOrcamentoRequestDTO;
 import com.kap.mechanics_api.dto.orcamento.GeracaoOrcamentoRequestDTO;
 import com.kap.mechanics_api.enums.StatusOrcamento;
 import com.kap.mechanics_api.enums.StatusOrdemServicoEnum;
-import com.kap.mechanics_api.enums.TipoItemEstoque;
+import com.kap.mechanics_api.core.itemestoque.domain.TipoItemEstoque;
 import com.kap.mechanics_api.enums.TipoUsuario;
 import com.kap.mechanics_api.repository.*;
 import org.junit.jupiter.api.BeforeEach;
@@ -156,18 +156,18 @@ class OrcamentoIntegrationTest {
         return veiculoRepository.save(veiculo);
     }
 
-    private Servico persistirServico(String nome, String valorMaoDeObra) {
-        Servico servico = new Servico(nome, "Descricao " + nome, new BigDecimal(valorMaoDeObra), 60, true);
+    private ServicoJpaEntity persistirServico(String nome, String valorMaoDeObra) {
+        ServicoJpaEntity servico = new ServicoJpaEntity(nome, "Descricao " + nome, new BigDecimal(valorMaoDeObra), 60, true);
         return servicoRepository.save(servico);
     }
 
-    private void vincularItemAoServico(Servico servico, String valorUnitario, int quantidadePadrao) {
-        ItemEstoque item = itemEstoqueRepository.save(new ItemEstoque(
+    private void vincularItemAoServico(ServicoJpaEntity servico, String valorUnitario, int quantidadePadrao) {
+        ItemEstoqueJpaEntity item = itemEstoqueRepository.save(new ItemEstoqueJpaEntity(
                 "Peca " + servico.getNome(), "Peca", TipoItemEstoque.PECA,
                 new BigDecimal(valorUnitario), 100, 1, true));
 
-        ServicoItem servicoItem = new ServicoItem();
-        servicoItem.setId(new ServicoItemId(servico.getId(), item.getId()));
+        ServicoItemJpaEntity servicoItem = new ServicoItemJpaEntity();
+        servicoItem.setId(new ServicoItemJpaId(servico.getId(), item.getId()));
         servicoItem.setServico(servico);
         servicoItem.setItemEstoque(item);
         servicoItem.setQuantidadePadrao(quantidadePadrao);
@@ -194,7 +194,7 @@ class OrcamentoIntegrationTest {
         seedStatusOrdemServico();
         ClienteJpaEntity clienteJpaEntity = persistirCliente();
         VeiculoJpaEntity veiculo = persistirVeiculo();
-        Servico servico = persistirServico("Troca de oleo", "100.00");
+        ServicoJpaEntity servico = persistirServico("Troca de oleo", "100.00");
 
         GeracaoOrcamentoRequestDTO request =
                 new GeracaoOrcamentoRequestDTO(clienteJpaEntity.getId(), veiculo.getId(), List.of(servico.getId()));
@@ -215,7 +215,7 @@ class OrcamentoIntegrationTest {
         seedStatusOrdemServico();
         ClienteJpaEntity clienteJpaEntity = persistirCliente();
         VeiculoJpaEntity veiculo = persistirVeiculo();
-        Servico servico = persistirServico("Troca de oleo", "150.00");
+        ServicoJpaEntity servico = persistirServico("Troca de oleo", "150.00");
 
         GeracaoOrcamentoRequestDTO request =
                 new GeracaoOrcamentoRequestDTO(clienteJpaEntity.getId(), veiculo.getId(), List.of(servico.getId()));
@@ -248,8 +248,8 @@ class OrcamentoIntegrationTest {
         seedStatusOrdemServico();
         ClienteJpaEntity clienteJpaEntity = persistirCliente();
         VeiculoJpaEntity veiculo = persistirVeiculo();
-        Servico servicoA = persistirServico("Alinhamento", "100.00");
-        Servico servicoB = persistirServico("Balanceamento", "80.00");
+        ServicoJpaEntity servicoA = persistirServico("Alinhamento", "100.00");
+        ServicoJpaEntity servicoB = persistirServico("Balanceamento", "80.00");
         vincularItemAoServico(servicoB, "10.00", 2);
 
         GeracaoOrcamentoRequestDTO request = new GeracaoOrcamentoRequestDTO(

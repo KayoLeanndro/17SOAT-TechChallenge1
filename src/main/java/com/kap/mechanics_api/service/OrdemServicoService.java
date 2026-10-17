@@ -12,7 +12,7 @@ import com.kap.mechanics_api.exception.OrcamentoNaoAprovadoException;
 import com.kap.mechanics_api.exception.OrcamentoNaoEncontradoException;
 import com.kap.mechanics_api.core.cliente.usecase.ClienteNaoEncontradoException;
 import com.kap.mechanics_api.exception.OrdemServicoJaExisteException;
-import com.kap.mechanics_api.exception.OrdemServicoNaoEncontradaException;
+import com.kap.mechanics_api.core.ordemservico.usecase.OrdemServicoNaoEncontradaException;
 import com.kap.mechanics_api.exception.UsuarioNaoEncontradoException;
 import com.kap.mechanics_api.mapper.OrdemServicoMapper;
 import com.kap.mechanics_api.repository.ClienteRepository;
