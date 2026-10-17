@@ -42,6 +42,10 @@ build/
 # backend.hcl contem a configuracao especifica de cada conta AWS.
 infra/terraform/**/backend.hcl
 !infra/terraform/**/backend.hcl.example
+tfplan
+*.tfplan
+*.tfvars
+!*.tfvars.example
 *.tfstate
 *.tfstate.*
 *.tfplan
