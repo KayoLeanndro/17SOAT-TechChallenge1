@@ -1,6 +1,6 @@
 package com.kap.mechanics_api.repository;
 
-import com.kap.mechanics_api.domain.HistoricoStatusOs;
+import com.kap.mechanics_api.adapter.persistence.entity.HistoricoStatusOsJpaEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -8,11 +8,11 @@ import org.springframework.data.repository.query.Param;
 import java.util.List;
 import java.util.Optional;
 
-public interface HistoricoStatusOsRepository extends JpaRepository<HistoricoStatusOs, Long> {
+public interface HistoricoStatusOsRepository extends JpaRepository<HistoricoStatusOsJpaEntity, Long> {
 
-    Optional<HistoricoStatusOs> findByOrdemServico_IdAndDataHoraFimIsNull(Integer ordemServicoId);
+    Optional<HistoricoStatusOsJpaEntity> findByOrdemServico_IdAndDataHoraFimIsNull(Integer ordemServicoId);
 
-    List<HistoricoStatusOs> findByOrdemServico_IdOrderByDataHoraInicioAsc(Integer ordemServicoId);
+    List<HistoricoStatusOsJpaEntity> findByOrdemServico_IdOrderByDataHoraInicioAsc(Integer ordemServicoId);
 
     @Query(value = """
             SELECT os.id AS "ordemServicoId",

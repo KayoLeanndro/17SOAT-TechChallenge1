@@ -1,68 +1,63 @@
 package com.kap.mechanics_api.adapter.persistence;
 
+import com.kap.mechanics_api.core.orcamento.gateway.OrcamentoGateway;
 import com.kap.mechanics_api.core.movimentacaoestoque.gateway.OrdemServicoEstoqueGateway;
 import com.kap.mechanics_api.core.movimentacaoestoque.gateway.OrdemServicoParaEstoque;
 import com.kap.mechanics_api.core.movimentacaoestoque.gateway.QuantidadeDeItem;
-import com.kap.mechanics_api.domain.OrdemServico;
-import com.kap.mechanics_api.enums.StatusOrdemServicoEnum;
-import com.kap.mechanics_api.repository.OrcamentoServicoRepository;
-import com.kap.mechanics_api.repository.OrdemServicoItemRepository;
-import com.kap.mechanics_api.repository.OrdemServicoRepository;
-import com.kap.mechanics_api.repository.ServicoItemRepository;
+import com.kap.mechanics_api.core.ordemservico.domain.OrdemServico;
+import com.kap.mechanics_api.core.ordemservico.gateway.OrdemServicoGateway;
+import com.kap.mechanics_api.core.servico.gateway.ComponentesDeServicoGateway;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.Optional;
 
 /**
- * Enquanto a Ordem de Serviço não é migrada, lê dela, via repositórios JPA, só o que o estoque precisa.
+ * Ponte entre o estoque e a ordem de serviço: responde ao estoque, na visão dele, usando os gateways
+ * dos contextos Ordem de Serviço, Orçamento e Serviço.
  */
 @Component
 public class OrdemServicoEstoqueJpaGateway implements OrdemServicoEstoqueGateway {
 
-    private final OrdemServicoRepository ordemServicoRepository;
-    private final OrdemServicoItemRepository ordemServicoItemRepository;
-    private final OrcamentoServicoRepository orcamentoServicoRepository;
-    private final ServicoItemRepository servicoItemRepository;
+    private final OrdemServicoGateway ordemServicoGateway;
+    private final OrcamentoGateway orcamentoGateway;
+    private final ComponentesDeServicoGateway componentesGateway;
 
-    public OrdemServicoEstoqueJpaGateway(OrdemServicoRepository ordemServicoRepository,
-                                         OrdemServicoItemRepository ordemServicoItemRepository,
-                                         OrcamentoServicoRepository orcamentoServicoRepository,
-                                         ServicoItemRepository servicoItemRepository) {
-        this.ordemServicoRepository = ordemServicoRepository;
-        this.ordemServicoItemRepository = ordemServicoItemRepository;
-        this.orcamentoServicoRepository = orcamentoServicoRepository;
-        this.servicoItemRepository = servicoItemRepository;
+    public OrdemServicoEstoqueJpaGateway(OrdemServicoGateway ordemServicoGateway, OrcamentoGateway orcamentoGateway,
+                                         ComponentesDeServicoGateway componentesGateway) {
+        this.ordemServicoGateway = ordemServicoGateway;
+        this.orcamentoGateway = orcamentoGateway;
+        this.componentesGateway = componentesGateway;
     }
 
     @Override
     public Optional<OrdemServicoParaEstoque> buscarPorId(Integer ordemServicoId) {
-        return ordemServicoRepository.findById(ordemServicoId).map(this::paraVisaoDoEstoque);
+        return ordemServicoGateway.pesquisarPorId(ordemServicoId).map(this::paraVisaoDoEstoque);
     }
 
     @Override
     public List<QuantidadeDeItem> listarLinhasDaOrdem(Integer ordemServicoId) {
-        return ordemServicoItemRepository.findByOrdemServico_Id(ordemServicoId).stream()
-                .map(linha -> new QuantidadeDeItem(
-                        linha.getItemEstoque() == null ? null : linha.getItemEstoque().getId(),
-                        linha.getQuantidade()))
-                .toList();
+        return ordemServicoGateway.pesquisarPorId(ordemServicoId)
+                .map(os -> os.getItens().stream()
+                        .map(linha -> new QuantidadeDeItem(linha.getItemEstoqueId(), linha.getQuantidade()))
+                        .toList())
+                .orElse(List.of());
     }
 
     @Override
     public List<QuantidadeDeItem> listarComponentesDosServicosOrcados(Integer ordemServicoId) {
-        return ordemServicoRepository.findById(ordemServicoId)
-                .map(os -> orcamentoServicoRepository.findByOrcamento_Id(os.getOrcamento().getId()).stream()
-                        .flatMap(servicoOrcado -> servicoItemRepository
-                                .findByServico_Id(servicoOrcado.getServico().getId()).stream())
+        return ordemServicoGateway.pesquisarPorId(ordemServicoId)
+                .flatMap(os -> orcamentoGateway.pesquisarPorId(os.getOrcamentoId()))
+                .map(orcamento -> orcamento.getServicosOrcados().stream()
+                        .flatMap(servicoOrcado -> componentesGateway.listarPorServico(servicoOrcado.servicoId())
+                                .stream())
                         .map(componente -> new QuantidadeDeItem(
-                                componente.getItemEstoque().getId(), componente.getQuantidadePadrao()))
+                                componente.itemEstoqueId(), componente.quantidadePadrao()))
                         .toList())
                 .orElse(List.of());
     }
 
     private OrdemServicoParaEstoque paraVisaoDoEstoque(OrdemServico os) {
-        boolean emExecucao = StatusOrdemServicoEnum.EM_EXECUCAO.name().equals(os.getStatusOrdemServico().getNome());
-        return new OrdemServicoParaEstoque(os.getId(), emExecucao, os.getUsuarioAtendente().getId());
+        return new OrdemServicoParaEstoque(os.getId(), os.estaEmExecucao(), os.getAtendenteId());
     }
 }

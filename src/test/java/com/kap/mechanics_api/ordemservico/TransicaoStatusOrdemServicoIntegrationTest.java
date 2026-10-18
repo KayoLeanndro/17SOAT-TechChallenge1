@@ -1,25 +1,25 @@
 package com.kap.mechanics_api.ordemservico;
 
 import com.kap.mechanics_api.adapter.persistence.entity.ClienteJpaEntity;
-import com.kap.mechanics_api.domain.HistoricoStatusOs;
+import com.kap.mechanics_api.adapter.persistence.entity.HistoricoStatusOsJpaEntity;
 import com.kap.mechanics_api.adapter.persistence.entity.ItemEstoqueJpaEntity;
 import com.kap.mechanics_api.adapter.persistence.entity.MovimentacaoEstoqueJpaEntity;
-import com.kap.mechanics_api.domain.Orcamento;
-import com.kap.mechanics_api.domain.OrcamentoServico;
-import com.kap.mechanics_api.domain.OrdemServico;
+import com.kap.mechanics_api.adapter.persistence.entity.OrcamentoJpaEntity;
+import com.kap.mechanics_api.adapter.persistence.entity.OrcamentoServicoJpaEntity;
+import com.kap.mechanics_api.adapter.persistence.entity.OrdemServicoJpaEntity;
 import com.kap.mechanics_api.adapter.persistence.entity.ServicoJpaEntity;
 import com.kap.mechanics_api.adapter.persistence.entity.ServicoItemJpaEntity;
 import com.kap.mechanics_api.adapter.persistence.entity.ServicoItemJpaId;
-import com.kap.mechanics_api.domain.StatusOrdemServico;
+import com.kap.mechanics_api.adapter.persistence.entity.StatusOrdemServicoJpaEntity;
 import com.kap.mechanics_api.domain.Usuario;
 import com.kap.mechanics_api.adapter.persistence.entity.VeiculoJpaEntity;
-import com.kap.mechanics_api.enums.StatusOrcamento;
-import com.kap.mechanics_api.enums.StatusOrdemServicoEnum;
+import com.kap.mechanics_api.core.orcamento.domain.StatusOrcamento;
+import com.kap.mechanics_api.core.ordemservico.domain.StatusOrdemServico;
 import com.kap.mechanics_api.core.itemestoque.domain.TipoItemEstoque;
 import com.kap.mechanics_api.core.movimentacaoestoque.domain.TipoMovimentacaoEstoque;
 import com.kap.mechanics_api.enums.TipoUsuario;
 import com.kap.mechanics_api.core.itemestoque.domain.EstoqueInsuficienteException;
-import com.kap.mechanics_api.exception.TransicaoStatusInvalidaException;
+import com.kap.mechanics_api.core.ordemservico.domain.TransicaoStatusInvalidaException;
 import com.kap.mechanics_api.repository.ClienteRepository;
 import com.kap.mechanics_api.repository.HistoricoStatusOsRepository;
 import com.kap.mechanics_api.repository.ItemEstoqueRepository;
@@ -32,7 +32,7 @@ import com.kap.mechanics_api.repository.ServicoRepository;
 import com.kap.mechanics_api.repository.StatusOrdemServicoRepository;
 import com.kap.mechanics_api.repository.UsuarioRepository;
 import com.kap.mechanics_api.repository.VeiculoRepository;
-import com.kap.mechanics_api.service.TransicaoStatusOrdemServico;
+import com.kap.mechanics_api.core.ordemservico.usecase.TransicionarStatusOrdemServicoUseCase;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -42,6 +42,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.transaction.support.TransactionTemplate;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -56,7 +57,10 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 class TransicaoStatusOrdemServicoIntegrationTest {
 
     @Autowired
-    private TransicaoStatusOrdemServico transicaoStatusOrdemServico;
+    private TransicionarStatusOrdemServicoUseCase transicionarStatusUseCase;
+
+    @Autowired
+    private TransactionTemplate transactionTemplate;
 
     @Autowired
     private OrdemServicoRepository ordemServicoRepository;
@@ -112,14 +116,14 @@ class TransicaoStatusOrdemServicoIntegrationTest {
     }
 
     private void seedStatusOrdemServico() {
-        for (StatusOrdemServicoEnum valor : StatusOrdemServicoEnum.values()) {
-            StatusOrdemServico status = new StatusOrdemServico();
+        for (StatusOrdemServico valor : StatusOrdemServico.values()) {
+            StatusOrdemServicoJpaEntity status = new StatusOrdemServicoJpaEntity();
             status.setNome(valor.name());
             statusOrdemServicoRepository.save(status);
         }
     }
 
-    private StatusOrdemServico status(StatusOrdemServicoEnum valor) {
+    private StatusOrdemServicoJpaEntity status(StatusOrdemServico valor) {
         return statusOrdemServicoRepository.findByNome(valor.name()).orElseThrow();
     }
 
@@ -133,7 +137,7 @@ class TransicaoStatusOrdemServicoIntegrationTest {
         return usuarioRepository.save(usuario);
     }
 
-    private Orcamento persistirOrcamento() {
+    private OrcamentoJpaEntity persistirOrcamento() {
         ClienteJpaEntity clienteJpaEntity = clienteRepository.save(
                 new ClienteJpaEntity("João Silva", "12345678900", "51999999999", "joao@email.com", LocalDateTime.now()));
 
@@ -145,7 +149,7 @@ class TransicaoStatusOrdemServicoIntegrationTest {
         veiculo.setDataCriacao(LocalDateTime.now());
         veiculo = veiculoRepository.save(veiculo);
 
-        Orcamento orcamento = new Orcamento();
+        OrcamentoJpaEntity orcamento = new OrcamentoJpaEntity();
         orcamento.setCliente(clienteJpaEntity);
         orcamento.setVeiculo(veiculo);
         orcamento.setValorTotal(new BigDecimal("100.00"));
@@ -154,31 +158,36 @@ class TransicaoStatusOrdemServicoIntegrationTest {
         return orcamentoRepository.save(orcamento);
     }
 
-    private OrdemServico persistirOrdemServico(Orcamento orcamento, StatusOrdemServicoEnum statusAtual) {
-        OrdemServico ordemServico = new OrdemServico();
+    private OrdemServicoJpaEntity persistirOrdemServico(OrcamentoJpaEntity orcamento, StatusOrdemServico statusAtual) {
+        OrdemServicoJpaEntity ordemServico = new OrdemServicoJpaEntity();
         ordemServico.setOrcamento(orcamento);
         ordemServico.setUsuarioAtendente(persistirUsuario());
         ordemServico.setStatusOrdemServico(status(statusAtual));
         LocalDateTime dataAbertura = LocalDateTime.now();
         ordemServico.setDataAbertura(dataAbertura);
-        OrdemServico ordemServicoSalva = ordemServicoRepository.save(ordemServico);
-        historicoStatusOsRepository.save(new HistoricoStatusOs(
+        OrdemServicoJpaEntity ordemServicoSalva = ordemServicoRepository.save(ordemServico);
+        historicoStatusOsRepository.save(new HistoricoStatusOsJpaEntity(
                 ordemServicoSalva, ordemServicoSalva.getStatusOrdemServico(), dataAbertura));
         return ordemServicoSalva;
+    }
+
+    // O controller abre a transação em volta do caso de uso; aqui o teste faz o mesmo.
+    private void transicionar(OrdemServicoJpaEntity ordemServico, StatusOrdemServico novoStatus) {
+        transactionTemplate.executeWithoutResult(
+                tx -> transicionarStatusUseCase.executar(ordemServico.getId(), novoStatus));
     }
 
     @Test
     @DisplayName("deve transicionar de RECEBIDA para EM_DIAGNOSTICO e persistir o novo status")
     void deveTransicionarDeRecebidaParaEmDiagnostico() {
-        OrdemServico ordemServico =
-                persistirOrdemServico(persistirOrcamento(), StatusOrdemServicoEnum.RECEBIDA);
+        OrdemServicoJpaEntity ordemServico =
+                persistirOrdemServico(persistirOrcamento(), StatusOrdemServico.RECEBIDA);
 
-        transicaoStatusOrdemServico.transicionar(ordemServico, StatusOrdemServicoEnum.EM_DIAGNOSTICO);
-        ordemServicoRepository.save(ordemServico);
+        transicionar(ordemServico, StatusOrdemServico.EM_DIAGNOSTICO);
 
-        OrdemServico recarregada = ordemServicoRepository.findById(ordemServico.getId()).orElseThrow();
+        OrdemServicoJpaEntity recarregada = ordemServicoRepository.findById(ordemServico.getId()).orElseThrow();
         assertThat(recarregada.getStatusOrdemServico().getNome())
-                .isEqualTo(StatusOrdemServicoEnum.EM_DIAGNOSTICO.name());
+                .isEqualTo(StatusOrdemServico.EM_DIAGNOSTICO.name());
         assertThat(recarregada.getStatusOrdemServico().getId()).isNotNull();
     }
 
@@ -191,12 +200,10 @@ class TransicaoStatusOrdemServicoIntegrationTest {
     })
     @DisplayName("deve permitir todas as transições válidas do fluxo da ordem de serviço")
     void devePermitirTodasAsTransicoesValidasDoFluxo(String statusAtual, String statusDestino) {
-        OrdemServico ordemServico = persistirOrdemServico(
-                persistirOrcamento(), StatusOrdemServicoEnum.valueOf(statusAtual));
+        OrdemServicoJpaEntity ordemServico = persistirOrdemServico(
+                persistirOrcamento(), StatusOrdemServico.valueOf(statusAtual));
 
-        transicaoStatusOrdemServico.transicionar(
-                ordemServico, StatusOrdemServicoEnum.valueOf(statusDestino));
-        ordemServicoRepository.save(ordemServico);
+        transicionar(ordemServico, StatusOrdemServico.valueOf(statusDestino));
 
         assertThat(ordemServicoRepository.findById(ordemServico.getId()).orElseThrow()
                 .getStatusOrdemServico().getNome())
@@ -206,46 +213,43 @@ class TransicaoStatusOrdemServicoIntegrationTest {
     @Test
     @DisplayName("deve lançar TransicaoStatusInvalidaException ao pular etapas do fluxo")
     void deveLancarExcecaoAoPularEtapas() {
-        OrdemServico ordemServico =
-                persistirOrdemServico(persistirOrcamento(), StatusOrdemServicoEnum.RECEBIDA);
+        OrdemServicoJpaEntity ordemServico =
+                persistirOrdemServico(persistirOrcamento(), StatusOrdemServico.RECEBIDA);
 
-        assertThatThrownBy(() -> transicaoStatusOrdemServico.transicionar(
-                ordemServico, StatusOrdemServicoEnum.EM_EXECUCAO))
+        assertThatThrownBy(() -> transicionar(ordemServico, StatusOrdemServico.EM_EXECUCAO))
                 .isInstanceOf(TransicaoStatusInvalidaException.class)
                 .hasMessageContaining("RECEBIDA")
                 .hasMessageContaining("EM_EXECUCAO");
 
         assertThat(ordemServicoRepository.findById(ordemServico.getId()).orElseThrow()
                 .getStatusOrdemServico().getNome())
-                .isEqualTo(StatusOrdemServicoEnum.RECEBIDA.name());
+                .isEqualTo(StatusOrdemServico.RECEBIDA.name());
     }
 
     @Test
     @DisplayName("deve lançar TransicaoStatusInvalidaException ao tentar retroceder no fluxo")
     void deveLancarExcecaoAoRetrocederNoFluxo() {
-        OrdemServico ordemServico =
-                persistirOrdemServico(persistirOrcamento(), StatusOrdemServicoEnum.EM_EXECUCAO);
+        OrdemServicoJpaEntity ordemServico =
+                persistirOrdemServico(persistirOrcamento(), StatusOrdemServico.EM_EXECUCAO);
 
-        assertThatThrownBy(() -> transicaoStatusOrdemServico.transicionar(
-                ordemServico, StatusOrdemServicoEnum.RECEBIDA))
+        assertThatThrownBy(() -> transicionar(ordemServico, StatusOrdemServico.RECEBIDA))
                 .isInstanceOf(TransicaoStatusInvalidaException.class);
     }
 
     @Test
     @DisplayName("deve lançar TransicaoStatusInvalidaException ao transicionar uma OS já entregue")
     void deveLancarExcecaoAoTransicionarOrdemServicoEntregue() {
-        OrdemServico ordemServico =
-                persistirOrdemServico(persistirOrcamento(), StatusOrdemServicoEnum.ENTREGUE);
+        OrdemServicoJpaEntity ordemServico =
+                persistirOrdemServico(persistirOrcamento(), StatusOrdemServico.ENTREGUE);
 
-        assertThatThrownBy(() -> transicaoStatusOrdemServico.transicionar(
-                ordemServico, StatusOrdemServicoEnum.FINALIZADA))
+        assertThatThrownBy(() -> transicionar(ordemServico, StatusOrdemServico.FINALIZADA))
                 .isInstanceOf(TransicaoStatusInvalidaException.class);
     }
 
     @Test
     @DisplayName("deve dar baixa no estoque e registrar movimentação de saída ao transicionar para EM_EXECUCAO")
     void deveDarBaixaNoEstoqueAoEntrarEmExecucao() {
-        Orcamento orcamento = persistirOrcamento();
+        OrcamentoJpaEntity orcamento = persistirOrcamento();
 
         ServicoJpaEntity servico = servicoRepository.save(
                 new ServicoJpaEntity("Troca de pastilhas", "Freios", new BigDecimal("120.00"), 90, true));
@@ -261,12 +265,12 @@ class TransicaoStatusOrdemServicoIntegrationTest {
         servicoItem.setQuantidadePadrao(3);
         servicoItemRepository.save(servicoItem);
 
-        orcamentoServicoRepository.save(new OrcamentoServico(orcamento, servico, new BigDecimal("255.00")));
+        orcamentoServicoRepository.save(new OrcamentoServicoJpaEntity(orcamento, servico, new BigDecimal("255.00")));
 
-        OrdemServico ordemServico =
-                persistirOrdemServico(orcamento, StatusOrdemServicoEnum.EM_DIAGNOSTICO);
+        OrdemServicoJpaEntity ordemServico =
+                persistirOrdemServico(orcamento, StatusOrdemServico.EM_DIAGNOSTICO);
 
-        transicaoStatusOrdemServico.transicionar(ordemServico, StatusOrdemServicoEnum.EM_EXECUCAO);
+        transicionar(ordemServico, StatusOrdemServico.EM_EXECUCAO);
 
         assertThat(itemEstoqueRepository.findById(item.getId()).orElseThrow().getQuantidadeAtual())
                 .isEqualTo(7);
@@ -283,7 +287,7 @@ class TransicaoStatusOrdemServicoIntegrationTest {
     @Test
     @DisplayName("deve desfazer status e histórico quando a baixa de estoque falhar")
     void deveDesfazerTransicaoQuandoEstoqueForInsuficiente() {
-        Orcamento orcamento = persistirOrcamento();
+        OrcamentoJpaEntity orcamento = persistirOrcamento();
         ServicoJpaEntity servico = servicoRepository.save(
                 new ServicoJpaEntity("Troca de pastilhas", "Freios", new BigDecimal("120.00"), 90, true));
         ItemEstoqueJpaEntity item = itemEstoqueRepository.save(new ItemEstoqueJpaEntity(
@@ -297,17 +301,16 @@ class TransicaoStatusOrdemServicoIntegrationTest {
         servicoItem.setQuantidadePadrao(3);
         servicoItemRepository.save(servicoItem);
         orcamentoServicoRepository.save(
-                new OrcamentoServico(orcamento, servico, new BigDecimal("255.00")));
-        OrdemServico ordemServico =
-                persistirOrdemServico(orcamento, StatusOrdemServicoEnum.EM_DIAGNOSTICO);
+                new OrcamentoServicoJpaEntity(orcamento, servico, new BigDecimal("255.00")));
+        OrdemServicoJpaEntity ordemServico =
+                persistirOrdemServico(orcamento, StatusOrdemServico.EM_DIAGNOSTICO);
 
-        assertThatThrownBy(() -> transicaoStatusOrdemServico.transicionar(
-                ordemServico, StatusOrdemServicoEnum.EM_EXECUCAO))
+        assertThatThrownBy(() -> transicionar(ordemServico, StatusOrdemServico.EM_EXECUCAO))
                 .isInstanceOf(EstoqueInsuficienteException.class);
 
-        OrdemServico recarregada = ordemServicoRepository.findById(ordemServico.getId()).orElseThrow();
+        OrdemServicoJpaEntity recarregada = ordemServicoRepository.findById(ordemServico.getId()).orElseThrow();
         assertThat(recarregada.getStatusOrdemServico().getNome())
-                .isEqualTo(StatusOrdemServicoEnum.EM_DIAGNOSTICO.name());
+                .isEqualTo(StatusOrdemServico.EM_DIAGNOSTICO.name());
         assertThat(itemEstoqueRepository.findById(item.getId()).orElseThrow().getQuantidadeAtual())
                 .isEqualTo(2);
         assertThat(movimentacaoEstoqueRepository.count()).isZero();
@@ -316,7 +319,7 @@ class TransicaoStatusOrdemServicoIntegrationTest {
                 .findByOrdemServico_IdOrderByDataHoraInicioAsc(ordemServico.getId());
         assertThat(historico).hasSize(1);
         assertThat(historico.getFirst().getStatus().getNome())
-                .isEqualTo(StatusOrdemServicoEnum.EM_DIAGNOSTICO.name());
+                .isEqualTo(StatusOrdemServico.EM_DIAGNOSTICO.name());
         assertThat(historico.getFirst().getDataHoraFim()).isNull();
     }
 }

@@ -2,17 +2,17 @@ package com.kap.mechanics_api.orcamento;
 
 import com.kap.mechanics_api.adapter.persistence.entity.ClienteJpaEntity;
 import com.kap.mechanics_api.adapter.persistence.entity.ItemEstoqueJpaEntity;
-import com.kap.mechanics_api.domain.Orcamento;
+import com.kap.mechanics_api.adapter.persistence.entity.OrcamentoJpaEntity;
 import com.kap.mechanics_api.adapter.persistence.entity.ServicoJpaEntity;
 import com.kap.mechanics_api.adapter.persistence.entity.ServicoItemJpaEntity;
 import com.kap.mechanics_api.adapter.persistence.entity.ServicoItemJpaId;
-import com.kap.mechanics_api.domain.StatusOrdemServico;
+import com.kap.mechanics_api.adapter.persistence.entity.StatusOrdemServicoJpaEntity;
 import com.kap.mechanics_api.domain.Usuario;
 import com.kap.mechanics_api.adapter.persistence.entity.VeiculoJpaEntity;
 import com.kap.mechanics_api.dto.orcamento.AtualizacaoStatusOrcamentoRequestDTO;
 import com.kap.mechanics_api.dto.orcamento.GeracaoOrcamentoRequestDTO;
-import com.kap.mechanics_api.enums.StatusOrcamento;
-import com.kap.mechanics_api.enums.StatusOrdemServicoEnum;
+import com.kap.mechanics_api.core.orcamento.domain.StatusOrcamento;
+import com.kap.mechanics_api.core.ordemservico.domain.StatusOrdemServico;
 import com.kap.mechanics_api.core.itemestoque.domain.TipoItemEstoque;
 import com.kap.mechanics_api.enums.TipoUsuario;
 import com.kap.mechanics_api.repository.*;
@@ -124,8 +124,8 @@ class OrcamentoIntegrationTest {
     }
 
     private void seedStatusOrdemServico() {
-        for (StatusOrdemServicoEnum valor : StatusOrdemServicoEnum.values()) {
-            StatusOrdemServico status = new StatusOrdemServico();
+        for (StatusOrdemServico valor : StatusOrdemServico.values()) {
+            StatusOrdemServicoJpaEntity status = new StatusOrdemServicoJpaEntity();
             status.setNome(valor.name());
             statusOrdemServicoRepository.save(status);
         }
@@ -174,8 +174,8 @@ class OrcamentoIntegrationTest {
         servicoItemRepository.save(servicoItem);
     }
 
-    private Orcamento persistirOrcamento(StatusOrcamento status) {
-        Orcamento orcamento = new Orcamento();
+    private OrcamentoJpaEntity persistirOrcamento(StatusOrcamento status) {
+        OrcamentoJpaEntity orcamento = new OrcamentoJpaEntity();
         orcamento.setCliente(persistirCliente());
         orcamento.setVeiculo(persistirVeiculo());
         orcamento.setValorTotal(new BigDecimal("100.00"));
@@ -189,7 +189,7 @@ class OrcamentoIntegrationTest {
      * associada em AGUARDANDO_APROVACAO. Necessário para exercitar a atualização de status, que
      * transiciona a OS ao aprovar/rejeitar o orçamento.
      */
-    private Orcamento gerarOrcamentoPendenteViaApi() throws Exception {
+    private OrcamentoJpaEntity gerarOrcamentoPendenteViaApi() throws Exception {
         persistirUsuario(LOGIN_ATENDENTE);
         seedStatusOrdemServico();
         ClienteJpaEntity clienteJpaEntity = persistirCliente();
@@ -227,9 +227,9 @@ class OrcamentoIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(content().string("Orçamento gerado com sucesso."));
 
-        List<Orcamento> orcamentos = orcamentoRepository.findAll();
+        List<OrcamentoJpaEntity> orcamentos = orcamentoRepository.findAll();
         assertThat(orcamentos).hasSize(1);
-        Orcamento orcamento = orcamentos.get(0);
+        OrcamentoJpaEntity orcamento = orcamentos.get(0);
         assertThat(orcamento.getStatusOrcamento()).isEqualTo(StatusOrcamento.PENDENTE);
         assertThat(orcamento.getValorTotal()).isEqualByComparingTo("150.00");
 
@@ -238,7 +238,7 @@ class OrcamentoIntegrationTest {
         assertThat(ordemServicoRepository.findAll()).hasSize(1);
         assertThat(ordemServicoRepository.findByOrcamento_Id(orcamento.getId()).orElseThrow()
                 .getStatusOrdemServico().getNome())
-                .isEqualTo(StatusOrdemServicoEnum.AGUARDANDO_APROVACAO.name());
+                .isEqualTo(StatusOrdemServico.AGUARDANDO_APROVACAO.name());
     }
 
     @Test
@@ -261,7 +261,7 @@ class OrcamentoIntegrationTest {
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk());
 
-        Orcamento orcamento = orcamentoRepository.findAll().get(0);
+        OrcamentoJpaEntity orcamento = orcamentoRepository.findAll().get(0);
         assertThat(orcamento.getValorTotal()).isEqualByComparingTo("200.00");
         assertThat(orcamentoServicoRepository.findByOrcamento_Id(orcamento.getId())).hasSize(2);
     }
@@ -300,7 +300,7 @@ class OrcamentoIntegrationTest {
     @Test
     @DisplayName("deve atualizar o status do orçamento para APROVADO e registrar a data de resposta")
     void deveAtualizarStatusDoOrcamentoParaAprovado() throws Exception {
-        Orcamento orcamento = gerarOrcamentoPendenteViaApi();
+        OrcamentoJpaEntity orcamento = gerarOrcamentoPendenteViaApi();
         AtualizacaoStatusOrcamentoRequestDTO request = new AtualizacaoStatusOrcamentoRequestDTO("APROVADO");
 
         mockMvc.perform(patch(ENDPOINT + "/" + orcamento.getId() + "/status")
@@ -310,7 +310,7 @@ class OrcamentoIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(content().string("status do orçamento atualizado com sucesso!"));
 
-        Orcamento atualizado = orcamentoRepository.findById(orcamento.getId()).orElseThrow();
+        OrcamentoJpaEntity atualizado = orcamentoRepository.findById(orcamento.getId()).orElseThrow();
         assertThat(atualizado.getStatusOrcamento()).isEqualTo(StatusOrcamento.APROVADO);
         assertThat(atualizado.getDataResposta()).isNotNull();
     }
@@ -318,7 +318,7 @@ class OrcamentoIntegrationTest {
     @Test
     @DisplayName("deve aceitar o status informado em caixa baixa ao atualizar o orçamento")
     void deveAceitarStatusEmCaixaBaixa() throws Exception {
-        Orcamento orcamento = gerarOrcamentoPendenteViaApi();
+        OrcamentoJpaEntity orcamento = gerarOrcamentoPendenteViaApi();
         AtualizacaoStatusOrcamentoRequestDTO request = new AtualizacaoStatusOrcamentoRequestDTO("aprovado");
 
         mockMvc.perform(patch(ENDPOINT + "/" + orcamento.getId() + "/status")
@@ -334,7 +334,7 @@ class OrcamentoIntegrationTest {
     @Test
     @DisplayName("deve retornar 400 ao atualizar o orçamento com um status inexistente")
     void deveRetornar400AoAtualizarComStatusInvalido() throws Exception {
-        Orcamento orcamento = persistirOrcamento(StatusOrcamento.PENDENTE);
+        OrcamentoJpaEntity orcamento = persistirOrcamento(StatusOrcamento.PENDENTE);
         AtualizacaoStatusOrcamentoRequestDTO request = new AtualizacaoStatusOrcamentoRequestDTO("FINALIZADO");
 
         mockMvc.perform(patch(ENDPOINT + "/" + orcamento.getId() + "/status")
@@ -351,7 +351,7 @@ class OrcamentoIntegrationTest {
     @Test
     @DisplayName("deve retornar 400 ao atualizar o status do orçamento com o corpo em branco")
     void deveRetornar400AoAtualizarStatusComCorpoEmBranco() throws Exception {
-        Orcamento orcamento = persistirOrcamento(StatusOrcamento.PENDENTE);
+        OrcamentoJpaEntity orcamento = persistirOrcamento(StatusOrcamento.PENDENTE);
         AtualizacaoStatusOrcamentoRequestDTO request = new AtualizacaoStatusOrcamentoRequestDTO("");
 
         mockMvc.perform(patch(ENDPOINT + "/" + orcamento.getId() + "/status")

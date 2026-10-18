@@ -31,7 +31,7 @@ import com.kap.mechanics_api.core.movimentacaoestoque.gateway.OrdemServicoEstoqu
 import com.kap.mechanics_api.core.movimentacaoestoque.gateway.OrdemServicoParaEstoque;
 import com.kap.mechanics_api.core.movimentacaoestoque.gateway.ResponsavelMovimentacaoGateway;
 import com.kap.mechanics_api.core.ordemservico.usecase.OrdemServicoNaoEncontradaException;
-import com.kap.mechanics_api.core.ordemservico.usecase.OrdemServicoNaoEstaEmExecucaoException;
+import com.kap.mechanics_api.core.ordemservico.domain.OrdemServicoNaoEstaEmExecucaoException;
 
 @ExtendWith(MockitoExtension.class)
 class RegistrarSaidaEstoqueUseCaseTest {

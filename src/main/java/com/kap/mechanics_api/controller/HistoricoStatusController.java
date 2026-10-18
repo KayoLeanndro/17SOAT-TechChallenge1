@@ -1,7 +1,8 @@
 package com.kap.mechanics_api.controller;
 
+import com.kap.mechanics_api.adapter.web.OrdemServicoWebMapper;
+import com.kap.mechanics_api.core.ordemservico.usecase.ConsultarHistoricoDeStatusUseCase;
 import com.kap.mechanics_api.dto.ordemservico.HistoricoStatusOsResponseDTO;
-import com.kap.mechanics_api.service.HistoricoStatusOsService;
 import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -16,16 +17,19 @@ import java.util.List;
 @PreAuthorize("hasAnyRole('ADMIN', 'ATENDENTE')")
 public class HistoricoStatusController {
 
-    private final HistoricoStatusOsService historicoStatusOsService;
+    private final ConsultarHistoricoDeStatusUseCase consultarHistoricoUseCase;
+    private final OrdemServicoWebMapper ordemServicoMapper;
 
-    public HistoricoStatusController(HistoricoStatusOsService historicoStatusOsService) {
-        this.historicoStatusOsService = historicoStatusOsService;
+    public HistoricoStatusController(ConsultarHistoricoDeStatusUseCase consultarHistoricoUseCase,
+                                     OrdemServicoWebMapper ordemServicoMapper) {
+        this.consultarHistoricoUseCase = consultarHistoricoUseCase;
+        this.ordemServicoMapper = ordemServicoMapper;
     }
 
     @GetMapping("/{ordemServicoId}/historico-status")
     @Operation(summary = "Consultar o histórico de status de uma ordem de serviço")
     public List<HistoricoStatusOsResponseDTO> buscarPorOrdemServico(
             @PathVariable Integer ordemServicoId) {
-        return historicoStatusOsService.buscarPorOrdemServico(ordemServicoId);
+        return ordemServicoMapper.paraDtoHistorico(consultarHistoricoUseCase.executar(ordemServicoId));
     }
 }

@@ -3,15 +3,15 @@ package com.kap.mechanics_api.ordemservico;
 import com.kap.mechanics_api.adapter.persistence.entity.ServicoJpaEntity;
 
 import com.kap.mechanics_api.adapter.persistence.entity.ClienteJpaEntity;
-import com.kap.mechanics_api.domain.HistoricoStatusOs;
-import com.kap.mechanics_api.domain.Orcamento;
-import com.kap.mechanics_api.domain.OrdemServico;
-import com.kap.mechanics_api.domain.StatusOrdemServico;
+import com.kap.mechanics_api.adapter.persistence.entity.HistoricoStatusOsJpaEntity;
+import com.kap.mechanics_api.adapter.persistence.entity.OrcamentoJpaEntity;
+import com.kap.mechanics_api.adapter.persistence.entity.OrdemServicoJpaEntity;
+import com.kap.mechanics_api.adapter.persistence.entity.StatusOrdemServicoJpaEntity;
 import com.kap.mechanics_api.domain.Usuario;
 import com.kap.mechanics_api.adapter.persistence.entity.VeiculoJpaEntity;
 import com.kap.mechanics_api.dto.ordemservico.AtualizacaoStatusOrdemServicoRequestDTO;
-import com.kap.mechanics_api.enums.StatusOrcamento;
-import com.kap.mechanics_api.enums.StatusOrdemServicoEnum;
+import com.kap.mechanics_api.core.orcamento.domain.StatusOrcamento;
+import com.kap.mechanics_api.core.ordemservico.domain.StatusOrdemServico;
 import com.kap.mechanics_api.enums.TipoUsuario;
 import com.kap.mechanics_api.repository.*;
 import org.junit.jupiter.api.BeforeEach;
@@ -125,14 +125,14 @@ class OrdemServicoIntegrationTest {
     }
 
     private void seedStatusOrdemServico() {
-        for (StatusOrdemServicoEnum valor : StatusOrdemServicoEnum.values()) {
-            StatusOrdemServico status = new StatusOrdemServico();
+        for (StatusOrdemServico valor : StatusOrdemServico.values()) {
+            StatusOrdemServicoJpaEntity status = new StatusOrdemServicoJpaEntity();
             status.setNome(valor.name());
             statusOrdemServicoRepository.save(status);
         }
     }
 
-    private StatusOrdemServico buscarStatus(StatusOrdemServicoEnum valor) {
+    private StatusOrdemServicoJpaEntity buscarStatus(StatusOrdemServico valor) {
         return statusOrdemServicoRepository.findByNome(valor.name()).orElseThrow();
     }
 
@@ -146,7 +146,7 @@ class OrdemServicoIntegrationTest {
         return usuarioRepository.save(usuario);
     }
 
-    private Orcamento persistirOrcamento(StatusOrcamento statusOrcamento) {
+    private OrcamentoJpaEntity persistirOrcamento(StatusOrcamento statusOrcamento) {
         ClienteJpaEntity clienteJpaEntity = clienteRepository.save(
                 new ClienteJpaEntity("João Silva", "12345678900", "51999999999", "joao@email.com", LocalDateTime.now()));
 
@@ -158,7 +158,7 @@ class OrdemServicoIntegrationTest {
         veiculo.setDataCriacao(LocalDateTime.now());
         veiculo = veiculoRepository.save(veiculo);
 
-        Orcamento orcamento = new Orcamento();
+        OrcamentoJpaEntity orcamento = new OrcamentoJpaEntity();
         orcamento.setCliente(clienteJpaEntity);
         orcamento.setVeiculo(veiculo);
         orcamento.setValorTotal(new java.math.BigDecimal("100.00"));
@@ -167,15 +167,15 @@ class OrdemServicoIntegrationTest {
         return orcamentoRepository.save(orcamento);
     }
 
-    private OrdemServico persistirOrdemServico(Orcamento orcamento, Usuario usuario, StatusOrdemServicoEnum statusAtual) {
-        OrdemServico ordemServico = new OrdemServico();
+    private OrdemServicoJpaEntity persistirOrdemServico(OrcamentoJpaEntity orcamento, Usuario usuario, StatusOrdemServico statusAtual) {
+        OrdemServicoJpaEntity ordemServico = new OrdemServicoJpaEntity();
         ordemServico.setOrcamento(orcamento);
         ordemServico.setUsuarioAtendente(usuario);
         ordemServico.setStatusOrdemServico(buscarStatus(statusAtual));
         LocalDateTime dataAbertura = LocalDateTime.now();
         ordemServico.setDataAbertura(dataAbertura);
-        OrdemServico ordemServicoSalva = ordemServicoRepository.save(ordemServico);
-        historicoStatusOsRepository.save(new HistoricoStatusOs(
+        OrdemServicoJpaEntity ordemServicoSalva = ordemServicoRepository.save(ordemServico);
+        historicoStatusOsRepository.save(new HistoricoStatusOsJpaEntity(
                 ordemServicoSalva, ordemServicoSalva.getStatusOrdemServico(), dataAbertura));
         return ordemServicoSalva;
     }
@@ -185,23 +185,23 @@ class OrdemServicoIntegrationTest {
     void deveGerarOrdemServicoParaOrcamentoAprovado() throws Exception {
         seedStatusOrdemServico();
         Usuario usuario = persistirUsuario();
-        Orcamento orcamento = persistirOrcamento(StatusOrcamento.APROVADO);
+        OrcamentoJpaEntity orcamento = persistirOrcamento(StatusOrcamento.APROVADO);
 
         mockMvc.perform(post(ENDPOINT + "/" + orcamento.getId()).with(atendente()))
                 .andExpect(status().isCreated())
                 .andExpect(header().string("Location", containsString("/api/ordem-servico/")));
 
         assertThat(ordemServicoRepository.findAll()).hasSize(1);
-        OrdemServico gerada = ordemServicoRepository.findByOrcamento_Id(orcamento.getId()).orElseThrow();
+        OrdemServicoJpaEntity gerada = ordemServicoRepository.findByOrcamento_Id(orcamento.getId()).orElseThrow();
         assertThat(gerada.getStatusOrdemServico().getNome())
-                .isEqualTo(StatusOrdemServicoEnum.AGUARDANDO_APROVACAO.name());
+                .isEqualTo(StatusOrdemServico.AGUARDANDO_APROVACAO.name());
         assertThat(gerada.getUsuarioAtendente().getId()).isEqualTo(usuario.getId());
 
         var historico = historicoStatusOsRepository
                 .findByOrdemServico_IdOrderByDataHoraInicioAsc(gerada.getId());
         assertThat(historico).hasSize(1);
         assertThat(historico.getFirst().getStatus().getNome())
-                .isEqualTo(StatusOrdemServicoEnum.AGUARDANDO_APROVACAO.name());
+                .isEqualTo(StatusOrdemServico.AGUARDANDO_APROVACAO.name());
         assertThat(historico.getFirst().getDataHoraInicio()).isEqualTo(gerada.getDataAbertura());
         assertThat(historico.getFirst().getDataHoraFim()).isNull();
     }
@@ -211,7 +211,7 @@ class OrdemServicoIntegrationTest {
     void deveRetornar404AoGerarOrdemServicoParaOrcamentoNaoAprovado() throws Exception {
         seedStatusOrdemServico();
         persistirUsuario();
-        Orcamento orcamento = persistirOrcamento(StatusOrcamento.PENDENTE);
+        OrcamentoJpaEntity orcamento = persistirOrcamento(StatusOrcamento.PENDENTE);
 
         mockMvc.perform(post(ENDPOINT + "/" + orcamento.getId()).with(atendente()))
                 .andExpect(status().isNotFound())
@@ -237,8 +237,8 @@ class OrdemServicoIntegrationTest {
     void deveRetornar404AoGerarOrdemServicoQuandoJaExiste() throws Exception {
         seedStatusOrdemServico();
         Usuario usuario = persistirUsuario();
-        Orcamento orcamento = persistirOrcamento(StatusOrcamento.APROVADO);
-        persistirOrdemServico(orcamento, usuario, StatusOrdemServicoEnum.AGUARDANDO_APROVACAO);
+        OrcamentoJpaEntity orcamento = persistirOrcamento(StatusOrcamento.APROVADO);
+        persistirOrdemServico(orcamento, usuario, StatusOrdemServico.AGUARDANDO_APROVACAO);
 
         mockMvc.perform(post(ENDPOINT + "/" + orcamento.getId()).with(atendente()))
                 .andExpect(status().isNotFound())
@@ -252,12 +252,12 @@ class OrdemServicoIntegrationTest {
     void deveTransicionarStatusDaOrdemServico() throws Exception {
         seedStatusOrdemServico();
         Usuario usuario = persistirUsuario();
-        Orcamento orcamento = persistirOrcamento(StatusOrcamento.APROVADO);
-        OrdemServico ordemServico =
-                persistirOrdemServico(orcamento, usuario, StatusOrdemServicoEnum.AGUARDANDO_APROVACAO);
+        OrcamentoJpaEntity orcamento = persistirOrcamento(StatusOrcamento.APROVADO);
+        OrdemServicoJpaEntity ordemServico =
+                persistirOrdemServico(orcamento, usuario, StatusOrdemServico.AGUARDANDO_APROVACAO);
 
         AtualizacaoStatusOrdemServicoRequestDTO request =
-                new AtualizacaoStatusOrdemServicoRequestDTO(StatusOrdemServicoEnum.EM_DIAGNOSTICO);
+                new AtualizacaoStatusOrdemServicoRequestDTO(StatusOrdemServico.EM_DIAGNOSTICO);
 
         mockMvc.perform(patch(ENDPOINT + "/" + ordemServico.getId() + "/status")
                         .with(atendente())
@@ -267,14 +267,14 @@ class OrdemServicoIntegrationTest {
 
         assertThat(ordemServicoRepository.findById(ordemServico.getId()).orElseThrow()
                 .getStatusOrdemServico().getNome())
-                .isEqualTo(StatusOrdemServicoEnum.EM_DIAGNOSTICO.name());
+                .isEqualTo(StatusOrdemServico.EM_DIAGNOSTICO.name());
 
         var historico = historicoStatusOsRepository
                 .findByOrdemServico_IdOrderByDataHoraInicioAsc(ordemServico.getId());
         assertThat(historico).hasSize(2);
         assertThat(historico.get(0).getDataHoraFim()).isEqualTo(historico.get(1).getDataHoraInicio());
         assertThat(historico.get(1).getStatus().getNome())
-                .isEqualTo(StatusOrdemServicoEnum.EM_DIAGNOSTICO.name());
+                .isEqualTo(StatusOrdemServico.EM_DIAGNOSTICO.name());
         assertThat(historico.get(1).getDataHoraFim()).isNull();
     }
 
@@ -283,12 +283,12 @@ class OrdemServicoIntegrationTest {
 //    void deveConsultarHistoricoStatusPorOrdemServico() throws Exception {
 //        seedStatusOrdemServico();
 //        Usuario usuario = persistirUsuario();
-//        Orcamento orcamento = persistirOrcamento(StatusOrcamento.APROVADO);
-//        OrdemServico ordemServico = persistirOrdemServico(
-//                orcamento, usuario, StatusOrdemServicoEnum.AGUARDANDO_APROVACAO);
+//        OrcamentoJpaEntity orcamento = persistirOrcamento(StatusOrcamento.APROVADO);
+//        OrdemServicoJpaEntity ordemServico = persistirOrdemServico(
+//                orcamento, usuario, StatusOrdemServico.AGUARDANDO_APROVACAO);
 //
 //        AtualizacaoStatusOrdemServicoRequestDTO request =
-//                new AtualizacaoStatusOrdemServicoRequestDTO(StatusOrdemServicoEnum.EM_DIAGNOSTICO);
+//                new AtualizacaoStatusOrdemServicoRequestDTO(StatusOrdemServico.EM_DIAGNOSTICO);
 //        mockMvc.perform(patch(ENDPOINT + "/" + ordemServico.getId() + "/status")
 //                        .with(atendente())
 //                        .contentType(MediaType.APPLICATION_JSON)
@@ -300,10 +300,10 @@ class OrdemServicoIntegrationTest {
 //                .andExpect(status().isOk())
 //                .andExpect(jsonPath("$.length()").value(2))
 //                .andExpect(jsonPath("$[0].status")
-//                        .value(StatusOrdemServicoEnum.AGUARDANDO_APROVACAO.name()))
+//                        .value(StatusOrdemServico.AGUARDANDO_APROVACAO.name()))
 //                .andExpect(jsonPath("$[0].dataHoraFim").isNotEmpty())
 //                .andExpect(jsonPath("$[1].status")
-//                        .value(StatusOrdemServicoEnum.EM_DIAGNOSTICO.name()))
+//                        .value(StatusOrdemServico.EM_DIAGNOSTICO.name()))
 //                .andExpect(jsonPath("$[1].dataHoraFim").isEmpty());
 //    }
 
@@ -312,21 +312,21 @@ class OrdemServicoIntegrationTest {
 //    void deveCalcularTempoMedioExecucaoPorServico() throws Exception {
 //        seedStatusOrdemServico();
 //        Usuario usuario = persistirUsuario();
-//        Orcamento orcamento = persistirOrcamento(StatusOrcamento.APROVADO);
+//        OrcamentoJpaEntity orcamento = persistirOrcamento(StatusOrcamento.APROVADO);
 //        ServicoJpaEntity trocaOleo = servicoRepository.save(new ServicoJpaEntity(
 //                "Troca de óleo", "Troca", new BigDecimal("100.00"), 60, true));
 //        ServicoJpaEntity alinhamento = servicoRepository.save(new ServicoJpaEntity(
 //                "Alinhamento", "Alinhamento", new BigDecimal("80.00"), 30, true));
 //        orcamentoServicoRepository.save(
-//                new OrcamentoServico(orcamento, trocaOleo, new BigDecimal("100.00")));
+//                new OrcamentoServicoJpaEntity(orcamento, trocaOleo, new BigDecimal("100.00")));
 //        orcamentoServicoRepository.save(
-//                new OrcamentoServico(orcamento, alinhamento, new BigDecimal("80.00")));
-//        OrdemServico ordemServico =
-//                persistirOrdemServico(orcamento, usuario, StatusOrdemServicoEnum.FINALIZADA);
+//                new OrcamentoServicoJpaEntity(orcamento, alinhamento, new BigDecimal("80.00")));
+//        OrdemServicoJpaEntity ordemServico =
+//                persistirOrdemServico(orcamento, usuario, StatusOrdemServico.FINALIZADA);
 //
 //        LocalDateTime inicio = LocalDateTime.of(2026, 8, 29, 10, 0);
-//        HistoricoStatusOs execucao = new HistoricoStatusOs(
-//                ordemServico, buscarStatus(StatusOrdemServicoEnum.EM_EXECUCAO), inicio);
+//        HistoricoStatusOsJpaEntity execucao = new HistoricoStatusOsJpaEntity(
+//                ordemServico, buscarStatus(StatusOrdemServico.EM_EXECUCAO), inicio);
 //        execucao.setDataHoraFim(inicio.plusMinutes(90));
 //        historicoStatusOsRepository.save(execucao);
 //
@@ -350,12 +350,12 @@ class OrdemServicoIntegrationTest {
     void deveTransicionarParaEmExecucaoSemItensOrcados() throws Exception {
         seedStatusOrdemServico();
         Usuario usuario = persistirUsuario();
-        Orcamento orcamento = persistirOrcamento(StatusOrcamento.APROVADO);
-        OrdemServico ordemServico =
-                persistirOrdemServico(orcamento, usuario, StatusOrdemServicoEnum.EM_DIAGNOSTICO);
+        OrcamentoJpaEntity orcamento = persistirOrcamento(StatusOrcamento.APROVADO);
+        OrdemServicoJpaEntity ordemServico =
+                persistirOrdemServico(orcamento, usuario, StatusOrdemServico.EM_DIAGNOSTICO);
 
         AtualizacaoStatusOrdemServicoRequestDTO request =
-                new AtualizacaoStatusOrdemServicoRequestDTO(StatusOrdemServicoEnum.EM_EXECUCAO);
+                new AtualizacaoStatusOrdemServicoRequestDTO(StatusOrdemServico.EM_EXECUCAO);
 
         mockMvc.perform(patch(ENDPOINT + "/" + ordemServico.getId() + "/status")
                         .with(atendente())
@@ -365,7 +365,7 @@ class OrdemServicoIntegrationTest {
 
         assertThat(ordemServicoRepository.findById(ordemServico.getId()).orElseThrow()
                 .getStatusOrdemServico().getNome())
-                .isEqualTo(StatusOrdemServicoEnum.EM_EXECUCAO.name());
+                .isEqualTo(StatusOrdemServico.EM_EXECUCAO.name());
         assertThat(movimentacaoEstoqueRepository.count()).isZero();
     }
 
@@ -374,12 +374,12 @@ class OrdemServicoIntegrationTest {
     void deveRetornar400ParaTransicaoInvalida() throws Exception {
         seedStatusOrdemServico();
         Usuario usuario = persistirUsuario();
-        Orcamento orcamento = persistirOrcamento(StatusOrcamento.APROVADO);
-        OrdemServico ordemServico =
-                persistirOrdemServico(orcamento, usuario, StatusOrdemServicoEnum.AGUARDANDO_APROVACAO);
+        OrcamentoJpaEntity orcamento = persistirOrcamento(StatusOrcamento.APROVADO);
+        OrdemServicoJpaEntity ordemServico =
+                persistirOrdemServico(orcamento, usuario, StatusOrdemServico.AGUARDANDO_APROVACAO);
 
         AtualizacaoStatusOrdemServicoRequestDTO request =
-                new AtualizacaoStatusOrdemServicoRequestDTO(StatusOrdemServicoEnum.FINALIZADA);
+                new AtualizacaoStatusOrdemServicoRequestDTO(StatusOrdemServico.FINALIZADA);
 
         mockMvc.perform(patch(ENDPOINT + "/" + ordemServico.getId() + "/status")
                         .with(atendente())
@@ -390,7 +390,7 @@ class OrdemServicoIntegrationTest {
 
         assertThat(ordemServicoRepository.findById(ordemServico.getId()).orElseThrow()
                 .getStatusOrdemServico().getNome())
-                .isEqualTo(StatusOrdemServicoEnum.AGUARDANDO_APROVACAO.name());
+                .isEqualTo(StatusOrdemServico.AGUARDANDO_APROVACAO.name());
     }
 
     @Test
@@ -398,9 +398,9 @@ class OrdemServicoIntegrationTest {
     void deveRetornar400QuandoNovoStatusNaoInformado() throws Exception {
         seedStatusOrdemServico();
         Usuario usuario = persistirUsuario();
-        Orcamento orcamento = persistirOrcamento(StatusOrcamento.APROVADO);
-        OrdemServico ordemServico =
-                persistirOrdemServico(orcamento, usuario, StatusOrdemServicoEnum.AGUARDANDO_APROVACAO);
+        OrcamentoJpaEntity orcamento = persistirOrcamento(StatusOrcamento.APROVADO);
+        OrdemServicoJpaEntity ordemServico =
+                persistirOrdemServico(orcamento, usuario, StatusOrdemServico.AGUARDANDO_APROVACAO);
 
         mockMvc.perform(patch(ENDPOINT + "/" + ordemServico.getId() + "/status")
                         .with(atendente())
@@ -414,7 +414,7 @@ class OrdemServicoIntegrationTest {
     void deveRetornar404AoTransicionarStatusDeOrdemServicoInexistente() throws Exception {
         seedStatusOrdemServico();
         AtualizacaoStatusOrdemServicoRequestDTO request =
-                new AtualizacaoStatusOrdemServicoRequestDTO(StatusOrdemServicoEnum.EM_DIAGNOSTICO);
+                new AtualizacaoStatusOrdemServicoRequestDTO(StatusOrdemServico.EM_DIAGNOSTICO);
 
         mockMvc.perform(patch(ENDPOINT + "/999999/status")
                         .with(atendente())
@@ -435,7 +435,7 @@ class OrdemServicoIntegrationTest {
     @DisplayName("deve retornar 403 ao acessar a ordem de serviço com um papel sem permissão")
     void deveRetornar403ParaPapelSemPermissao() throws Exception {
         AtualizacaoStatusOrdemServicoRequestDTO request =
-                new AtualizacaoStatusOrdemServicoRequestDTO(StatusOrdemServicoEnum.EM_DIAGNOSTICO);
+                new AtualizacaoStatusOrdemServicoRequestDTO(StatusOrdemServico.EM_DIAGNOSTICO);
 
         mockMvc.perform(patch(ENDPOINT + "/1/status")
                         .with(definirRole("ESTOQUISTA"))

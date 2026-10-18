@@ -1,10 +1,10 @@
 package com.kap.mechanics_api.repository;
 
-import com.kap.mechanics_api.domain.StatusOrdemServico;
+import com.kap.mechanics_api.adapter.persistence.entity.StatusOrdemServicoJpaEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;
 
-public interface StatusOrdemServicoRepository extends JpaRepository<StatusOrdemServico, Integer> {
-    Optional<StatusOrdemServico> findByNome(String nome);
+public interface StatusOrdemServicoRepository extends JpaRepository<StatusOrdemServicoJpaEntity, Integer> {
+    Optional<StatusOrdemServicoJpaEntity> findByNome(String nome);
 }

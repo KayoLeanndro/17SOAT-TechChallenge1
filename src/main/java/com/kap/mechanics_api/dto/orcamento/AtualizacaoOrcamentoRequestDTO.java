@@ -1,6 +1,6 @@
 package com.kap.mechanics_api.dto.orcamento;
 
-import com.kap.mechanics_api.enums.StatusOrcamento;
+import com.kap.mechanics_api.core.orcamento.domain.StatusOrcamento;
 import jakarta.validation.constraints.NotNull;
 
 import java.util.List;

@@ -1,6 +1,5 @@
 package com.kap.mechanics_api.adapter.persistence.entity;
 
-import com.kap.mechanics_api.domain.OrdemServico;
 import com.kap.mechanics_api.domain.Usuario;
 import com.kap.mechanics_api.core.movimentacaoestoque.domain.TipoMovimentacaoEstoque;
 import jakarta.persistence.*;
@@ -38,7 +37,7 @@ public class MovimentacaoEstoqueJpaEntity {
 
     @ManyToOne
     @JoinColumn(name = "ordem_servico_id")
-    private OrdemServico ordemServico;
+    private OrdemServicoJpaEntity ordemServico;
 
     public MovimentacaoEstoqueJpaEntity() {
     }
@@ -47,7 +46,7 @@ public class MovimentacaoEstoqueJpaEntity {
                                TipoMovimentacaoEstoque tipo,
                                Integer quantidade,
                                Usuario usuario,
-                               OrdemServico ordemServico) {
+                               OrdemServicoJpaEntity ordemServico) {
         this.itemEstoque = itemEstoque;
         this.tipo = tipo;
         this.quantidade = quantidade;
@@ -111,11 +110,11 @@ public class MovimentacaoEstoqueJpaEntity {
         this.usuario = usuario;
     }
 
-    public OrdemServico getOrdemServico() {
+    public OrdemServicoJpaEntity getOrdemServico() {
         return ordemServico;
     }
 
-    public void setOrdemServico(OrdemServico ordemServico) {
+    public void setOrdemServico(OrdemServicoJpaEntity ordemServico) {
         this.ordemServico = ordemServico;
     }
 }

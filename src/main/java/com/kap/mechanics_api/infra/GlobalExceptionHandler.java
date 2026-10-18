@@ -7,9 +7,14 @@ import com.kap.mechanics_api.core.itemestoque.usecase.ItemEstoqueNaoEncontradoEx
 import com.kap.mechanics_api.core.movimentacaoestoque.usecase.MovimentacaoEstoqueNaoEncontradaException;
 import com.kap.mechanics_api.core.movimentacaoestoque.usecase.PeriodoMovimentacaoInvalidoException;
 import com.kap.mechanics_api.core.movimentacaoestoque.usecase.ResponsavelNaoEncontradoException;
-import com.kap.mechanics_api.core.ordemservico.usecase.OrdemServicoNaoEstaEmExecucaoException;
+import com.kap.mechanics_api.core.ordemservico.domain.OrdemServicoNaoEstaEmExecucaoException;
 import com.kap.mechanics_api.core.servico.usecase.ServicoNaoEncontradoException;
 import com.kap.mechanics_api.core.veiculo.usecase.VeiculoNaoEncontradoException;
+import com.kap.mechanics_api.core.orcamento.domain.StatusOrcamentoInvalidoException;
+import com.kap.mechanics_api.core.orcamento.usecase.OrcamentoNaoEncontradoException;
+import com.kap.mechanics_api.core.ordemservico.domain.TransicaoStatusInvalidaException;
+import com.kap.mechanics_api.core.ordemservico.usecase.OrcamentoNaoAprovadoException;
+import com.kap.mechanics_api.core.ordemservico.usecase.OrdemServicoJaExisteException;
 import com.kap.mechanics_api.exception.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
@@ -18,6 +23,7 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import com.kap.mechanics_api.core.ordemservico.usecase.AtendenteNaoEncontradoException;
 import com.kap.mechanics_api.core.ordemservico.usecase.OrdemServicoNaoEncontradaException;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -123,8 +129,8 @@ public class GlobalExceptionHandler {
         return problemDetail;
     }
 
-    @ExceptionHandler(ResponsavelNaoEncontradoException.class)
-    public ProblemDetail lancarExcecaoResponsavelNaoEncontrado(ResponsavelNaoEncontradoException ex){
+    @ExceptionHandler({ResponsavelNaoEncontradoException.class, AtendenteNaoEncontradoException.class})
+    public ProblemDetail lancarExcecaoResponsavelNaoEncontrado(RuntimeException ex){
         ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, ex.getMessage());
         problemDetail.setTitle("Usuario não encontrado");
         return problemDetail;
@@ -177,13 +183,6 @@ public class GlobalExceptionHandler {
     public ProblemDetail lancarExcecaoOrdemServicoExistente(OrdemServicoJaExisteException ex){
         ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, ex.getMessage());
         problemDetail.setTitle("Este orçamento já possui uma OS gerada");
-        return problemDetail;
-    }
-
-    @ExceptionHandler(OrcamentoJaRespondidoException.class)
-    public ProblemDetail lancarExcecaoRespostaOrcamentoInvalida(RuntimeException ex) {
-        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, ex.getMessage());
-        problemDetail.setTitle("Resposta de orçamento inválida");
         return problemDetail;
     }
 
