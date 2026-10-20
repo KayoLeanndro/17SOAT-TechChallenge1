@@ -1,6 +1,6 @@
 package com.kap.mechanics_api.security;
 
-import com.kap.mechanics_api.domain.Usuario;
+import com.kap.mechanics_api.adapter.persistence.entity.UsuarioJpaEntity;
 import com.kap.mechanics_api.repository.UsuarioRepository;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -20,7 +20,7 @@ public class CustomUserDetailsService implements UserDetailsService {
     @Override
     public UserDetails loadUserByUsername(String login) throws UsernameNotFoundException {
 
-        Usuario usuario = usuarioRepository.findByLogin(login)
+        UsuarioJpaEntity usuario = usuarioRepository.findByLogin(login)
                 .orElseThrow(() ->
                         new UsernameNotFoundException("Usuário não encontrado")
                 );

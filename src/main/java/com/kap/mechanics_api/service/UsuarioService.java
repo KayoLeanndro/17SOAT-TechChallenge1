@@ -1,8 +1,8 @@
 package com.kap.mechanics_api.service;
 
-import com.kap.mechanics_api.domain.Usuario;
+import com.kap.mechanics_api.adapter.persistence.entity.UsuarioJpaEntity;
 import com.kap.mechanics_api.dto.usuario.*;
-import com.kap.mechanics_api.enums.TipoUsuario;
+import com.kap.mechanics_api.core.usuario.domain.TipoUsuario;
 import com.kap.mechanics_api.exception.NenhumCampoInformadoException;
 import com.kap.mechanics_api.exception.UsuarioNaoEncontradoException;
 import com.kap.mechanics_api.mapper.UsuarioMapper;
@@ -29,12 +29,12 @@ public class UsuarioService {
     }
 
     public CriacaoUsuarioResponseDTO cadastrar(CriacaoUsuarioRequestDTO dto) {
-        Usuario usuario = usuarioMapper.toEntity(dto);
+        UsuarioJpaEntity usuario = usuarioMapper.toEntity(dto);
         usuario.setSenhaHash(passwordEncoder.encode(dto.senha()));
         return usuarioMapper.toResponseDto(usuarioRepository.save(usuario));
     }
 
-    public Usuario buscarPorId(Integer id){
+    public UsuarioJpaEntity buscarPorId(Integer id){
         return usuarioRepository.findById(id).orElseThrow(() -> new UsuarioNaoEncontradoException(id));
     }
 
@@ -52,7 +52,7 @@ public class UsuarioService {
             throw new NenhumCampoInformadoException(AtualizacaoUsuarioRequestDTO.class);
         }
 
-        Usuario usuario = buscarPorId(id);
+        UsuarioJpaEntity usuario = buscarPorId(id);
 
         if(StringUtils.hasText(dto.nome())){
             usuario.setNome(dto.nome());
@@ -75,7 +75,7 @@ public class UsuarioService {
 
     public void deletar(Integer id) {
 
-        Usuario usuario = buscarPorId(id);
+        UsuarioJpaEntity usuario = buscarPorId(id);
         usuarioRepository.delete(usuario);
 
     }

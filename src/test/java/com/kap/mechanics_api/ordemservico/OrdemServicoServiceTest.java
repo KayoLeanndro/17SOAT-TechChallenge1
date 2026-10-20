@@ -1,17 +1,11 @@
 package com.kap.mechanics_api.ordemservico;
 
 import com.kap.mechanics_api.domain.Orcamento;
+import com.kap.mechanics_api.adapter.persistence.entity.UsuarioJpaEntity;
 import com.kap.mechanics_api.domain.HistoricoStatusOs;
 import com.kap.mechanics_api.domain.OrdemServico;
 import com.kap.mechanics_api.domain.StatusOrdemServico;
-import com.kap.mechanics_api.domain.Usuario;
-//import com.kap.mechanics_api.dto.ordemservico.AtualizacaoOrdemServicoRequestDTO;
-//import com.kap.mechanics_api.dto.ordemservico.CriacaoOrdemServicoRequestDTO;
-//import com.kap.mechanics_api.dto.ordemservico.OrdemServicoResponseDTO;
-//import com.kap.mechanics_api.exception.NenhumCampoInformadoException;
-//import com.kap.mechanics_api.mapper.OrdemServicoMapper;
-//import com.kap.mechanics_api.repository.OrcamentoRepository;
-//import com.kap.mechanics_api.repository.OrdemServicoRepository;
+
 import com.kap.mechanics_api.dto.ordemservico.ListagemOrdemServicoResponseDTO;
 import com.kap.mechanics_api.enums.StatusOrcamento;
 import com.kap.mechanics_api.enums.StatusOrdemServicoEnum;
@@ -72,7 +66,7 @@ class OrdemServicoServiceTest {
     private OrdemServicoService ordemServicoService;
 
     private Orcamento orcamento;
-    private Usuario usuario;
+    private UsuarioJpaEntity usuario;
     private StatusOrdemServico statusRecebida;
 
     @BeforeEach
@@ -81,7 +75,7 @@ class OrdemServicoServiceTest {
         orcamento.setId(1);
         orcamento.setStatusOrcamento(StatusOrcamento.APROVADO);
 
-        usuario = new Usuario();
+        usuario = new UsuarioJpaEntity();
         usuario.setId(1);
 
         statusRecebida = new StatusOrdemServico();

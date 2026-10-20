@@ -4,6 +4,8 @@ import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
 
+import com.kap.mechanics_api.adapter.persistence.entity.UsuarioJpaEntity;
+
 @Entity
 @Table(name = "ordem_servico")
 public class OrdemServico {
@@ -18,7 +20,7 @@ public class OrdemServico {
 
     @ManyToOne
     @JoinColumn(name = "usuario_atendente_id", nullable = false)
-    private Usuario usuarioAtendente;
+    private UsuarioJpaEntity usuarioAtendente;
 
     @ManyToOne
     @JoinColumn(name = "status_id", nullable = false)
@@ -46,11 +48,11 @@ public class OrdemServico {
         this.orcamento = orcamento;
     }
 
-    public Usuario getUsuarioAtendente() {
+    public UsuarioJpaEntity getUsuarioAtendente() {
         return usuarioAtendente;
     }
 
-    public void setUsuarioAtendente(Usuario usuarioAtendente) {
+    public void setUsuarioAtendente(UsuarioJpaEntity usuarioAtendente) {
         this.usuarioAtendente = usuarioAtendente;
     }
 

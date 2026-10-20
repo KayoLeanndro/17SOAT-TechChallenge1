@@ -4,17 +4,17 @@ import com.kap.mechanics_api.adapter.persistence.entity.ClienteJpaEntity;
 import com.kap.mechanics_api.adapter.persistence.entity.ItemEstoqueJpaEntity;
 import com.kap.mechanics_api.domain.Orcamento;
 import com.kap.mechanics_api.adapter.persistence.entity.ServicoJpaEntity;
+import com.kap.mechanics_api.adapter.persistence.entity.UsuarioJpaEntity;
 import com.kap.mechanics_api.adapter.persistence.entity.ServicoItemJpaEntity;
 import com.kap.mechanics_api.adapter.persistence.entity.ServicoItemJpaId;
 import com.kap.mechanics_api.domain.StatusOrdemServico;
-import com.kap.mechanics_api.domain.Usuario;
 import com.kap.mechanics_api.adapter.persistence.entity.VeiculoJpaEntity;
 import com.kap.mechanics_api.dto.orcamento.AtualizacaoStatusOrcamentoRequestDTO;
 import com.kap.mechanics_api.dto.orcamento.GeracaoOrcamentoRequestDTO;
 import com.kap.mechanics_api.enums.StatusOrcamento;
 import com.kap.mechanics_api.enums.StatusOrdemServicoEnum;
 import com.kap.mechanics_api.core.itemestoque.domain.TipoItemEstoque;
-import com.kap.mechanics_api.enums.TipoUsuario;
+import com.kap.mechanics_api.core.usuario.domain.TipoUsuario;
 import com.kap.mechanics_api.repository.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -131,8 +131,8 @@ class OrcamentoIntegrationTest {
         }
     }
 
-    private Usuario persistirUsuario(String login) {
-        Usuario usuario = new Usuario();
+    private UsuarioJpaEntity persistirUsuario(String login) {
+        UsuarioJpaEntity usuario = new UsuarioJpaEntity();
         usuario.setNome(login);
         usuario.setLogin(login);
         usuario.setSenhaHash("hash");

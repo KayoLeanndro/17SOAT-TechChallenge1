@@ -6,7 +6,7 @@ import com.kap.mechanics_api.controller.UsuarioController;
 import com.kap.mechanics_api.dto.usuario.AtualizacaoUsuarioRequestDTO;
 import com.kap.mechanics_api.dto.usuario.CriacaoUsuarioRequestDTO;
 import com.kap.mechanics_api.dto.usuario.ListagemUsuarioDTO;
-import com.kap.mechanics_api.enums.TipoUsuario;
+import com.kap.mechanics_api.core.usuario.domain.TipoUsuario;
 import com.kap.mechanics_api.exception.NenhumCampoInformadoException;
 import com.kap.mechanics_api.exception.UsuarioNaoEncontradoException;
 import com.kap.mechanics_api.service.UsuarioService;

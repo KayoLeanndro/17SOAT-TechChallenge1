@@ -1,13 +1,13 @@
 package com.kap.mechanics_api.repository;
 
-import com.kap.mechanics_api.domain.Usuario;
+import com.kap.mechanics_api.adapter.persistence.entity.UsuarioJpaEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;
 
-public interface UsuarioRepository extends JpaRepository<Usuario, Integer> {
+public interface UsuarioRepository extends JpaRepository<UsuarioJpaEntity, Integer> {
 
-    Optional<Usuario> findByLogin(String login);
+    Optional<UsuarioJpaEntity> findByLogin(String login);
 
     boolean existsByLogin(String login);
 }

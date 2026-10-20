@@ -10,14 +10,13 @@ data_criacao       TIMESTAMP NOT NULL DEFAULT now(),
 CONSTRAINT uq_usuario_login UNIQUE (login)
 */
 
-import com.kap.mechanics_api.enums.TipoUsuario;
+import com.kap.mechanics_api.core.usuario.domain.TipoUsuario;
 import jakarta.persistence.*;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
 import java.time.LocalDateTime;
 
-@Entity
 @Table(
         name = "usuario",
     uniqueConstraints = {@UniqueConstraint(name = "uq_usuario_login", columnNames = "login")}

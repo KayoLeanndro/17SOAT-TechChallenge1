@@ -1,6 +1,6 @@
 package com.kap.mechanics_api.dto.usuario;
 
-import com.kap.mechanics_api.enums.TipoUsuario;
+import com.kap.mechanics_api.core.usuario.domain.TipoUsuario;
 
 public record AtualizacaoUsuarioResponseDTO(
         Integer id,

@@ -1,9 +1,8 @@
 package com.kap.mechanics_api.usuario;
 
-import com.kap.mechanics_api.domain.Usuario;
+import com.kap.mechanics_api.adapter.persistence.entity.UsuarioJpaEntity;
 import com.kap.mechanics_api.dto.usuario.*;
-import com.kap.mechanics_api.dto.veiculo.*;
-import com.kap.mechanics_api.enums.TipoUsuario;
+import com.kap.mechanics_api.core.usuario.domain.TipoUsuario;
 import com.kap.mechanics_api.exception.NenhumCampoInformadoException;
 import com.kap.mechanics_api.exception.UsuarioNaoEncontradoException;
 import com.kap.mechanics_api.mapper.UsuarioMapper;
@@ -55,8 +54,8 @@ public class UsuarioServiceTest {
                         TipoUsuario.ATENDENTE.toString()
                 );
 
-        Usuario usuario =
-                new Usuario(
+        UsuarioJpaEntity usuario =
+                new UsuarioJpaEntity(
                         null,
                         "pedin",
                         "pedinApelao",
@@ -64,8 +63,8 @@ public class UsuarioServiceTest {
                         TipoUsuario.ATENDENTE
                 );
 
-        Usuario usuarioSalvo =
-                new Usuario(
+        UsuarioJpaEntity usuarioSalvo =
+                new UsuarioJpaEntity(
                         1,
                         "pedin",
                         "pedinApelao",
@@ -88,7 +87,7 @@ public class UsuarioServiceTest {
         when(passwordEncoder.encode("1234"))
                 .thenReturn("senhaCriptografada");
 
-        when(usuarioRepository.save(any(Usuario.class)))
+        when(usuarioRepository.save(any(UsuarioJpaEntity.class)))
                 .thenReturn(usuarioSalvo);
 
         when(usuarioMapper.toResponseDto(usuarioSalvo))
@@ -108,11 +107,10 @@ public class UsuarioServiceTest {
     @Test
     void deveListarTodosOsUsuarioComSucesso(){
         //Arrange
-        Usuario usuarioSalvo = new Usuario(1, "pedin", "pedinApelao", "1234", TipoUsuario.ATENDENTE);
-        Usuario usuarioSalvo2 = new Usuario(2, "joao", "joaoApelao", "1234", TipoUsuario.ATENDENTE);
+        UsuarioJpaEntity usuarioSalvo = new UsuarioJpaEntity(null, "pedin", "pedinApelao", "1234", TipoUsuario.ATENDENTE);
+        UsuarioJpaEntity usuarioSalvo2 = new UsuarioJpaEntity(null, "joao", "joaoApelao", "1234", TipoUsuario.ATENDENTE);
 
-
-        List<Usuario> usuarios = new ArrayList<>();
+        List<UsuarioJpaEntity> usuarios = new ArrayList<>();
         usuarios.add(usuarioSalvo);
         usuarios.add(usuarioSalvo2);
 
@@ -149,7 +147,7 @@ public class UsuarioServiceTest {
     @Test
     void deveBuscarUsuarioPorId(){
         //arrange
-        Optional<Usuario> usuario = Optional.of(new Usuario(1, "pedin", "pedinApelao", "1234", TipoUsuario.ATENDENTE));
+        Optional<UsuarioJpaEntity> usuario = Optional.of(new UsuarioJpaEntity(null, "pedin", "pedinApelao", "1234", TipoUsuario.ATENDENTE));
         ListagemUsuarioDTO dto1 = new ListagemUsuarioDTO(1,"pedin", "1234", "pedinApelao", LocalDateTime.now(), TipoUsuario.ATENDENTE);
 
         when(usuarioRepository.findById(1)).thenReturn(usuario);
@@ -174,7 +172,7 @@ public class UsuarioServiceTest {
     void deveDeletarUsuarioComSucesso(){
 
         //arrange
-        Usuario usuarioSalvo = new Usuario(1, "pedin", "pedinApelao", "1234", TipoUsuario.ATENDENTE);
+        UsuarioJpaEntity usuarioSalvo = new UsuarioJpaEntity(null, "pedin", "pedinApelao", "1234", TipoUsuario.ATENDENTE);
         when(usuarioRepository.findById(1)).thenReturn(Optional.of(usuarioSalvo));
 
         //act
@@ -189,9 +187,9 @@ public class UsuarioServiceTest {
     @Test
     void deveAtualizarUsuarioComSucesso(){
 
-        Usuario usuario =
-                new Usuario(
-                        1,
+        UsuarioJpaEntity usuario =
+                new UsuarioJpaEntity(
+                        null,
                         "pedin",
                         "pedinApelao",
                         "senhaAntiga",
@@ -206,8 +204,8 @@ public class UsuarioServiceTest {
                         "ATENDENTE"
                 );
 
-        Usuario usuarioAlterado =
-                new Usuario(
+        UsuarioJpaEntity usuarioAlterado =
+                new UsuarioJpaEntity(
                         1,
                         "pedin2",
                         "pedinApelao2",
@@ -230,7 +228,7 @@ public class UsuarioServiceTest {
         when(passwordEncoder.encode("12345"))
                 .thenReturn("senhaNovaCriptografada");
 
-        when(usuarioRepository.save(any(Usuario.class)))
+        when(usuarioRepository.save(any(UsuarioJpaEntity.class)))
                 .thenReturn(usuarioAlterado);
 
         when(usuarioMapper.toAtualizacaoUsuarioResponseDto(usuarioAlterado))

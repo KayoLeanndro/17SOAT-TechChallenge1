@@ -1,7 +1,6 @@
 package com.kap.mechanics_api.adapter.persistence.entity;
 
 import com.kap.mechanics_api.domain.OrdemServico;
-import com.kap.mechanics_api.domain.Usuario;
 import com.kap.mechanics_api.core.movimentacaoestoque.domain.TipoMovimentacaoEstoque;
 import jakarta.persistence.*;
 import org.hibernate.annotations.JdbcTypeCode;
@@ -34,7 +33,7 @@ public class MovimentacaoEstoqueJpaEntity {
 
     @ManyToOne(optional = false)
     @JoinColumn(name = "usuario_id", nullable = false)
-    private Usuario usuario;
+    private UsuarioJpaEntity usuario;
 
     @ManyToOne
     @JoinColumn(name = "ordem_servico_id")
@@ -46,7 +45,7 @@ public class MovimentacaoEstoqueJpaEntity {
     public MovimentacaoEstoqueJpaEntity(ItemEstoqueJpaEntity itemEstoque,
                                TipoMovimentacaoEstoque tipo,
                                Integer quantidade,
-                               Usuario usuario,
+                               UsuarioJpaEntity usuario,
                                OrdemServico ordemServico) {
         this.itemEstoque = itemEstoque;
         this.tipo = tipo;
@@ -103,11 +102,11 @@ public class MovimentacaoEstoqueJpaEntity {
         this.dataHora = dataHora;
     }
 
-    public Usuario getUsuario() {
+    public UsuarioJpaEntity getUsuario() {
         return usuario;
     }
 
-    public void setUsuario(Usuario usuario) {
+    public void setUsuario(UsuarioJpaEntity usuario) {
         this.usuario = usuario;
     }
 

@@ -4,12 +4,12 @@ import com.kap.mechanics_api.domain.HistoricoStatusOs;
 import com.kap.mechanics_api.domain.Orcamento;
 import com.kap.mechanics_api.domain.OrdemServico;
 import com.kap.mechanics_api.domain.StatusOrdemServico;
-import com.kap.mechanics_api.domain.Usuario;
 import com.kap.mechanics_api.dto.ordemservico.ListagemOrdemServicoResponseDTO;
 import com.kap.mechanics_api.enums.StatusOrcamento;
 import com.kap.mechanics_api.enums.StatusOrdemServicoEnum;
 import com.kap.mechanics_api.exception.OrcamentoNaoAprovadoException;
 import com.kap.mechanics_api.exception.OrcamentoNaoEncontradoException;
+import com.kap.mechanics_api.adapter.persistence.entity.UsuarioJpaEntity;
 import com.kap.mechanics_api.core.cliente.usecase.ClienteNaoEncontradoException;
 import com.kap.mechanics_api.exception.OrdemServicoJaExisteException;
 import com.kap.mechanics_api.core.ordemservico.usecase.OrdemServicoNaoEncontradaException;
@@ -60,14 +60,14 @@ public class OrdemServicoService {
 
     @Transactional
     public OrdemServico gerarOrdemServico(Integer orcamentoId, String usuarioLogin) {
-        Usuario usuario = usuarioRepository.findByLogin(usuarioLogin)
+        UsuarioJpaEntity usuario = usuarioRepository.findByLogin(usuarioLogin)
                 .orElseThrow(() -> new UsuarioNaoEncontradoException(usuarioLogin));
         return gerarOrdemServico(orcamentoId, usuario);
     }
 
     @Transactional
     public OrdemServico criarParaOrcamentoPendente(Integer orcamentoId, String usuarioLogin) {
-        Usuario usuario = usuarioRepository.findByLogin(usuarioLogin)
+        UsuarioJpaEntity usuario = usuarioRepository.findByLogin(usuarioLogin)
                 .orElseThrow(() -> new UsuarioNaoEncontradoException(usuarioLogin));
         Orcamento orcamento = buscarOrcamento(orcamentoId);
 
@@ -78,7 +78,7 @@ public class OrdemServicoService {
     }
 
     @Transactional
-    public OrdemServico gerarOrdemServico(Integer orcamentoId, Usuario usuario) {
+    public OrdemServico gerarOrdemServico(Integer orcamentoId, UsuarioJpaEntity usuario) {
         Orcamento orcamento = buscarOrcamento(orcamentoId);
 
         if (orcamento.getStatusOrcamento() != StatusOrcamento.APROVADO) {
@@ -102,7 +102,7 @@ public class OrdemServicoService {
         return transicionarStatus(ordemServico.getId(), StatusOrdemServicoEnum.EM_DIAGNOSTICO);
     }
 
-    private OrdemServico criarOrdemServico(Orcamento orcamento, Usuario usuario) {
+    private OrdemServico criarOrdemServico(Orcamento orcamento, UsuarioJpaEntity usuario) {
         if (ordemServicoRepository.existsByOrcamentoId(orcamento.getId())) {
             throw new OrdemServicoJaExisteException("Este orçamento já possui uma OS gerada");
         }
