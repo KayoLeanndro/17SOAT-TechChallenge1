@@ -18,7 +18,6 @@ import com.kap.mechanics_api.repository.StatusOrdemServicoRepository;
 import com.kap.mechanics_api.repository.UsuarioRepository;
 import com.kap.mechanics_api.service.OrdemServicoService;
 import com.kap.mechanics_api.service.TransicaoStatusOrdemServico;
-import com.kap.mechanics_api.service.UsuarioService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

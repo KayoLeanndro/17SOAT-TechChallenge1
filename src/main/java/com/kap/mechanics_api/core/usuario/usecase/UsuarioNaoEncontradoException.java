@@ -1,4 +1,4 @@
-package com.kap.mechanics_api.exception;
+package com.kap.mechanics_api.core.usuario.usecase;
 
 public class UsuarioNaoEncontradoException extends RuntimeException {
     public UsuarioNaoEncontradoException(Integer id) {

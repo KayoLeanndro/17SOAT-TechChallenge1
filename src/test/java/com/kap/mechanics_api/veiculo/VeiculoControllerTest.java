@@ -1,6 +1,5 @@
 package com.kap.mechanics_api.veiculo;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.kap.mechanics_api.Utilities;
 import com.kap.mechanics_api.adapter.web.VeiculoWebMapperImpl;
@@ -13,9 +12,7 @@ import com.kap.mechanics_api.core.veiculo.usecase.CadastrarVeiculoUseCase;
 import com.kap.mechanics_api.core.veiculo.usecase.ExcluirVeiculoUseCase;
 import com.kap.mechanics_api.core.veiculo.usecase.ListarVeiculoUseCase;
 import com.kap.mechanics_api.core.veiculo.usecase.VeiculoNaoEncontradoException;
-import com.kap.mechanics_api.dto.veiculo.AtualizacaoVeiculoRequestDTO;
 import com.kap.mechanics_api.dto.veiculo.CriacaoVeiculoRequestDTO;
-import com.kap.mechanics_api.exception.NenhumCampoInformadoException;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Import;

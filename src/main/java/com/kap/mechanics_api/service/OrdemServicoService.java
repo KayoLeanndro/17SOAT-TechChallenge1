@@ -13,7 +13,7 @@ import com.kap.mechanics_api.adapter.persistence.entity.UsuarioJpaEntity;
 import com.kap.mechanics_api.core.cliente.usecase.ClienteNaoEncontradoException;
 import com.kap.mechanics_api.exception.OrdemServicoJaExisteException;
 import com.kap.mechanics_api.core.ordemservico.usecase.OrdemServicoNaoEncontradaException;
-import com.kap.mechanics_api.exception.UsuarioNaoEncontradoException;
+import com.kap.mechanics_api.core.usuario.usecase.UsuarioNaoEncontradoException;
 import com.kap.mechanics_api.mapper.OrdemServicoMapper;
 import com.kap.mechanics_api.repository.ClienteRepository;
 import com.kap.mechanics_api.repository.OrcamentoRepository;

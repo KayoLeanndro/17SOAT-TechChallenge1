@@ -9,6 +9,7 @@ import com.kap.mechanics_api.core.movimentacaoestoque.usecase.PeriodoMovimentaca
 import com.kap.mechanics_api.core.movimentacaoestoque.usecase.ResponsavelNaoEncontradoException;
 import com.kap.mechanics_api.core.ordemservico.usecase.OrdemServicoNaoEstaEmExecucaoException;
 import com.kap.mechanics_api.core.servico.usecase.ServicoNaoEncontradoException;
+import com.kap.mechanics_api.core.usuario.usecase.UsuarioNaoEncontradoException;
 import com.kap.mechanics_api.core.veiculo.usecase.VeiculoNaoEncontradoException;
 import com.kap.mechanics_api.exception.*;
 import org.springframework.http.HttpStatus;
