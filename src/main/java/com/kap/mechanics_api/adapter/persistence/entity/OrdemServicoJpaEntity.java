@@ -1,11 +1,9 @@
 package com.kap.mechanics_api.adapter.persistence.entity;
 
-import com.kap.mechanics_api.domain.Usuario;
 import jakarta.persistence.*;
 
 import java.time.LocalDateTime;
 
-import com.kap.mechanics_api.adapter.persistence.entity.UsuarioJpaEntity;
 
 @Entity
 @Table(name = "ordem_servico")
