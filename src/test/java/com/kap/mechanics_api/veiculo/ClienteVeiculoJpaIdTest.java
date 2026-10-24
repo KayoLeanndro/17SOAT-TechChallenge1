@@ -1,7 +1,7 @@
 package com.kap.mechanics_api.veiculo;
 
 import com.kap.mechanics_api.adapter.persistence.entity.ClienteVeiculoJpaId;
-import com.kap.mechanics_api.domain.OrcamentoServicoId;
+import com.kap.mechanics_api.adapter.persistence.entity.OrcamentoServicoJpaId;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;

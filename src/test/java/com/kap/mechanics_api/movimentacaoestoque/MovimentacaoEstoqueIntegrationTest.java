@@ -4,18 +4,19 @@ import com.kap.mechanics_api.repository.*;
 import tools.jackson.databind.json.JsonMapper;
 import com.kap.mechanics_api.adapter.persistence.entity.ItemEstoqueJpaEntity;
 import com.kap.mechanics_api.adapter.persistence.entity.MovimentacaoEstoqueJpaEntity;
+import com.kap.mechanics_api.adapter.persistence.entity.OrcamentoJpaEntity;
+import com.kap.mechanics_api.adapter.persistence.entity.OrdemServicoJpaEntity;
+import com.kap.mechanics_api.adapter.persistence.entity.StatusOrdemServicoJpaEntity;
 import com.kap.mechanics_api.adapter.persistence.entity.UsuarioJpaEntity;
-import com.kap.mechanics_api.domain.Orcamento;
-import com.kap.mechanics_api.domain.OrdemServico;
-import com.kap.mechanics_api.domain.StatusOrdemServico;
 import com.kap.mechanics_api.adapter.persistence.entity.ClienteJpaEntity;
 import com.kap.mechanics_api.adapter.persistence.entity.VeiculoJpaEntity;
 import com.kap.mechanics_api.dto.movimentacaoestoque.RegistroEntradaMovimentacaoEstoqueRequestDTO;
 import com.kap.mechanics_api.dto.movimentacaoestoque.RegistroSaidaMovimentacaoEstoqueRequestDTO;
 import com.kap.mechanics_api.core.itemestoque.domain.TipoItemEstoque;
 import com.kap.mechanics_api.core.movimentacaoestoque.domain.TipoMovimentacaoEstoque;
-import com.kap.mechanics_api.enums.StatusOrcamento;
+import com.kap.mechanics_api.core.orcamento.domain.StatusOrcamento;
 import com.kap.mechanics_api.core.usuario.domain.TipoUsuario;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -141,7 +142,7 @@ class MovimentacaoEstoqueIntegrationTest {
         veiculo.setDataCriacao(LocalDateTime.now());
         veiculo = veiculoRepository.save(veiculo);
 
-        Orcamento orcamento = new Orcamento();
+        OrcamentoJpaEntity orcamento = new OrcamentoJpaEntity();
         orcamento.setCliente(clienteJpaEntity);
         orcamento.setVeiculo(veiculo);
         orcamento.setValorTotal(new BigDecimal("100.00"));
@@ -149,11 +150,11 @@ class MovimentacaoEstoqueIntegrationTest {
         orcamento.setDataCriacao(LocalDateTime.now());
         orcamento = orcamentoRepository.save(orcamento);
 
-        StatusOrdemServico status = new StatusOrdemServico();
+        StatusOrdemServicoJpaEntity status = new StatusOrdemServicoJpaEntity();
         status.setNome("EM_EXECUCAO");
         status = statusOrdemServicoRepository.save(status);
 
-        OrdemServico ordemServico = new OrdemServico();
+        OrdemServicoJpaEntity ordemServico = new OrdemServicoJpaEntity();
         ordemServico.setOrcamento(orcamento);
         ordemServico.setUsuarioAtendente(usuario);
         ordemServico.setStatusOrdemServico(status);

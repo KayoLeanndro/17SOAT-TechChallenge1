@@ -36,7 +36,7 @@ import com.kap.mechanics_api.core.movimentacaoestoque.usecase.MovimentacaoEstoqu
 import com.kap.mechanics_api.core.movimentacaoestoque.usecase.PeriodoMovimentacaoInvalidoException;
 import com.kap.mechanics_api.core.movimentacaoestoque.usecase.RegistrarEntradaEstoqueUseCase;
 import com.kap.mechanics_api.core.movimentacaoestoque.usecase.RegistrarSaidaEstoqueUseCase;
-import com.kap.mechanics_api.core.ordemservico.usecase.OrdemServicoNaoEstaEmExecucaoException;
+import com.kap.mechanics_api.core.ordemservico.domain.OrdemServicoNaoEstaEmExecucaoException;
 
 @WebMvcTest(MovimentacaoEstoqueController.class)
 @Import(MovimentacaoEstoqueWebMapperImpl.class)
