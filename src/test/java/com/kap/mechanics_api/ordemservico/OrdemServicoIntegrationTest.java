@@ -1,18 +1,16 @@
 package com.kap.mechanics_api.ordemservico;
 
-import com.kap.mechanics_api.adapter.persistence.entity.ServicoJpaEntity;
-
+import com.kap.mechanics_api.adapter.persistence.entity.UsuarioJpaEntity;
 import com.kap.mechanics_api.adapter.persistence.entity.ClienteJpaEntity;
 import com.kap.mechanics_api.adapter.persistence.entity.HistoricoStatusOsJpaEntity;
 import com.kap.mechanics_api.adapter.persistence.entity.OrcamentoJpaEntity;
 import com.kap.mechanics_api.adapter.persistence.entity.OrdemServicoJpaEntity;
 import com.kap.mechanics_api.adapter.persistence.entity.StatusOrdemServicoJpaEntity;
-import com.kap.mechanics_api.domain.Usuario;
 import com.kap.mechanics_api.adapter.persistence.entity.VeiculoJpaEntity;
 import com.kap.mechanics_api.dto.ordemservico.AtualizacaoStatusOrdemServicoRequestDTO;
 import com.kap.mechanics_api.core.orcamento.domain.StatusOrcamento;
 import com.kap.mechanics_api.core.ordemservico.domain.StatusOrdemServico;
-import com.kap.mechanics_api.enums.TipoUsuario;
+import com.kap.mechanics_api.core.usuario.domain.TipoUsuario;
 import com.kap.mechanics_api.repository.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -32,7 +30,6 @@ import java.time.LocalDateTime;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.containsString;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
@@ -136,8 +133,8 @@ class OrdemServicoIntegrationTest {
         return statusOrdemServicoRepository.findByNome(valor.name()).orElseThrow();
     }
 
-    private Usuario persistirUsuario() {
-        Usuario usuario = new Usuario();
+    private UsuarioJpaEntity persistirUsuario() {
+        UsuarioJpaEntity usuario = new UsuarioJpaEntity();
         usuario.setNome(LOGIN_ATENDENTE);
         usuario.setLogin(LOGIN_ATENDENTE);
         usuario.setSenhaHash("hash");
@@ -167,7 +164,7 @@ class OrdemServicoIntegrationTest {
         return orcamentoRepository.save(orcamento);
     }
 
-    private OrdemServicoJpaEntity persistirOrdemServico(OrcamentoJpaEntity orcamento, Usuario usuario, StatusOrdemServico statusAtual) {
+    private OrdemServicoJpaEntity persistirOrdemServico(OrcamentoJpaEntity orcamento, UsuarioJpaEntity usuario, StatusOrdemServico statusAtual) {
         OrdemServicoJpaEntity ordemServico = new OrdemServicoJpaEntity();
         ordemServico.setOrcamento(orcamento);
         ordemServico.setUsuarioAtendente(usuario);
@@ -184,7 +181,7 @@ class OrdemServicoIntegrationTest {
     @DisplayName("deve gerar a OS para um orçamento aprovado e retornar 201 com o cabeçalho Location")
     void deveGerarOrdemServicoParaOrcamentoAprovado() throws Exception {
         seedStatusOrdemServico();
-        Usuario usuario = persistirUsuario();
+        UsuarioJpaEntity usuario = persistirUsuario();
         OrcamentoJpaEntity orcamento = persistirOrcamento(StatusOrcamento.APROVADO);
 
         mockMvc.perform(post(ENDPOINT + "/" + orcamento.getId()).with(atendente()))
@@ -236,7 +233,7 @@ class OrdemServicoIntegrationTest {
     @DisplayName("deve retornar 404 ao gerar a OS quando o orçamento já possui uma OS")
     void deveRetornar404AoGerarOrdemServicoQuandoJaExiste() throws Exception {
         seedStatusOrdemServico();
-        Usuario usuario = persistirUsuario();
+        UsuarioJpaEntity usuario = persistirUsuario();
         OrcamentoJpaEntity orcamento = persistirOrcamento(StatusOrcamento.APROVADO);
         persistirOrdemServico(orcamento, usuario, StatusOrdemServico.AGUARDANDO_APROVACAO);
 
@@ -251,7 +248,7 @@ class OrdemServicoIntegrationTest {
     @DisplayName("deve transicionar a OS de AGUARDANDO_APROVACAO para EM_DIAGNOSTICO e retornar 204")
     void deveTransicionarStatusDaOrdemServico() throws Exception {
         seedStatusOrdemServico();
-        Usuario usuario = persistirUsuario();
+        UsuarioJpaEntity usuario = persistirUsuario();
         OrcamentoJpaEntity orcamento = persistirOrcamento(StatusOrcamento.APROVADO);
         OrdemServicoJpaEntity ordemServico =
                 persistirOrdemServico(orcamento, usuario, StatusOrdemServico.AGUARDANDO_APROVACAO);
@@ -349,7 +346,7 @@ class OrdemServicoIntegrationTest {
     @DisplayName("deve transicionar de EM_DIAGNOSTICO para EM_EXECUCAO acionando a baixa de estoque mesmo sem itens orçados")
     void deveTransicionarParaEmExecucaoSemItensOrcados() throws Exception {
         seedStatusOrdemServico();
-        Usuario usuario = persistirUsuario();
+        UsuarioJpaEntity usuario = persistirUsuario();
         OrcamentoJpaEntity orcamento = persistirOrcamento(StatusOrcamento.APROVADO);
         OrdemServicoJpaEntity ordemServico =
                 persistirOrdemServico(orcamento, usuario, StatusOrdemServico.EM_DIAGNOSTICO);
@@ -373,7 +370,7 @@ class OrdemServicoIntegrationTest {
     @DisplayName("deve retornar 400 ao solicitar uma transição de status inválida")
     void deveRetornar400ParaTransicaoInvalida() throws Exception {
         seedStatusOrdemServico();
-        Usuario usuario = persistirUsuario();
+        UsuarioJpaEntity usuario = persistirUsuario();
         OrcamentoJpaEntity orcamento = persistirOrcamento(StatusOrcamento.APROVADO);
         OrdemServicoJpaEntity ordemServico =
                 persistirOrdemServico(orcamento, usuario, StatusOrdemServico.AGUARDANDO_APROVACAO);
@@ -397,7 +394,7 @@ class OrdemServicoIntegrationTest {
     @DisplayName("deve retornar 400 ao transicionar o status sem informar o novo status")
     void deveRetornar400QuandoNovoStatusNaoInformado() throws Exception {
         seedStatusOrdemServico();
-        Usuario usuario = persistirUsuario();
+        UsuarioJpaEntity usuario = persistirUsuario();
         OrcamentoJpaEntity orcamento = persistirOrcamento(StatusOrcamento.APROVADO);
         OrdemServicoJpaEntity ordemServico =
                 persistirOrdemServico(orcamento, usuario, StatusOrdemServico.AGUARDANDO_APROVACAO);

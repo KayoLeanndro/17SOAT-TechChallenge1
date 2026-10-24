@@ -7,7 +7,6 @@ import com.kap.mechanics_api.core.cliente.gateway.ClienteGateway;
 import com.kap.mechanics_api.repository.ClienteRepository;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 

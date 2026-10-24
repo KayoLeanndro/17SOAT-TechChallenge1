@@ -8,16 +8,16 @@ import com.kap.mechanics_api.adapter.persistence.entity.OrcamentoJpaEntity;
 import com.kap.mechanics_api.adapter.persistence.entity.OrcamentoServicoJpaEntity;
 import com.kap.mechanics_api.adapter.persistence.entity.OrdemServicoJpaEntity;
 import com.kap.mechanics_api.adapter.persistence.entity.ServicoJpaEntity;
+import com.kap.mechanics_api.adapter.persistence.entity.UsuarioJpaEntity;
 import com.kap.mechanics_api.adapter.persistence.entity.ServicoItemJpaEntity;
 import com.kap.mechanics_api.adapter.persistence.entity.ServicoItemJpaId;
 import com.kap.mechanics_api.adapter.persistence.entity.StatusOrdemServicoJpaEntity;
-import com.kap.mechanics_api.domain.Usuario;
 import com.kap.mechanics_api.adapter.persistence.entity.VeiculoJpaEntity;
 import com.kap.mechanics_api.core.orcamento.domain.StatusOrcamento;
 import com.kap.mechanics_api.core.ordemservico.domain.StatusOrdemServico;
 import com.kap.mechanics_api.core.itemestoque.domain.TipoItemEstoque;
 import com.kap.mechanics_api.core.movimentacaoestoque.domain.TipoMovimentacaoEstoque;
-import com.kap.mechanics_api.enums.TipoUsuario;
+import com.kap.mechanics_api.core.usuario.domain.TipoUsuario;
 import com.kap.mechanics_api.core.itemestoque.domain.EstoqueInsuficienteException;
 import com.kap.mechanics_api.core.ordemservico.domain.TransicaoStatusInvalidaException;
 import com.kap.mechanics_api.repository.ClienteRepository;
@@ -127,8 +127,8 @@ class TransicaoStatusOrdemServicoIntegrationTest {
         return statusOrdemServicoRepository.findByNome(valor.name()).orElseThrow();
     }
 
-    private Usuario persistirUsuario() {
-        Usuario usuario = new Usuario();
+    private UsuarioJpaEntity persistirUsuario() {
+        UsuarioJpaEntity usuario = new UsuarioJpaEntity();
         usuario.setNome("atendente-teste");
         usuario.setLogin("atendente-teste");
         usuario.setSenhaHash("hash");

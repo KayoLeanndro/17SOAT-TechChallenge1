@@ -2,9 +2,9 @@ package com.kap.mechanics_api.adapter.persistence;
 
 import com.kap.mechanics_api.adapter.persistence.entity.ItemEstoqueJpaEntity;
 import com.kap.mechanics_api.adapter.persistence.entity.MovimentacaoEstoqueJpaEntity;
-import com.kap.mechanics_api.adapter.persistence.entity.OrdemServicoJpaEntity;
+import com.kap.mechanics_api.adapter.persistence.entity.UsuarioJpaEntity;
 import com.kap.mechanics_api.core.movimentacaoestoque.domain.MovimentacaoEstoque;
-import com.kap.mechanics_api.domain.Usuario;
+import com.kap.mechanics_api.adapter.persistence.entity.OrdemServicoJpaEntity;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -18,7 +18,7 @@ public class MovimentacaoEstoqueJpaMapper {
 
     // As associações chegam resolvidas pelo gateway: o domínio guarda só os ids.
     public MovimentacaoEstoqueJpaEntity paraEntity(MovimentacaoEstoque movimentacao, ItemEstoqueJpaEntity item,
-                                                   Usuario usuario, OrdemServicoJpaEntity ordemServico) {
+                                                   UsuarioJpaEntity usuario, OrdemServicoJpaEntity ordemServico) {
         var entity = new MovimentacaoEstoqueJpaEntity(item, movimentacao.getTipo(), movimentacao.getQuantidade(),
                 usuario, ordemServico);
         entity.setId(movimentacao.getId());

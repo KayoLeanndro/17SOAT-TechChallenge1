@@ -23,8 +23,8 @@ import com.kap.mechanics_api.core.orcamento.domain.Orcamento;
 import com.kap.mechanics_api.core.ordemservico.domain.OrdemServico;
 import com.kap.mechanics_api.core.ordemservico.domain.OrdemServicoResumo;
 import com.kap.mechanics_api.core.ordemservico.domain.StatusOrdemServico;
-import com.kap.mechanics_api.domain.Usuario;
-import com.kap.mechanics_api.enums.TipoUsuario;
+import com.kap.mechanics_api.adapter.persistence.entity.UsuarioJpaEntity;
+import com.kap.mechanics_api.core.usuario.domain.TipoUsuario;
 import com.kap.mechanics_api.repository.ClienteRepository;
 import com.kap.mechanics_api.repository.HistoricoStatusOsRepository;
 import com.kap.mechanics_api.repository.ItemEstoqueRepository;
@@ -72,7 +72,7 @@ class OrdemServicoJpaGatewayIntegrationTest {
         veiculo.setDataCriacao(LocalDateTime.now());
         Integer veiculoId = veiculoRepository.save(veiculo).getId();
 
-        var usuario = new Usuario();
+        var usuario = new UsuarioJpaEntity();
         usuario.setNome("atendente-" + sufixo);
         usuario.setLogin("atendente-" + sufixo);
         usuario.setSenhaHash("hash");

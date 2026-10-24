@@ -9,6 +9,7 @@ import com.kap.mechanics_api.core.movimentacaoestoque.usecase.PeriodoMovimentaca
 import com.kap.mechanics_api.core.movimentacaoestoque.usecase.ResponsavelNaoEncontradoException;
 import com.kap.mechanics_api.core.ordemservico.domain.OrdemServicoNaoEstaEmExecucaoException;
 import com.kap.mechanics_api.core.servico.usecase.ServicoNaoEncontradoException;
+import com.kap.mechanics_api.core.usuario.usecase.UsuarioNaoEncontradoException;
 import com.kap.mechanics_api.core.veiculo.usecase.VeiculoNaoEncontradoException;
 import com.kap.mechanics_api.core.orcamento.domain.StatusOrcamentoInvalidoException;
 import com.kap.mechanics_api.core.orcamento.usecase.OrcamentoNaoEncontradoException;

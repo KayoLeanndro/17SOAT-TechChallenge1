@@ -7,15 +7,16 @@ import com.kap.mechanics_api.adapter.persistence.entity.MovimentacaoEstoqueJpaEn
 import com.kap.mechanics_api.adapter.persistence.entity.OrcamentoJpaEntity;
 import com.kap.mechanics_api.adapter.persistence.entity.OrdemServicoJpaEntity;
 import com.kap.mechanics_api.adapter.persistence.entity.StatusOrdemServicoJpaEntity;
+import com.kap.mechanics_api.adapter.persistence.entity.UsuarioJpaEntity;
 import com.kap.mechanics_api.adapter.persistence.entity.ClienteJpaEntity;
 import com.kap.mechanics_api.adapter.persistence.entity.VeiculoJpaEntity;
-import com.kap.mechanics_api.domain.Usuario;
 import com.kap.mechanics_api.dto.movimentacaoestoque.RegistroEntradaMovimentacaoEstoqueRequestDTO;
 import com.kap.mechanics_api.dto.movimentacaoestoque.RegistroSaidaMovimentacaoEstoqueRequestDTO;
 import com.kap.mechanics_api.core.itemestoque.domain.TipoItemEstoque;
 import com.kap.mechanics_api.core.movimentacaoestoque.domain.TipoMovimentacaoEstoque;
 import com.kap.mechanics_api.core.orcamento.domain.StatusOrcamento;
-import com.kap.mechanics_api.enums.TipoUsuario;
+import com.kap.mechanics_api.core.usuario.domain.TipoUsuario;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -105,7 +106,7 @@ class MovimentacaoEstoqueIntegrationTest {
         statusOrdemServicoRepository.deleteAll();
         usuarioRepository.deleteAll();
 
-        Usuario usuario = new Usuario();
+        UsuarioJpaEntity usuario = new UsuarioJpaEntity();
         usuario.setNome("Estoque");
         usuario.setLogin("estoque");
         usuario.setSenhaHash("hash");

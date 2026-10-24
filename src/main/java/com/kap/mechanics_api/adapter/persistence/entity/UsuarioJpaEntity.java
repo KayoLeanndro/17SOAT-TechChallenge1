@@ -1,16 +1,6 @@
-package com.kap.mechanics_api.domain;
+package com.kap.mechanics_api.adapter.persistence.entity;
 
-/*
-id              BIGSERIAL PRIMARY KEY,
-nome            VARCHAR(150) NOT NULL,
-login           VARCHAR(60) NOT NULL,
-senha_hash      VARCHAR(255) NOT NULL,
-tipo           tipo_usuario NOT NULL,
-data_criacao       TIMESTAMP NOT NULL DEFAULT now(),
-CONSTRAINT uq_usuario_login UNIQUE (login)
-*/
-
-import com.kap.mechanics_api.enums.TipoUsuario;
+import com.kap.mechanics_api.core.usuario.domain.TipoUsuario;
 import jakarta.persistence.*;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
@@ -22,7 +12,7 @@ import java.time.LocalDateTime;
         name = "usuario",
     uniqueConstraints = {@UniqueConstraint(name = "uq_usuario_login", columnNames = "login")}
 )
-public class Usuario {
+public class UsuarioJpaEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -45,9 +35,9 @@ public class Usuario {
     @Column(name = "data_criacao", nullable = false)
     private LocalDateTime dataCriacao;
 
-    public Usuario(){}
+    public UsuarioJpaEntity(){}
 
-    public Usuario(Integer id,String nome, String login, String senhaHash, TipoUsuario tipo) {
+    public UsuarioJpaEntity(Integer id,String nome, String login, String senhaHash, TipoUsuario tipo) {
         this.id = id;
         this.nome = nome;
         this.login = login;

@@ -1,136 +1,176 @@
 package com.kap.mechanics_api.usuario;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.kap.mechanics_api.Utilities;
+import com.kap.mechanics_api.adapter.web.UsuarioWebMapperImpl;
 import com.kap.mechanics_api.controller.UsuarioController;
-import com.kap.mechanics_api.dto.usuario.AtualizacaoUsuarioRequestDTO;
-import com.kap.mechanics_api.dto.usuario.CriacaoUsuarioRequestDTO;
-import com.kap.mechanics_api.dto.usuario.ListagemUsuarioDTO;
-import com.kap.mechanics_api.enums.TipoUsuario;
-import com.kap.mechanics_api.exception.NenhumCampoInformadoException;
-import com.kap.mechanics_api.exception.UsuarioNaoEncontradoException;
-import com.kap.mechanics_api.service.UsuarioService;
+import com.kap.mechanics_api.core.usuario.domain.TipoUsuario;
+import com.kap.mechanics_api.core.usuario.domain.Usuario;
+import com.kap.mechanics_api.core.usuario.usecase.*;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
-
 import java.util.List;
-
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.when;
+import static org.hamcrest.Matchers.nullValue;
+import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(UsuarioController.class)
-public class UsuarioControllerTest {
+@Import(UsuarioWebMapperImpl.class)
+@WithMockUser(roles = "ADMIN")
+class UsuarioControllerTest {
+    private static final String ENDPOINT = "/api/usuario";
 
+    @Autowired private MockMvc mockMvc;
+    @MockitoBean private BuscarPorIdUseCase buscar;
+    @MockitoBean private ListarUsuarioUseCase listar;
+    @MockitoBean private CadastrarUsuarioUseCase cadastrar;
+    @MockitoBean private AtualizarUsuarioUseCase atualizar;
+    @MockitoBean private ExcluirUsuarioUseCase excluir;
 
-    @Autowired
-    private MockMvc mockMvc;
-
-    @MockitoBean
-    private UsuarioService usuarioService;
-
-    private final ObjectMapper objectMapper = new ObjectMapper();
-
-    private final String endPoint = "/api/usuario";
-
+    private Usuario usuario() {
+        return new Usuario(1, "Pedro", "pedro", "hash-secreto", TipoUsuario.ATENDENTE);
+    }
 
     @Test
-    void deveCriarUsuarioERetornar201() throws Exception {
+    void deveCadastrarERetornar201ComLocation() throws Exception {
+        when(cadastrar.executar("Pedro", "pedro", "segredo", TipoUsuario.ATENDENTE)).thenReturn(usuario());
 
-        //act
-        when(usuarioService.cadastrar(any(CriacaoUsuarioRequestDTO.class))).thenReturn(Utilities.produzirUsuarioSalvoDto());
-
-        //assertions
-        mockMvc.perform(post(endPoint)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(Utilities.produzirUsuarioRequestDto())))
+        mockMvc.perform(post(ENDPOINT).contentType(MediaType.APPLICATION_JSON).content("""
+                {"nome":"Pedro","login":"pedro","senha":"segredo","tipo":"ATENDENTE"}
+                """))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.nome").value("pedin"))
-                .andExpect(jsonPath("$.login").value("pedinApelao"))
-                .andExpect(jsonPath("$.tipo").value(TipoUsuario.ATENDENTE.toString()));
-
+                .andExpect(header().string("Location", ENDPOINT + "/1"))
+                .andExpect(jsonPath("$.id").value(1))
+                .andExpect(jsonPath("$.nome").value("Pedro"))
+                .andExpect(jsonPath("$.login").value("pedro"))
+                .andExpect(jsonPath("$.tipo").value("ATENDENTE"))
+                .andExpect(jsonPath("$.senhaHash").doesNotExist());
     }
 
     @Test
-    void deveRetornar200QuandoBuscarUsuarioPorIdExistente() throws Exception {
-
-        //act
-        when(usuarioService.pesquisarPorId(1)).thenReturn(Utilities.produzirRespostaListagemUsuarioDto());
-
-        //assertion
-        mockMvc.perform(get(endPoint+"/1"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.nome").value("pedin"))
-                .andExpect(jsonPath("$.login").value("pedinApelao"))
-                .andExpect(jsonPath("$.tipo").value(TipoUsuario.ATENDENTE.toString()));
-    }
-
-    @Test
-    void deveRetornar200QuandoListarTodosOsUsuarios() throws Exception {
-
-        //arrange
-        List<ListagemUsuarioDTO> usuariosDto = Utilities.produzirListaUsuariosResponse();
-
-        //act
-        when(usuarioService.listar()).thenReturn(usuariosDto);
-
-        //assertion
-        mockMvc.perform(get(endPoint))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.length()").value(2));
-
-
-    }
-
-    @Test
-    void deveRetornar404QuandoNaoEncontradoUsuarioPorId() throws Exception{
-
-        when(usuarioService.pesquisarPorId(99999)).thenThrow(new UsuarioNaoEncontradoException(99999));
-
-        mockMvc.perform(get(endPoint+"/99999"))
-                .andExpect(status().isNotFound());
-
-    }
-
-    @Test
-    void deveRetornar400QuandoNaoPassadoNenhumParametroParaAtualizacaoUsuario() throws Exception{
-        when(usuarioService.atualizar(9999, Utilities.produzirAtualizacaoUsuarioDtoInvalido())).thenThrow(new NenhumCampoInformadoException(AtualizacaoUsuarioRequestDTO.class));
-
-        mockMvc.perform(put(endPoint +"/9999")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(Utilities.produzirAtualizacaoUsuarioDtoInvalido())))
+    void deveRejeitarCadastroSemCamposObrigatorios() throws Exception {
+        mockMvc.perform(post(ENDPOINT).contentType(MediaType.APPLICATION_JSON).content("{}"))
                 .andExpect(status().isBadRequest());
+        verifyNoInteractions(cadastrar);
     }
 
     @Test
-    void deveRetornar201QuandoDeletadoUsuarioComSucesso() throws Exception{
-        doNothing().when(usuarioService).deletar(999);
-
-        mockMvc.perform(delete( endPoint+ "/999"))
-                .andExpect(status().isNoContent());
+    void deveRejeitarTipoInvalidoNoCadastro() throws Exception {
+        mockMvc.perform(post(ENDPOINT).contentType(MediaType.APPLICATION_JSON).content("""
+                {"nome":"Pedro","login":"pedro","senha":"segredo","tipo":"INVALIDO"}
+                """))
+                .andExpect(status().isBadRequest());
+        verifyNoInteractions(cadastrar);
     }
 
     @Test
-    void deveRetornar200QuandoUsuarioAtualizadoComSucesso() throws Exception {
+    void deveBuscarUsuarioSemExporHash() throws Exception {
+        when(buscar.executar(1)).thenReturn(usuario());
 
-        when(usuarioService.atualizar(99, Utilities.produzirAtualizacaoUsuarioDto())).thenReturn(Utilities.produzirAtualizacaoUsuarioResponseDto());
-
-        mockMvc.perform(put(endPoint +"/99")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(
-                                Utilities.produzirAtualizacaoUsuarioDto()
-                        )))
+        mockMvc.perform(get(ENDPOINT + "/1"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.nome").value("pedin2"))
-                .andExpect(jsonPath("$.login").value("pedinApelao2"))
-                .andExpect(jsonPath("$.tipo").value(TipoUsuario.ATENDENTE.toString()));
+                .andExpect(jsonPath("$.login").value("pedro"))
+                .andExpect(jsonPath("$.senha").value(nullValue()))
+                .andExpect(jsonPath("$.senhaHash").doesNotExist());
+    }
+
+    @Test
+    void deveRetornar404QuandoUsuarioNaoExiste() throws Exception {
+        when(buscar.executar(99)).thenThrow(new UsuarioNaoEncontradoException(99));
+
+        mockMvc.perform(get(ENDPOINT + "/99")).andExpect(status().isNotFound());
+    }
+
+    @Test
+    void deveListarUsuariosSemExporHash() throws Exception {
+        when(listar.executar()).thenReturn(List.of(usuario()));
+
+        mockMvc.perform(get(ENDPOINT))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(1))
+                .andExpect(jsonPath("$[0].nome").value("Pedro"))
+                .andExpect(jsonPath("$[0].senha").value(nullValue()))
+                .andExpect(jsonPath("$[0].senhaHash").doesNotExist());
+    }
+
+    @Test
+    void deveRetornarListaVaziaQuandoNaoHaUsuarios() throws Exception {
+        when(listar.executar()).thenReturn(List.of());
+
+        mockMvc.perform(get(ENDPOINT))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(0));
+    }
+
+    @Test
+    void deveAtualizarTodosOsCamposConvertendoTipo() throws Exception {
+        var atualizado = new Usuario(1, "Maria", "maria", "hash-novo", TipoUsuario.ADMIN);
+        when(atualizar.executar(1, "Maria", "maria", "nova", TipoUsuario.ADMIN)).thenReturn(atualizado);
+
+        mockMvc.perform(put(ENDPOINT + "/1").contentType(MediaType.APPLICATION_JSON).content("""
+                {"nome":"Maria","login":"maria","senha":"nova","tipo":"ADMIN"}
+                """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.nome").value("Maria"))
+                .andExpect(jsonPath("$.tipo").value("ADMIN"))
+                .andExpect(jsonPath("$.senha").value(nullValue()))
+                .andExpect(jsonPath("$.senhaHash").doesNotExist());
+        verify(atualizar).executar(1, "Maria", "maria", "nova", TipoUsuario.ADMIN);
+    }
+
+    @Test
+    void devePermitirAtualizacaoParcial() throws Exception {
+        when(atualizar.executar(1, "Pedro", null, null, null)).thenReturn(usuario());
+
+        mockMvc.perform(put(ENDPOINT + "/1").contentType(MediaType.APPLICATION_JSON).content("""
+                {"nome":"Pedro"}
+                """))
+                .andExpect(status().isOk());
+        verify(atualizar).executar(1, "Pedro", null, null, null);
+    }
+
+    @Test
+    void deveRejeitarAtualizacaoSemCampos() throws Exception {
+        mockMvc.perform(put(ENDPOINT + "/1").contentType(MediaType.APPLICATION_JSON).content("{}"))
+                .andExpect(status().isBadRequest());
+        verifyNoInteractions(atualizar);
+    }
+
+    @Test
+    void deveRejeitarTipoInvalidoNaAtualizacao() throws Exception {
+        mockMvc.perform(put(ENDPOINT + "/1").contentType(MediaType.APPLICATION_JSON).content("""
+                {"tipo":"INVALIDO"}
+                """))
+                .andExpect(status().isBadRequest());
+        verifyNoInteractions(atualizar);
+    }
+
+    @Test
+    void deveRetornar404AoAtualizarUsuarioInexistente() throws Exception {
+        when(atualizar.executar(99, "Pedro", null, null, null))
+                .thenThrow(new UsuarioNaoEncontradoException(99));
+
+        mockMvc.perform(put(ENDPOINT + "/99").contentType(MediaType.APPLICATION_JSON).content("""
+                {"nome":"Pedro"}
+                """))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void deveExcluirERetornar204() throws Exception {
+        mockMvc.perform(delete(ENDPOINT + "/1")).andExpect(status().isNoContent());
+        verify(excluir).executar(1);
+    }
+
+    @Test
+    void deveRetornar404AoExcluirUsuarioInexistente() throws Exception {
+        doThrow(new UsuarioNaoEncontradoException(99)).when(excluir).executar(99);
+
+        mockMvc.perform(delete(ENDPOINT + "/99")).andExpect(status().isNotFound());
     }
 }

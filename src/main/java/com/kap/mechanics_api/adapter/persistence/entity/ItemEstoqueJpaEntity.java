@@ -4,7 +4,6 @@ import com.kap.mechanics_api.core.itemestoque.domain.TipoItemEstoque;
 import jakarta.persistence.*;
 
 import java.math.BigDecimal;
-import java.util.Objects;
 
 @Entity
 @Table(name = "item_estoque")
