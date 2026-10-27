@@ -10,6 +10,12 @@ variable "db_name" {
   default     = "mechanics"
 }
 
+variable "application_secret_name" {
+  description = "Nome do segredo no Secrets Manager. Alinhe remoteRef.key em k8s/external-secret.yaml se alterar."
+  type        = string
+  default     = "mechanics-api/dev/application"
+}
+
 variable "db_username" {
   description = "Nome do usuario administrador do banco."
   type        = string

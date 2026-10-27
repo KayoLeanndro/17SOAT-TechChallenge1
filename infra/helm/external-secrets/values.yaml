@@ -1,0 +1,9 @@
+# Instalacao no namespace external-secrets. Nome alinhado ao Pod Identity.
+installCRDs: true
+serviceAccount:
+  create: true
+  name: external-secrets
+
+# O operador deste projeto reconcilia apenas recursos no namespace da API.
+scopedNamespace: default
+scopedRBAC: true

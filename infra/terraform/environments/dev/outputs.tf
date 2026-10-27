@@ -31,6 +31,21 @@ output "db_address" {
   value       = aws_db_instance.postgres.address
 }
 
+output "application_secret_name" {
+  description = "Nome do segredo cujos valores devem ser cadastrados no Secrets Manager."
+  value       = aws_secretsmanager_secret.application.name
+}
+
+output "application_secret_arn" {
+  description = "ARN do segredo que o operador pode ler. Nao contem os valores."
+  value       = aws_secretsmanager_secret.application.arn
+}
+
+output "external_secrets_role_arn" {
+  description = "Role associada ao ServiceAccount do External Secrets Operator via Pod Identity."
+  value       = aws_iam_role.external_secrets.arn
+}
+
 output "db_port" {
   description = "Porta do PostgreSQL."
   value       = aws_db_instance.postgres.port
