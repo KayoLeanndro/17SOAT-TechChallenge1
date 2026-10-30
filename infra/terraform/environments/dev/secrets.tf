@@ -3,6 +3,29 @@ locals {
   external_secrets_service_account = "external-secrets"
 }
 
+data "aws_caller_identity" "current" {}
+
+resource "aws_iam_role_policy" "github_actions_application_secret" {
+  name = "read-mechanics-application-secret"
+  role = var.github_actions_role_name
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect   = "Allow"
+        Action   = ["secretsmanager:GetSecretValue"]
+        Resource = aws_secretsmanager_secret.application.arn
+      },
+      {
+        # Permite refresh desta politica no state sem autorizar o CI a altera-la.
+        Effect   = "Allow"
+        Action   = ["iam:GetRolePolicy"]
+        Resource = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/${var.github_actions_role_name}"
+      }
+    ]
+  })
+}
+
 # Apenas os metadados sao gerenciados aqui. Cadastre o JSON com os valores
 # no Secrets Manager depois do apply, conforme k8s/secrets-manager.md.
 resource "aws_secretsmanager_secret" "application" {

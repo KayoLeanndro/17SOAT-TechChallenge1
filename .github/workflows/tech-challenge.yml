@@ -10,6 +10,10 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: mechanics-api-${{ github.ref }}
+  cancel-in-progress: false
+
 jobs:
   test-and-build:
     name: Testar e validar imagem Docker
@@ -45,19 +49,32 @@ jobs:
       - name: Construir imagem Docker
         run: docker build --tag mechanics-api:${{ github.sha }} .
 
+      - name: Validar migrations e schema em PostgreSQL vazio
+        run: python scripts/tests/test-migrations-docker.py mechanics-api:${{ github.sha }}
+
+      - name: Exportar imagem validada
+        run: docker save mechanics-api:${{ github.sha }} --output "$RUNNER_TEMP/mechanics-api.tar"
+
+      - name: Guardar imagem para publicacao
+        uses: actions/upload-artifact@v4
+        with:
+          name: mechanics-api-image
+          path: ${{ runner.temp }}/mechanics-api.tar
+          retention-days: 7
+
   publish:
     name: Provisionar ECR e publicar imagem
     needs: test-and-build
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 60
+
+    outputs:
+      image_uri: ${{ steps.image.outputs.uri }}
 
     permissions:
       contents: read
       id-token: write
-
-    env:
-      TF_VAR_db_password: ${{ secrets.DB_PASSWORD }}
 
     steps:
       - name: Atualizar codigo
@@ -75,16 +92,15 @@ jobs:
         with:
           terraform_wrapper: false
 
-      - name: Verificar secrets obrigatorios
-        run: |
-          if [ -z "$TF_VAR_db_password" ]; then
-            echo "::error::Secret DB_PASSWORD nao configurado no repositorio."
-            exit 1
-          fi
-
       - name: Inicializar Terraform
         working-directory: infra/terraform/environments/dev
         run: terraform init -reconfigure -backend-config="bucket=${{ vars.TF_STATE_BUCKET }}"
+
+      - name: Carregar senha atual do Secrets Manager
+        working-directory: infra/terraform/environments/dev
+        run: |
+          SECRET_NAME="$(terraform output -raw application_secret_name)"
+          python "$GITHUB_WORKSPACE/scripts/export-db-password.py" "$SECRET_NAME"
 
       - name: Validar Terraform
         working-directory: infra/terraform/environments/dev
@@ -106,10 +122,81 @@ jobs:
       - name: Autenticar Docker no Amazon ECR
         uses: aws-actions/amazon-ecr-login@v2
 
-      - name: Construir e publicar imagem
+      - name: Recuperar imagem validada
+        uses: actions/download-artifact@v4
+        with:
+          name: mechanics-api-image
+          path: ${{ runner.temp }}/mechanics-api-image
+
+      - name: Publicar a mesma imagem validada
+        id: image
         env:
           IMAGE_URI: ${{ steps.ecr.outputs.repository_url }}:${{ github.sha }}
+          REPOSITORY_NAME: mechanics-api
         run: |
-          docker build --tag "$IMAGE_URI" .
-          docker push "$IMAGE_URI"
+          # O ECR usa tags imutaveis. Reexecutar um commit reutiliza sua imagem.
+          if aws ecr describe-images --repository-name "$REPOSITORY_NAME" --image-ids imageTag="$GITHUB_SHA" > /dev/null 2> ecr-error.log; then
+            echo "Imagem deste commit ja publicada."
+          elif grep -q ImageNotFoundException ecr-error.log; then
+            docker load --input "$RUNNER_TEMP/mechanics-api-image/mechanics-api.tar"
+            docker tag "mechanics-api:$GITHUB_SHA" "$IMAGE_URI"
+            docker push "$IMAGE_URI"
+          else
+            cat ecr-error.log >&2
+            exit 1
+          fi
+          echo "uri=$IMAGE_URI" >> "$GITHUB_OUTPUT"
           echo "Imagem publicada: $IMAGE_URI"
+
+  deploy:
+    name: Implantar API e HPA no EKS
+    needs: publish
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - name: Atualizar codigo
+        uses: actions/checkout@v4
+
+      - name: Configurar credenciais temporarias da AWS
+        uses: aws-actions/configure-aws-credentials@v5
+        with:
+          role-to-assume: ${{ vars.AWS_ROLE_ARN }}
+          role-session-name: github-actions-mechanics-api-deploy
+          aws-region: ${{ vars.AWS_REGION }}
+
+      - name: Configurar Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_wrapper: false
+
+      - name: Configurar kubectl
+        uses: azure/setup-kubectl@v4
+        with:
+          version: v1.37.0
+
+      - name: Configurar Helm
+        uses: azure/setup-helm@v4.3.0
+        with:
+          version: v3.17.3
+
+      - name: Inicializar backend Terraform
+        working-directory: infra/terraform/environments/dev
+        run: terraform init -reconfigure -backend-config="bucket=${{ vars.TF_STATE_BUCKET }}"
+
+      - name: Executar Job de migrations e implantar nova imagem no EKS
+        env:
+          IMAGE_URI: ${{ needs.publish.outputs.image_uri }}
+        run: bash scripts/deploy-eks.sh "$IMAGE_URI"
+
+      - name: Diagnosticar falha no deploy
+        if: failure()
+        run: |
+          aws eks update-kubeconfig --region "${{ vars.AWS_REGION }}" --name "$(terraform -chdir=infra/terraform/environments/dev output -raw eks_cluster_name)"
+          kubectl get pods,jobs,hpa,externalsecret,secretstore --namespace default
+          kubectl get events --namespace default --sort-by=.lastTimestamp | tail -40

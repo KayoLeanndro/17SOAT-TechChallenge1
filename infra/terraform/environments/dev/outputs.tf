@@ -56,6 +56,21 @@ output "db_name" {
   value       = aws_db_instance.postgres.db_name
 }
 
+output "db_username" {
+  description = "Usuario do banco usado para configurar a aplicacao."
+  value       = aws_db_instance.postgres.username
+}
+
+output "aws_region" {
+  description = "Regiao usada pelo deploy da aplicacao e pelo SecretStore."
+  value       = var.aws_region
+}
+
+output "vpc_id" {
+  description = "VPC usada pelo AWS Load Balancer Controller."
+  value       = data.aws_vpc.default.id
+}
+
 output "eks_cluster_name" {
   description = "Nome do cluster EKS."
   value       = aws_eks_cluster.mechanics_api.name

@@ -5,7 +5,7 @@ metadata:
   labels:
     app: mechanics-api
 spec:
-  replicas: 2
+  # O HPA controla as replicas; reaplicar o deploy nao deve redefinir a escala.
   revisionHistoryLimit: 3
   progressDeadlineSeconds: 600
   strategy:
@@ -28,6 +28,11 @@ spec:
           # que inclua o Actuator. Nao use uma imagem anterior a esta etapa.
           image: SUBSTITUA_PELO_REPOSITORIO_ECR:SUBSTITUA_PELA_TAG_DO_COMMIT
           imagePullPolicy: IfNotPresent
+          env:
+            - name: SPRING_FLYWAY_ENABLED
+              value: "false"
+            - name: SPRING_JPA_HIBERNATE_DDL_AUTO
+              value: validate
           ports:
             - name: http
               containerPort: 8080

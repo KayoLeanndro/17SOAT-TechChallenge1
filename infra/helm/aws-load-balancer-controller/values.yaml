@@ -1,0 +1,13 @@
+replicaCount: 2
+serviceAccount:
+  create: true
+  name: aws-load-balancer-controller
+
+# Este projeto usa Ingress; nao depende das CRDs da Gateway API.
+controllerConfig:
+  featureGates:
+    ALBGatewayAPI: false
+    NLBGatewayAPI: false
+    GatewayListenerSet: false
+
+enableServiceMutatorWebhook: false

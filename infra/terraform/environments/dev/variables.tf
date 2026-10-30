@@ -4,6 +4,12 @@ variable "aws_region" {
   default     = "us-east-1"
 }
 
+variable "github_actions_role_name" {
+  description = "Role OIDC da pipeline autorizada a ler a senha atual do banco."
+  type        = string
+  default     = "github-actions-mechanics-api-dev"
+}
+
 variable "db_name" {
   description = "Nome da instância do banco de dados."
   type        = string
