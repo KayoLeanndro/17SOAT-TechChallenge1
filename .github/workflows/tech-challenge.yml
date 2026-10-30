@@ -50,6 +50,7 @@ jobs:
         run: docker build --tag mechanics-api:${{ github.sha }} .
 
       - name: Validar migrations e schema em PostgreSQL vazio
+        timeout-minutes: 5
         run: python scripts/tests/test-migrations-docker.py mechanics-api:${{ github.sha }}
 
       - name: Exportar imagem validada
