@@ -59,9 +59,16 @@
       ]
     },
     {
+      "Sid": "DescribeDatabasesInDeploymentRegion",
+      "Effect": "Allow",
+      "Action": ["rds:DescribeDBInstances"],
+      "Resource": "arn:aws:rds:us-east-1:570903461728:db:*",
+      "Condition": {"StringEquals": {"aws:RequestedRegion": "us-east-1"}}
+    },
+    {
       "Sid": "ReadApplicationDatabase",
       "Effect": "Allow",
-      "Action": ["rds:DescribeDBInstances", "rds:DescribeDBSubnetGroups", "rds:ListTagsForResource"],
+      "Action": ["rds:DescribeDBSubnetGroups", "rds:ListTagsForResource"],
       "Resource": [
         "arn:aws:rds:us-east-1:570903461728:db:mechanics-api-dev-postgres",
         "arn:aws:rds:us-east-1:570903461728:subgrp:mechanics-api"
@@ -70,7 +77,7 @@
     {
       "Sid": "ReadApplicationSecretMetadata",
       "Effect": "Allow",
-      "Action": ["secretsmanager:DescribeSecret"],
+      "Action": ["secretsmanager:DescribeSecret", "secretsmanager:GetResourcePolicy"],
       "Resource": "arn:aws:secretsmanager:us-east-1:570903461728:secret:mechanics-api/dev/application-4LyiGN"
     },
     {
