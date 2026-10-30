@@ -1,0 +1,90 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "ReadApplicationInfrastructureRoles",
+      "Effect": "Allow",
+      "Action": [
+        "iam:GetRole",
+        "iam:GetRolePolicy",
+        "iam:ListRolePolicies",
+        "iam:ListAttachedRolePolicies"
+      ],
+      "Resource": [
+        "arn:aws:iam::570903461728:role/mechanics-api-dev-eks-cluster",
+        "arn:aws:iam::570903461728:role/mechanics-api-dev-eks-node",
+        "arn:aws:iam::570903461728:role/mechanics-api-dev-external-secrets",
+        "arn:aws:iam::570903461728:role/mechanics-api-dev-load-balancer-controller"
+      ]
+    },
+    {
+      "Sid": "ReadLoadBalancerControllerPolicy",
+      "Effect": "Allow",
+      "Action": ["iam:GetPolicy", "iam:GetPolicyVersion", "iam:ListPolicyTags"],
+      "Resource": "arn:aws:iam::570903461728:policy/mechanics-api-dev-load-balancer-controller"
+    },
+    {
+      "Sid": "DescribeNetworkInDeploymentRegion",
+      "Effect": "Allow",
+      "Action": [
+        "ec2:DescribeVpcs",
+        "ec2:DescribeVpcAttribute",
+        "ec2:DescribeSubnets",
+        "ec2:DescribeSecurityGroups",
+        "ec2:DescribeSecurityGroupRules",
+        "ec2:DescribeTags"
+      ],
+      "Resource": "*",
+      "Condition": {"StringEquals": {"aws:RequestedRegion": "us-east-1"}}
+    },
+    {
+      "Sid": "ReadExistingApplicationCluster",
+      "Effect": "Allow",
+      "Action": [
+        "eks:DescribeCluster",
+        "eks:DescribeNodegroup",
+        "eks:DescribeAddon",
+        "eks:DescribeAccessEntry",
+        "eks:ListAssociatedAccessPolicies",
+        "eks:DescribePodIdentityAssociation",
+        "eks:ListTagsForResource"
+      ],
+      "Resource": [
+        "arn:aws:eks:us-east-1:570903461728:cluster/mechanics-api-dev",
+        "arn:aws:eks:us-east-1:570903461728:nodegroup/mechanics-api-dev/mechanics-api-dev-nodes/*",
+        "arn:aws:eks:us-east-1:570903461728:addon/mechanics-api-dev/metrics-server/*",
+        "arn:aws:eks:us-east-1:570903461728:addon/mechanics-api-dev/eks-pod-identity-agent/*",
+        "arn:aws:eks:us-east-1:570903461728:access-entry/mechanics-api-dev/*",
+        "arn:aws:eks:us-east-1:570903461728:podidentityassociation/mechanics-api-dev/*"
+      ]
+    },
+    {
+      "Sid": "ReadApplicationDatabase",
+      "Effect": "Allow",
+      "Action": ["rds:DescribeDBInstances", "rds:DescribeDBSubnetGroups", "rds:ListTagsForResource"],
+      "Resource": [
+        "arn:aws:rds:us-east-1:570903461728:db:mechanics-api-dev-postgres",
+        "arn:aws:rds:us-east-1:570903461728:subgrp:mechanics-api"
+      ]
+    },
+    {
+      "Sid": "ReadApplicationSecretMetadata",
+      "Effect": "Allow",
+      "Action": ["secretsmanager:DescribeSecret"],
+      "Resource": "arn:aws:secretsmanager:us-east-1:570903461728:secret:mechanics-api/dev/application-4LyiGN"
+    },
+    {
+      "Sid": "ReadPublishedImageMetadata",
+      "Effect": "Allow",
+      "Action": ["ecr:DescribeImages"],
+      "Resource": "arn:aws:ecr:us-east-1:570903461728:repository/mechanics-api"
+    },
+    {
+      "Sid": "CheckLoadBalancerReadiness",
+      "Effect": "Allow",
+      "Action": ["elasticloadbalancing:DescribeLoadBalancers"],
+      "Resource": "*",
+      "Condition": {"StringEquals": {"aws:RequestedRegion": "us-east-1"}}
+    }
+  ]
+}
