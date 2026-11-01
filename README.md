@@ -8,21 +8,6 @@ Este projeto faz parte do **Tech Challenge da FIAP**, com evolução da aplicaç
 
 Na Fase 2, a API é empacotada em Docker e executada no Amazon EKS, com PostgreSQL no Amazon RDS, acesso público por ALB, escala dos pods por HPA e credenciais no AWS Secrets Manager. O GitHub Actions testa a aplicação, publica a imagem e executa as migrations antes de atualizar os pods.
 
-## Situação atual
-
-Conferência realizada em **31/10/2026**:
-
-| Componente | Situação |
-| --- | --- |
-| CI/CD do fork | [Execução completa com sucesso](https://github.com/KayoLeanndro/17SOAT-TechChallenge1/actions/runs/41138808823): testes, publicação no ECR, migrations e deploy. |
-| API no EKS | Deployment disponível, com três pods `Ready` e sem reinícios na consulta. A quantidade varia conforme o HPA. |
-| Migrations | V1 a V6 versionadas; Job Kubernetes concluído antes do rollout. |
-| Escala | HPA ativo de 2 a 6 pods; aumento de 2 → 4 → 6 validado com carga sintética. |
-| Acesso público | Ingress ALB HTTP para API, Swagger e OpenAPI. |
-| Credenciais | External Secrets Operator sincroniza o segredo da aplicação via EKS Pod Identity. |
-
-O ambiente é de desenvolvimento. HTTPS, observabilidade centralizada, recuperação e separação entre provisionamento de infraestrutura e deploy continuam como evoluções descritas ao final deste documento. Este status não declara concluída a auditoria de todos os requisitos da Fase 2.
-
 ## Funcionalidades
 
 - Cadastro e manutenção de clientes, veículos e usuários internos.
@@ -474,27 +459,3 @@ Os relatórios HTML do ZAP são evidências geradas localmente e não são versi
     ├── main/resources/db/migration/       # SQLs Flyway V1 a V6
     └── test/                              # Testes da aplicação
 ```
-
-## Documentação complementar
-
-| Documento | Conteúdo |
-| --- | --- |
-| [Deploy e escala](k8s/deploy-eks.md) | Pré-requisitos, pipeline, HPA e execução manual. |
-| [Migrations](k8s/migrations.md) | Job Flyway, falhas, histórico e teste com PostgreSQL vazio. |
-| [ALB e acesso público](k8s/alb.md) | Ingress, controlador e operação do acesso HTTP. |
-| [Secrets Manager](k8s/secrets-manager.md) | Cadastro, sincronização e atualização das credenciais. |
-| [Preparação IAM do CI/CD](infra/iam/README.md) | Trust, políticas e limites da role de deploy. |
-| [Bootstrap Terraform](docs/terraform/terraform-bootstrap.md) | Preparação do bucket e migração de state. |
-| [Registro do deploy AWS](docs/registro-deploy-2026-10-29.md) | Evidências e histórico da implementação inicial. |
-| [Checklist da Fase 2](docs/implementacao-fase-2.md) | Acompanhamento dos requisitos; contém anotações históricas que devem ser confrontadas com o status atual deste README. |
-
-## Próximas evoluções
-
-- Separar o provisionamento da infraestrutura do deploy da aplicação, com identidades e permissões próprias.
-- Configurar domínio e HTTPS no ALB para uso com credenciais reais.
-- Centralizar logs e criar alertas para aplicação, migrations, pods e banco.
-- Validar carga de negócio e procedimentos de rollback da aplicação e recuperação do banco.
-- Revisar disponibilidade e backups antes de uso em produção: o dev atual é Single-AZ, tem um dia de retenção de backups e está sem proteção de exclusão do RDS.
-- Auditar a arquitetura dos contextos e consolidar as evidências exigidas para a Fase 2.
-
-O ambiente AWS ativo gera cobrança. Para removê-lo, exclua primeiro o Ingress e aguarde o controlador remover o ALB; depois execute o procedimento Terraform com a identidade de infraestrutura autorizada. O bootstrap tem state separado e não é removido junto com o ambiente dev.
