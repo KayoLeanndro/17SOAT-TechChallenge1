@@ -1,0 +1,40 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  generateName: mechanics-api-migrate-
+  namespace: default
+  labels:
+    app: mechanics-api-migrations
+spec:
+  backoffLimit: 0
+  activeDeadlineSeconds: 600
+  ttlSecondsAfterFinished: 86400
+  template:
+    metadata:
+      labels:
+        # Diferente do Service/HPA da API: este pod nao recebe trafego HTTP.
+        app: mechanics-api-migrations
+    spec:
+      restartPolicy: Never
+      automountServiceAccountToken: false
+      containers:
+        - name: migrations
+          image: SUBSTITUA_PELO_REPOSITORIO_ECR:SUBSTITUA_PELA_TAG_DO_COMMIT
+          imagePullPolicy: IfNotPresent
+          args: ["--migrate-only"]
+          envFrom:
+            - configMapRef:
+                name: mechanics-api-config
+          env:
+            - name: SPRING_DATASOURCE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mechanics-api-secrets
+                  key: SPRING_DATASOURCE_PASSWORD
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "256Mi"
+            limits:
+              cpu: "1"
+              memory: "512Mi"

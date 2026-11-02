@@ -4,10 +4,22 @@ variable "aws_region" {
   default     = "us-east-1"
 }
 
+variable "github_actions_role_name" {
+  description = "Role OIDC da pipeline autorizada a ler a senha atual do banco."
+  type        = string
+  default     = "github-actions-mechanics-api-dev"
+}
+
 variable "db_name" {
   description = "Nome da instância do banco de dados."
   type        = string
   default     = "mechanics"
+}
+
+variable "application_secret_name" {
+  description = "Nome do segredo no Secrets Manager. Alinhe remoteRef.key em k8s/external-secret.yaml se alterar."
+  type        = string
+  default     = "mechanics-api/dev/application"
 }
 
 variable "db_username" {

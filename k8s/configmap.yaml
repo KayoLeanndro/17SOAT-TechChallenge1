@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mechanics-api-config
+  labels:
+    app: mechanics-api
+data:
+  # Confira porta, nome do banco e usuario caso tenha alterado as variaveis do dev.
+  SPRING_DATASOURCE_URL: "jdbc:postgresql://SUBSTITUA_PELO_ENDPOINT_RDS:5432/mechanics"
+  SPRING_DATASOURCE_USERNAME: "mechanics_admin"
+  SERVER_PORT: "8080"

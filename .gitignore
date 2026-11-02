@@ -1,6 +1,9 @@
 HELP.md
 target/
 .env
+# Kubernetes: arquivos locais com credenciais reais.
+/k8s/secret.local.yaml
+/k8s/*.secret.env
 zap-api-report*.html
 .mvn/wrapper/maven-wrapper.jar
 !**/src/main/**/target/
@@ -43,6 +46,8 @@ build/
 infra/terraform/**/backend.hcl
 !infra/terraform/**/backend.hcl.example
 tfplan
+# Nome usado no plano local atual; planos podem conter valores sensiveis.
+/infra/terraform/environments/dev/tfpla
 *.tfplan
 *.tfvars
 !*.tfvars.example

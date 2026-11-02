@@ -31,6 +31,21 @@ output "db_address" {
   value       = aws_db_instance.postgres.address
 }
 
+output "application_secret_name" {
+  description = "Nome do segredo cujos valores devem ser cadastrados no Secrets Manager."
+  value       = aws_secretsmanager_secret.application.name
+}
+
+output "application_secret_arn" {
+  description = "ARN do segredo que o operador pode ler. Nao contem os valores."
+  value       = aws_secretsmanager_secret.application.arn
+}
+
+output "external_secrets_role_arn" {
+  description = "Role associada ao ServiceAccount do External Secrets Operator via Pod Identity."
+  value       = aws_iam_role.external_secrets.arn
+}
+
 output "db_port" {
   description = "Porta do PostgreSQL."
   value       = aws_db_instance.postgres.port
@@ -39,6 +54,21 @@ output "db_port" {
 output "db_name" {
   description = "Nome do banco da aplicacao."
   value       = aws_db_instance.postgres.db_name
+}
+
+output "db_username" {
+  description = "Usuario do banco usado para configurar a aplicacao."
+  value       = aws_db_instance.postgres.username
+}
+
+output "aws_region" {
+  description = "Regiao usada pelo deploy da aplicacao e pelo SecretStore."
+  value       = var.aws_region
+}
+
+output "vpc_id" {
+  description = "VPC usada pelo AWS Load Balancer Controller."
+  value       = data.aws_vpc.default.id
 }
 
 output "eks_cluster_name" {
