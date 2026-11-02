@@ -1,6 +1,6 @@
 INSERT INTO usuario (nome, login, senha_hash, tipo, data_criacao)
 SELECT 'Sistema de estoque', 'sistema-estoque',
-       '$2a$10$6qbDSYeNaTOXM03CUIuMnODFnInUtdd99MjpEsvRchkrVo0.C7qRi',
+       '$2a$12$0xx//30eokeHSpYa4pQ9iekFAV/8YhwQM88CsNvVwk/5MXhHp1dTm',
        'ADMIN', CURRENT_TIMESTAMP
 WHERE NOT EXISTS (
     SELECT 1 FROM usuario WHERE login = 'sistema-estoque'
